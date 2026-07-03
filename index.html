@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>ХРОНИКИ ВАЛЬДОРА — карта и бой</title>
+<style>
+  :root{
+    --bg:#1c140d; --panel:#2a1f15; --panel-2:#33261a;
+    --parchment:#ecdfbf; --parchment-2:#e0d0a8; --ink:#2b1d10; --fg:#ecdfc7;
+    --muted:#a5947a; --gold:#c79a3a; --wine:#7d2e2e; --forest:#4a6a48; --steel:#6c7a85;
+    --line:#42321f; --line-parch:#c2ab7c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:radial-gradient(ellipse at top,#2a1e12 0%,var(--bg) 60%);
+    color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  h1,h2,h3,.display{font-family:Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:.03em;margin:0;}
+  #app{max-width:1180px;margin:0 auto;padding:18px 16px 60px;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--line);
+    padding-bottom:12px;margin-bottom:10px;flex-wrap:wrap;gap:10px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:36px;height:36px;border:2px solid var(--gold);border-radius:4px;transform:rotate(45deg);
+    display:flex;align-items:center;justify-content:center;color:var(--gold);}
+  .brand-mark span{transform:rotate(-45deg);font-weight:800;font-family:Georgia,serif;}
+  .brand h1{font-size:20px;color:var(--parchment);text-transform:uppercase;}
+  .brand small{display:block;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-family:ui-monospace,monospace;}
+  .clock{text-align:right;font-family:ui-monospace,monospace;font-size:12px;color:var(--muted);}
+  .clock b{color:var(--gold);font-size:16px;display:block;}
+
+  .ticker-wrap{overflow:hidden;background:#140d08;border:1px solid var(--line);border-radius:4px;
+    margin-bottom:16px;white-space:nowrap;position:relative;}
+  .ticker-wrap:before{content:"ВЕСТИ";position:absolute;left:0;top:0;bottom:0;background:var(--wine);
+    color:#f4e9d0;font-size:10px;letter-spacing:.1em;display:flex;align-items:center;padding:0 10px;font-weight:700;z-index:2;}
+  .ticker{display:inline-block;padding:8px 0 8px 84px;animation:ticker 34s linear infinite;font-size:12px;color:var(--fg);font-family:ui-monospace,monospace;}
+  .ticker span{margin-right:40px;color:var(--muted);}
+  @keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+  .grid{display:grid;grid-template-columns:280px 1fr;gap:16px;}
+  @media (max-width:820px){.grid{grid-template-columns:1fr;}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;}
+  .panel h3{font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:.1em;text-transform:uppercase;}
+
+  .dossier{background:var(--parchment);color:var(--ink);border-radius:4px;padding:16px;position:relative;
+    box-shadow:0 6px 18px rgba(0,0,0,.4);border:1px solid var(--line-parch);
+    background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.02) 0 2px, transparent 2px 4px);}
+  .seal{position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:50%;border:3px double var(--wine);
+    color:var(--wine);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;
+    text-align:center;font-family:ui-monospace,monospace;transform:rotate(8deg);opacity:.85;line-height:1.1;}
+  .dossier h2{font-size:19px;}
+  .dossier .role{font-family:ui-monospace,monospace;font-size:11px;color:var(--wine);letter-spacing:.06em;margin-top:2px;}
+  .attr-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--line-parch);}
+  .attr-row b{font-family:ui-monospace,monospace;}
+  .bar{height:5px;background:#d3c393;border-radius:3px;overflow:hidden;width:84px;}
+  .bar i{display:block;height:100%;background:var(--ink);opacity:.55;}
+  .hpbar{height:8px;background:#3a2a1a;border-radius:4px;overflow:hidden;width:100%;border:1px solid var(--line);}
+  .hpbar i{display:block;height:100%;background:linear-gradient(90deg,#7d2e2e,#c25b4f);transition:width .3s ease;}
+
+  .stat-mini{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--line);}
+  .stat-mini b{font-family:ui-monospace,monospace;color:var(--gold);}
+
+  .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:4px;
+    font-size:12px;letter-spacing:.05em;cursor:pointer;text-transform:uppercase;font-weight:600;}
+  .tab.active{background:var(--gold);color:#241a08;border-color:var(--gold);}
+  .tab:hover:not(.active){color:var(--fg);border-color:var(--muted);}
+
+  .card{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:12px;}
+  .card h4{font-size:13px;letter-spacing:.04em;color:var(--parchment);margin:0 0 8px;text-transform:uppercase;}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .muted{color:var(--muted);font-size:12px;}
+
+  button{background:var(--gold);color:#241a08;border:none;padding:9px 14px;border-radius:4px;font-weight:700;
+    font-size:12px;letter-spacing:.02em;cursor:pointer;text-transform:uppercase;}
+  button:hover{filter:brightness(1.08);}
+  button:disabled{background:#4a4236;color:#8a8172;cursor:not-allowed;}
+  button.secondary{background:transparent;border:1px solid var(--muted);color:var(--fg);}
+  button.wine{background:var(--wine);color:#f4e9d0;}
+  button.forest{background:var(--forest);color:#eef4ec;}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{text-align:left;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);
+    text-transform:uppercase;letter-spacing:.05em;font-size:10px;}
+  td{padding:7px 8px;border-bottom:1px solid var(--line);font-family:ui-monospace,monospace;}
+  tr.me td{color:var(--gold);}
+
+  .pos{color:#8fae74;} .neg{color:#c25b4f;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;}
+  .badge.g{background:rgba(143,174,116,.18);color:#8fae74;}
+  .badge.r{background:rgba(194,91,79,.18);color:#c25b4f;}
+  .badge.a{background:rgba(199,154,58,.18);color:var(--gold);}
+
+  .country-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px;}
+  .country-pick .card{cursor:pointer;}
+  .country-pick .card:hover{border-color:var(--gold);}
+  .country-pick .card.sel{border-color:var(--gold);background:#3a2c17;}
+
+  .onboard{max-width:640px;margin:50px auto;text-align:center;}
+  .onboard .display{font-size:32px;color:var(--parchment);}
+  .onboard .sub{color:var(--muted);font-size:13px;margin:10px 0 4px;font-family:ui-monospace,monospace;}
+
+  .log-item{font-size:12px;padding:6px 0;border-bottom:1px solid var(--line);}
+  .log-item .t{color:var(--muted);font-family:ui-monospace,monospace;margin-right:8px;font-size:10px;}
+
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--panel-2);border:1px solid var(--gold);padding:12px 16px;
+    border-radius:6px;font-size:12px;max-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slidein .25s ease;z-index:50;}
+  @keyframes slidein{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+  /* ---- JRPG map ---- */
+  .map-wrap{background:#0e0b06;border:3px solid var(--line);border-radius:6px;padding:8px;display:flex;justify-content:center;}
+  canvas{image-rendering:pixelated;border-radius:2px;}
+  .dpad{display:grid;grid-template-columns:44px 44px 44px;grid-template-rows:44px 44px 44px;gap:4px;justify-content:center;margin:14px auto 0;}
+  .dpad button{padding:0;font-size:16px;border-radius:4px;}
+  .dpad .mid{background:var(--panel-2);color:var(--muted);display:flex;align-items:center;justify-content:center;}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;font-size:11px;color:var(--muted);justify-content:center;}
+  .legend span{white-space:nowrap;}
+  .loc-title{font-size:15px;color:var(--parchment);margin-bottom:4px;}
+  .loc-desc{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .minimap-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .minimap-wrap canvas{border:2px solid var(--line);border-radius:3px;}
+
+  /* ---- Battle screen ---- */
+  .battle-stage{position:relative;height:230px;border-radius:6px;overflow:hidden;border:3px solid var(--line);margin-bottom:10px;}
+  .battle-bg-forest{background:linear-gradient(#1c3d22 0%, #16301a 55%, #0e2412 100%);}
+  .battle-bg-mine{background:linear-gradient(#2b241c 0%, #221c16 55%, #171310 100%);}
+  .battle-bg-field{background:linear-gradient(#2e4a2a 0%, #243c20 55%, #1a2c17 100%);}
+  .battle-ground{position:absolute;left:0;right:0;bottom:0;height:70px;background:rgba(0,0,0,.28);
+    box-shadow:inset 0 6px 14px rgba(0,0,0,.4);}
+  .enemy-slot{position:absolute;right:34px;top:22px;text-align:center;}
+  .enemy-sprite{font-size:76px;line-height:1;display:inline-block;animation:bob 2.4s ease-in-out infinite;
+    filter:drop-shadow(0 10px 6px rgba(0,0,0,.55));}
+  .enemy-sprite.hit{animation:hitshake .35s;filter:drop-shadow(0 0 14px #c25b4f) brightness(1.7);}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+  @keyframes hitshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-9px);}75%{transform:translateX(9px);}}
+  .enemy-name{font-size:12px;color:var(--parchment);margin-top:4px;}
+  .enemy-hp{width:150px;margin:5px auto 0;}
+  .player-slot{position:absolute;left:26px;bottom:14px;font-size:58px;filter:drop-shadow(0 8px 5px rgba(0,0,0,.55));}
+  .player-slot.hit{animation:hitshake .35s;}
+  .battle-stage.shake{animation:screenshake .35s;}
+  @keyframes screenshake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+  .float-dmg{position:absolute;left:50%;top:6px;transform:translateX(-50%);font-family:ui-monospace,monospace;
+    font-weight:800;font-size:19px;animation:floatUp .85s ease-out forwards;pointer-events:none;text-shadow:0 2px 3px rgba(0,0,0,.6);}
+  .float-dmg.dmg{color:#e8544a;}
+  .float-dmg.crit{color:#ffd35c;font-size:23px;}
+  .float-dmg.heal{color:#8fae74;}
+  @keyframes floatUp{0%{opacity:0;transform:translate(-50%,10px);}20%{opacity:1;}100%{opacity:0;transform:translate(-50%,-48px);}}
+
+  .battle-status{display:grid;grid-template-columns:190px 1fr;gap:10px;margin-bottom:10px;}
+  @media (max-width:520px){.battle-status{grid-template-columns:1fr;}}
+  .status-box{background:var(--panel-2);border:2px solid var(--line);border-radius:4px;padding:10px;}
+  .msg-box{background:#0e0b06;border:2px solid var(--line);border-radius:4px;padding:10px 34px 10px 10px;font-size:12px;
+    color:var(--parchment);font-family:ui-monospace,monospace;min-height:56px;position:relative;line-height:1.5;}
+  .msg-box .blink{position:absolute;right:10px;bottom:8px;animation:blink 1s step-start infinite;color:var(--gold);}
+  @keyframes blink{50%{opacity:0;}}
+  .cmd-window{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;
+    background:var(--panel-2);border:2px solid var(--line);border-radius:4px;padding:10px;}
+  .cmd-window button{text-align:left;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================= DATA ============================= */
+const ATTR_NAMES = {strength:"Сила", agility:"Ловкость", intelligence:"Разум", charisma:"Харизма", faith:"Вера", luck:"Удача"};
+const ITEM_NAMES = {grain:"🌾 Зерно", iron:"⛏️ Железо", wood:"🪵 Дерево", herbs:"🌿 Травы"};
+
+let KINGDOMS = [
+  {id:"valdor", name:"Вальдор", banner:"🦁", ruler:"Король Эдрик III", population:640_000, treasury:3200, granary:410, army:74, unrest:22, prestige:8,
+   price:{grain:8, iron:16, wood:6, herbs:11}},
+  {id:"norfell", name:"Норфелл", banner:"🐺", ruler:"Ярл Гуннар", population:410_000, treasury:2100, granary:260, army:88, unrest:34, prestige:-4,
+   price:{grain:9, iron:14, wood:7, herbs:10}},
+  {id:"sunheim", name:"Солнхейм", banner:"☀️", ruler:"Королева Ансельма", population:520_000, treasury:2800, granary:350, army:61, unrest:18, prestige:14,
+   price:{grain:7, iron:18, wood:6, herbs:13}},
+];
+
+const PATHS = {
+  warrior:{name:"Путь меча", icon:"⚔️", tiers:[
+    {code:"squire", name:"Оруженосец", req:{strength:22}},
+    {code:"knight", name:"Рыцарь", req:{strength:42, agility:26, gold:350}},
+    {code:"baron", name:"Барон", req:{reputation:35, gold:1000}},
+    {code:"duke", name:"Герцог", req:{reputation:70, gold:2600}},
+  ]},
+  cleric:{name:"Путь веры", icon:"⛪", tiers:[
+    {code:"novice", name:"Послушник", req:{faith:20}},
+    {code:"priest", name:"Священник", req:{faith:42, gold:280}},
+    {code:"bishop", name:"Епископ", req:{faith:68, reputation:38, gold:850}},
+    {code:"cardinal", name:"Кардинал", req:{faith:95, reputation:70, gold:2300}},
+  ]},
+  craft:{name:"Путь ремесла", icon:"🔨", tiers:[
+    {code:"apprentice", name:"Подмастерье", req:{intelligence:20}},
+    {code:"master", name:"Мастер гильдии", req:{intelligence:42, gold:320}},
+    {code:"guildmaster", name:"Гильдмейстер", req:{intelligence:65, reputation:38, gold:900}},
+    {code:"grandmaster", name:"Верховный гильдмейстер", req:{intelligence:92, reputation:70, gold:2400}},
+  ]},
+  shadow:{name:"Путь тени", icon:"🗡️", tiers:[
+    {code:"thief", name:"Вор", req:{agility:20}},
+    {code:"spy", name:"Соглядатай", req:{agility:42, gold:260}},
+    {code:"shadowmaster", name:"Мастер теней", req:{agility:65, reputation:34, gold:800}},
+    {code:"nightlord", name:"Владыка ночи", req:{agility:90, reputation:65, gold:2200}},
+  ]},
+  court:{name:"Путь двора", icon:"👑", tiers:[
+    {code:"page", name:"Паж", req:{charisma:20}},
+    {code:"advisor", name:"Советник", req:{charisma:42, gold:320}},
+    {code:"chancellor", name:"Канцлер", req:{charisma:65, reputation:38, gold:900}},
+    {code:"regent", name:"Регент", req:{charisma:92, reputation:70, gold:2400}},
+  ]},
+};
+
+const WEAPONS = [
+  {id:"none", name:"Голые руки", dmg:0, price:0},
+  {id:"dagger", name:"Кинжал", dmg:4, price:80},
+  {id:"sword", name:"Меч", dmg:9, price:220},
+  {id:"hammer", name:"Боевой молот", dmg:14, price:500},
+];
+const ARMORS = [
+  {id:"none", name:"Простая одежда", def:0, price:0},
+  {id:"leather", name:"Кожаный доспех", def:3, price:100},
+  {id:"chain", name:"Кольчуга", def:7, price:300},
+  {id:"plate", name:"Латы", def:13, price:700},
+];
+
+const MONSTERS_BY_MAP = {
+  forest:[
+    {name:"Волк", icon:"🐺", maxHp:24, atk:6, reward:{gold:20,xp:15}},
+    {name:"Лихой разбойник", icon:"🗡️", maxHp:34, atk:9, reward:{gold:45,xp:25}},
+    {name:"Огромный кабан", icon:"🐗", maxHp:30, atk:8, reward:{gold:35,xp:20}},
+  ],
+  mine:[
+    {name:"Ошалевший рудокоп", icon:"⛏️", maxHp:28, atk:7, reward:{gold:30,xp:18}},
+    {name:"Каменный голем", icon:"🗿", maxHp:50, atk:10, reward:{gold:70,xp:40}},
+    {name:"Пещерная летучая тварь", icon:"🦇", maxHp:20, atk:9, reward:{gold:25,xp:16}},
+  ],
+};
+const BOSSES = {
+  boss_forest:{name:"Волк-оборотень", icon:"🐺", maxHp:95, atk:16, reward:{gold:220,xp:120}},
+  boss_mine:{name:"Горный тролль", icon:"👹", maxHp:115, atk:18, reward:{gold:280,xp:150}},
+};
+
+const EVENT_POOL = [
+  {text:"Чума прошла по деревням", type:"bad", effect:k=>{k.population-=Math.round(k.population*0.01); k.unrest+=5;}},
+  {text:"Собран богатый урожай", type:"good", effect:k=>{k.granary+=60; k.treasury+=40;}},
+  {text:"Отряд разбойников разграбил обоз", type:"bad", effect:k=>{k.treasury-=80; k.unrest+=4;}},
+  {text:"Устроена большая ярмарка", type:"good", effect:k=>{k.treasury+=90; k.prestige+=2;}},
+  {text:"В небе видели знамение", type:"neutral", effect:k=>{k.unrest=Math.max(0,k.unrest-3);}},
+  {text:"Пожар уничтожил часть амбаров", type:"bad", effect:k=>{k.granary-=50;}},
+  {text:"Открыты новые пахотные земли", type:"good", effect:k=>{k.population+=1500; k.prestige+=1;}},
+  {text:"Заговор при дворе раскрыт", type:"bad", effect:k=>{k.prestige-=3; k.unrest+=3;}},
+];
+const AI_NAMES = ["Лорд Освин","Леди Мирейн","Барон Гальт","Граф Ролант","Виконтесса Эда"];
+
+/* ============================= MAPS (мир + мини-карты локаций) ============================= */
+const MAPS = {
+  world:{
+    id:"world", w:11, h:8, biome:"world", title:"Карта королевства Вальдор",
+    start:{x:5,y:5},
+    points:[
+      {x:5,y:4, icon:"🏘️", name:"Деревня Вальдор", kind:"enter", target:"village"},
+      {x:5,y:1, icon:"🏰", name:"Замок лорда", kind:"enter", target:"castle"},
+      {x:1,y:6, icon:"🌲", name:"Тёмный лес", kind:"enter", target:"forest"},
+      {x:9,y:6, icon:"⛰️", name:"Рудные горы", kind:"enter", target:"mine"},
+      {x:5,y:7, icon:"🌾", name:"Фермы", kind:"enter", target:"farm"},
+      {x:10,y:3, icon:"🌉", name:"Восточный тракт", kind:"action", action:"road"},
+      {x:0,y:3, icon:"🌉", name:"Западный тракт", kind:"action", action:"road"},
+    ], danger:false,
+  },
+  village:{
+    id:"village", w:7, h:5, biome:"village", title:"Деревня Вальдор",
+    start:{x:3,y:4}, back:{to:"world", x:5,y:4},
+    points:[
+      {x:1,y:1, icon:"⛪", name:"Церковь", kind:"action", action:"church"},
+      {x:5,y:1, icon:"🏪", name:"Рынок", kind:"action", action:"market"},
+      {x:1,y:3, icon:"🍺", name:"Таверна", kind:"action", action:"tavern"},
+      {x:5,y:3, icon:"⚔️", name:"Двор тренировок", kind:"action", action:"yard"},
+      {x:3,y:1, icon:"🗡️", name:"Тёмный переулок", kind:"action", action:"den"},
+      {x:3,y:4, icon:"🏠", name:"Дом", kind:"action", action:"home"},
+      {x:0,y:4, icon:"🌍", name:"Выйти в поля", kind:"exit"},
+    ], danger:false,
+  },
+  castle:{
+    id:"castle", w:5, h:5, biome:"castle", title:"Замок лорда",
+    start:{x:2,y:4}, back:{to:"world", x:5,y:1},
+    points:[
+      {x:2,y:1, icon:"👑", name:"Тронный зал", kind:"action", action:"throne"},
+      {x:0,y:2, icon:"🗄️", name:"Казначейство", kind:"action", action:"treasury"},
+      {x:4,y:2, icon:"🛡️", name:"Оружейная", kind:"action", action:"armory"},
+      {x:2,y:4, icon:"🌍", name:"Выйти из замка", kind:"exit"},
+    ], danger:false,
+  },
+  forest:{
+    id:"forest", w:8, h:6, biome:"forest", title:"Тёмный лес",
+    start:{x:0,y:5}, back:{to:"world", x:1,y:6},
+    points:[
+      {x:2,y:2, icon:"🌿", name:"Поляна трав", kind:"action", action:"herbs"},
+      {x:5,y:1, icon:"🌿", name:"Заросли трав", kind:"action", action:"herbs"},
+      {x:6,y:4, icon:"🪵", name:"Лесоповал", kind:"action", action:"wood"},
+      {x:7,y:0, icon:"💀", name:"Логово зверя", kind:"action", action:"boss_forest"},
+      {x:0,y:5, icon:"🌍", name:"Выйти из леса", kind:"exit"},
+    ], danger:true,
+  },
+  mine:{
+    id:"mine", w:8, h:6, biome:"mine", title:"Рудные горы",
+    start:{x:0,y:5}, back:{to:"world", x:9,y:6},
+    points:[
+      {x:3,y:2, icon:"⛏️", name:"Рудная жила", kind:"action", action:"ore"},
+      {x:6,y:1, icon:"⛏️", name:"Глубокая жила", kind:"action", action:"ore"},
+      {x:7,y:3, icon:"💎", name:"Логово тролля", kind:"action", action:"boss_mine"},
+      {x:0,y:5, icon:"🌍", name:"Выйти из шахты", kind:"exit"},
+    ], danger:true,
+  },
+  farm:{
+    id:"farm", w:6, h:4, biome:"field", title:"Фермы",
+    start:{x:0,y:3}, back:{to:"world", x:5,y:7},
+    points:[
+      {x:3,y:1, icon:"🌾", name:"Поле пшеницы", kind:"action", action:"grain"},
+      {x:0,y:3, icon:"🌍", name:"Выйти к дороге", kind:"exit"},
+    ], danger:false,
+  },
+};
+
+/* ============================= STATE ============================= */
+let state = {
+  started:false,
+  day:1,
+  ap:4, maxAp:4,
+  activeTab:"map",
+  player:null,
+  kingdoms: JSON.parse(JSON.stringify(KINGDOMS)),
+  log:[],
+  toast:null,
+  currentMap:"world",
+  currentLoc:null,
+  encounter:null,
+  turnLock:false,
+  fx:{enemyHit:false, playerHit:false, shake:false},
+  floatText:[],
+  succession:null,
+  _pickedKingdom:null,
+};
+
+function findKingdom(id){return state.kingdoms.find(k=>k.id===id);}
+function log(text, tone){ state.log.unshift({t:"День "+state.day, text, tone:tone||"n"}); if(state.log.length>60) state.log.pop(); }
+function showToast(text){ state.toast=text; render(); setTimeout(()=>{state.toast=null; render();}, 2600); }
+function fmt(n){ return Math.round(n).toLocaleString('ru-RU'); }
+
+/* ============================= ONBOARDING ============================= */
+function pickKingdom(id){ state._pickedKingdom=id; render(); }
+
+function startGame(name){
+  const kid = state._pickedKingdom || KINGDOMS[0].id;
+  state.player = {
+    name: name || "Странник",
+    kingdomId: kid,
+    title: "Крестьянин",
+    isRuler:false,
+    level:1, xp:0,
+    hp:100, maxHp:100,
+    strength:16, agility:16, intelligence:16, charisma:16, faith:16, luck:16,
+    gold:150, reputation:0,
+    inventory:{grain:0, iron:0, wood:0, herbs:0},
+    weaponId:"none", armorId:"none",
+    tier:{warrior:-1, cleric:-1, craft:-1, shadow:-1, court:-1},
+    pos:{...MAPS.world.start},
+  };
+  state.started = true;
+  state.currentMap = "world";
+  state.currentLoc = null;
+  log(`${state.player.name} начинает свой путь как простой крестьянин королевства «${findKingdom(kid).name}».`, "g");
+  render();
+}
+
+/* ============================= HELPERS ============================= */
+function spendAp(n){ if(state.ap<n){ showToast("Дневной свет угас — дождитесь рассвета"); return false; } state.ap-=n; return true; }
+function weaponDmg(){ return WEAPONS.find(w=>w.id===state.player.weaponId).dmg; }
+function armorDef(){ return ARMORS.find(a=>a.id===state.player.armorId).def; }
+
+function gainXp(n){
+  const p = state.player;
+  p.xp += n;
+  while(p.xp >= p.level*100){
+    p.xp -= p.level*100;
+    p.level += 1;
+    p.maxHp += 10; p.hp = p.maxHp;
+    p.strength+=2; p.agility+=2; p.intelligence+=2; p.charisma+=2; p.faith+=2; p.luck+=2;
+    log(`Новый уровень: ${p.level}! Характеристики возросли.`, "g");
+  }
+}
+
+/* ============================= MAP ENGINE ============================= */
+function movePlayer(dx,dy){
+  if(!state.started || state.encounter) return;
+  const map = MAPS[state.currentMap];
+  const pos = state.player.pos;
+  const nx = Math.max(0, Math.min(map.w-1, pos.x+dx));
+  const ny = Math.max(0, Math.min(map.h-1, pos.y+dy));
+  pos.x = nx; pos.y = ny;
+  const pt = map.points.find(pp=>pp.x===nx && pp.y===ny);
+  if(pt){
+    if(pt.kind==="enter"){ enterMap(pt.target); return; }
+    if(pt.kind==="exit"){ exitMap(); return; }
+    state.currentLoc = pt.action;
+    render();
+    return;
+  }
+  state.currentLoc = null;
+  if(map.danger && Math.random()<0.18){
+    startEncounterFromList(MONSTERS_BY_MAP[map.id], map.id, false);
+    return;
+  }
+  render();
+}
+
+function enterMap(id){
+  const m = MAPS[id];
+  state.currentMap = id;
+  state.player.pos = {...m.start};
+  const pt = m.points.find(pp=>pp.x===m.start.x && pp.y===m.start.y);
+  state.currentLoc = (pt && pt.kind==="action") ? pt.action : null;
+  log(`Вы входите: ${m.title}.`);
+  render();
+}
+function exitMap(){
+  const m = MAPS[state.currentMap];
+  state.currentMap = m.back.to;
+  state.player.pos = {x:m.back.x, y:m.back.y};
+  const wm = MAPS[state.currentMap];
+  const pt = wm.points.find(pp=>pp.x===state.player.pos.x && pp.y===state.player.pos.y);
+  state.currentLoc = (pt && pt.kind==="action") ? pt.action : null;
+  render();
+}
+
+document.addEventListener('keydown', e=>{
+  if(!state.started) return;
+  const map = {ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0], w:[0,-1], s:[0,1], a:[-1,0], d:[1,0]};
+  if(map[e.key]){ e.preventDefault(); movePlayer(map[e.key][0], map[e.key][1]); }
+});
+
+function biomeColors(biome){
+  switch(biome){
+    case 'village': return ['#8a7a56','#93835f'];
+    case 'castle': return ['#5b5b63','#65656d'];
+    case 'forest': return ['#254022','#2b4a27'];
+    case 'mine': return ['#332a24','#3b302a'];
+    case 'field': return ['#7c8a3f','#889c3f'];
+    default: return ['#3c5a37','#436340'];
+  }
+}
+
+function drawMap(){
+  const canvas = document.getElementById('mapCanvas');
+  if(!canvas) return;
+  const map = MAPS[state.currentMap];
+  const ts = 40;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const [c1,c2] = biomeColors(map.biome);
+  for(let y=0;y<map.h;y++){
+    for(let x=0;x<map.w;x++){
+      ctx.fillStyle = (x+y)%2===0 ? c1 : c2;
+      ctx.fillRect(x*ts, y*ts, ts, ts);
+    }
+  }
+  if(map.biome==='world'){
+    ctx.strokeStyle='rgba(90,150,200,.5)'; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(3*ts,0); ctx.lineTo(3*ts+16, map.h*ts); ctx.stroke();
+  }
+  if(map.biome==='forest'){
+    ctx.font=(ts*0.5)+'px serif'; ctx.globalAlpha=.32;
+    for(let i=0;i<16;i++){
+      const rx=(i*53)%map.w, ry=(i*37)%map.h;
+      ctx.fillText('🌲', rx*ts+ts*0.5, ry*ts+ts*0.6);
+    }
+    ctx.globalAlpha=1;
+  }
+  ctx.strokeStyle='rgba(220,200,150,.22)'; ctx.lineWidth=5;
+  map.points.forEach(pt=>{
+    ctx.beginPath();
+    ctx.moveTo(map.start.x*ts+ts/2, map.start.y*ts+ts/2);
+    ctx.lineTo(pt.x*ts+ts/2, pt.y*ts+ts/2);
+    ctx.stroke();
+  });
+  map.points.forEach(pt=>{
+    ctx.fillStyle = pt.kind==='exit' ? '#332a20' : '#2b1d10';
+    ctx.strokeStyle = (pt.action && pt.action.indexOf('boss')===0) ? '#c25b4f' : '#c79a3a';
+    ctx.lineWidth = 2;
+    ctx.fillRect(pt.x*ts+3, pt.y*ts+3, ts-6, ts-6);
+    ctx.strokeRect(pt.x*ts+3, pt.y*ts+3, ts-6, ts-6);
+    ctx.font = (ts-14)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(pt.icon, pt.x*ts+ts/2, pt.y*ts+ts/2+1);
+  });
+  const pp = state.player.pos;
+  ctx.beginPath();
+  ctx.fillStyle='#c79a3a'; ctx.strokeStyle='#2b1d10'; ctx.lineWidth=2;
+  ctx.arc(pp.x*ts+ts/2, pp.y*ts+ts/2, ts*0.26, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  ctx.font=(ts*0.3)+'px serif'; ctx.fillStyle='#2b1d10';
+  ctx.fillText('🚶', pp.x*ts+ts/2, pp.y*ts+ts/2+1);
+
+  drawMiniMap();
+}
+
+function drawMiniMap(){
+  const canvas = document.getElementById('miniMapCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const world = MAPS.world;
+  const s = 6;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#0e0b06'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let y=0;y<world.h;y++){
+    for(let x=0;x<world.w;x++){
+      ctx.fillStyle=(x+y)%2===0?'#33502f':'#3a5934';
+      ctx.fillRect(x*s,y*s,s,s);
+    }
+  }
+  world.points.forEach(pt=>{
+    ctx.fillStyle = '#c79a3a';
+    ctx.fillRect(pt.x*s+1, pt.y*s+1, s-1, s-1);
+  });
+  let mx, my;
+  if(state.currentMap==='world'){ mx=state.player.pos.x; my=state.player.pos.y; }
+  else { const m=MAPS[state.currentMap]; mx=m.back.x; my=m.back.y; }
+  ctx.fillStyle='#e8544a';
+  ctx.beginPath(); ctx.arc(mx*s+s/2, my*s+s/2, s*0.55, 0, Math.PI*2); ctx.fill();
+}
+
+/* ============================= LOCATION ACTIONS ============================= */
+function labor(kind){
+  if(!spendAp(1)) return;
+  const p = state.player;
+  const gains = {
+    mine:{item:'iron', amt:3, gold:40},
+    farm:{item:'grain', amt:4, gold:30},
+    forest:{item:'wood', amt:3, gold:25},
+  }[kind];
+  p.gold += gains.gold;
+  p.inventory[gains.item] += gains.amt;
+  gainXp(8);
+  log(`Поработали: +₴${gains.gold}, +${gains.amt} ${ITEM_NAMES[gains.item]}.`);
+  render();
+}
+function gatherHerbs(){
+  if(!spendAp(1)) return;
+  state.player.inventory.herbs += 2;
+  gainXp(4);
+  log('Собраны целебные травы (+2 🌿).');
+  render();
+}
+function ventureForest(){
+  if(!spendAp(1)) return;
+  startEncounterFromList(MONSTERS_BY_MAP.forest, 'forest', false);
+}
+function pray(){
+  if(!spendAp(1)) return;
+  state.player.faith = Math.min(200, state.player.faith+3);
+  if(Math.random()<0.2){ state.player.luck+=1; log('Благословение снизошло: удача +1.', 'g'); }
+  else log('Тихая молитва успокаивает разум.');
+  render();
+}
+function tithe(){
+  const cost=50;
+  if(state.player.gold<cost) return showToast('Нужно ₴'+cost);
+  state.player.gold -= cost;
+  state.player.reputation += 3;
+  log('Пожертвование церкви принято: репутация +3.');
+  render();
+}
+function train(attr){
+  if(!spendAp(1)) return;
+  state.player[attr] += 2;
+  gainXp(5);
+  log(`Тренировка: ${ATTR_NAMES[attr]} +2.`);
+  render();
+}
+function spar(){
+  if(!spendAp(1)) return;
+  const win = Math.random() < 0.5 + (state.player.strength-30)/200;
+  if(win){ state.player.reputation+=2; gainXp(10); log('Победа в поединке с оруженосцами! Репутация +2.', 'g'); }
+  else { state.player.hp = Math.max(1, state.player.hp-8); log('Проигрыш в спарринге, немного ушиблись.', 'r'); }
+  render();
+}
+function rumors(){
+  if(!spendAp(1)) return;
+  const k = state.kingdoms[Math.floor(Math.random()*state.kingdoms.length)];
+  log(`Слухи в таверне: армия «${k.name}» насчитывает ${fmt(k.army)} воинов, казна ₴${fmt(k.treasury)}.`);
+  render();
+}
+function gamble(amount){
+  if(state.player.gold<amount) return showToast('Недостаточно монет');
+  if(!spendAp(1)) return;
+  const win = Math.random() < 0.45 + state.player.luck/400;
+  if(win){ state.player.gold += amount; log(`Кости благосклонны: выигрыш ₴${amount}.`, 'g'); }
+  else { state.player.gold -= amount; log(`Кости против вас: потеря ₴${amount}.`, 'r'); }
+  render();
+}
+function steal(){
+  if(!spendAp(1)) return;
+  const success = Math.random() < 0.4 + state.player.agility/300;
+  if(success){
+    const g = 40+Math.round(Math.random()*60);
+    state.player.gold += g; gainXp(12);
+    log(`Удачная кража в переулках: +₴${g}.`, 'g');
+  } else {
+    const fine = Math.min(state.player.gold, 60);
+    state.player.gold -= fine;
+    state.player.reputation = Math.max(0, state.player.reputation-5);
+    state.player.hp = Math.max(1, state.player.hp-10);
+    log('Схвачены городской стражей! Штраф и синяки.', 'r');
+  }
+  render();
+}
+function payDues(){
+  const cost=80;
+  if(state.player.gold<cost) return showToast('Нужно ₴'+cost);
+  state.player.gold -= cost;
+  state.player.reputation += 2;
+  findKingdom(state.player.kingdomId).treasury += cost;
+  log('Подать уплачена исправно: репутация +2.');
+  render();
+}
+function marketTrade(good, side, qty){
+  const k = findKingdom(state.player.kingdomId);
+  const price = k.price[good];
+  const total = price*qty;
+  const p = state.player;
+  if(side==='buy'){
+    if(p.gold<total) return showToast('Недостаточно денег');
+    p.gold -= total; p.inventory[good]+=qty;
+    log(`Куплено ${qty} ${ITEM_NAMES[good]} за ₴${total}.`);
+  } else {
+    if(p.inventory[good]<qty) return showToast('Недостаточно товара');
+    p.inventory[good]-=qty; p.gold+=total;
+    log(`Продано ${qty} ${ITEM_NAMES[good]} за ₴${total}.`);
+  }
+  k.price[good] = Math.max(2, Math.round(price*(side==='buy'?1.02:0.98)));
+  render();
+}
+function buyGear(kind, id){
+  const list = kind==='weapon'?WEAPONS:ARMORS;
+  const item = list.find(i=>i.id===id);
+  if(state.player.gold<item.price) return showToast('Недостаточно денег');
+  state.player.gold -= item.price;
+  if(kind==='weapon') state.player.weaponId=id; else state.player.armorId=id;
+  log(`Приобретено снаряжение: «${item.name}».`, 'g');
+  render();
+}
+
+/* ============================= CAREER PATHS ============================= */
+function meetsReq(req){
+  const p = state.player;
+  if(req.strength && p.strength<req.strength) return false;
+  if(req.agility && p.agility<req.agility) return false;
+  if(req.intelligence && p.intelligence<req.intelligence) return false;
+  if(req.charisma && p.charisma<req.charisma) return false;
+  if(req.faith && p.faith<req.faith) return false;
+  if(req.gold && p.gold<req.gold) return false;
+  if(req.reputation && p.reputation<req.reputation) return false;
+  return true;
+}
+function advancePath(pathKey, tierIdx){
+  const path = PATHS[pathKey];
+  const tier = path.tiers[tierIdx];
+  const cur = state.player.tier[pathKey];
+  if(tierIdx !== cur+1) return showToast('Сначала пройдите предыдущую ступень пути');
+  if(!meetsReq(tier.req)) return showToast('Условия ступени ещё не выполнены');
+  if(tier.req.gold) state.player.gold -= tier.req.gold;
+  state.player.tier[pathKey] = tierIdx;
+  if(!state.player.isRuler) state.player.title = tier.name;
+  state.player.reputation += 5;
+  log(`Новый статус: ${tier.name} (${path.name}).`, 'g');
+  render();
+}
+function canClaimThrone(){
+  const p = state.player;
+  return Object.keys(PATHS).some(k => p.tier[k] === PATHS[k].tiers.length-1);
+}
+
+/* ============================= SUCCESSION & WAR ============================= */
+function startSuccession(){
+  if(state.succession) return showToast('Борьба за трон уже идёт');
+  if(!canClaimThrone()) return showToast('Нужно достичь вершины хотя бы одного из путей');
+  state.succession = {
+    daysLeft:5,
+    candidates:[
+      {name:state.player.name, isPlayer:true, support: 15+state.player.charisma*0.4+state.player.reputation*0.5},
+      {name:AI_NAMES[Math.floor(Math.random()*AI_NAMES.length)], isPlayer:false, support: 30+Math.random()*20},
+      {name:AI_NAMES[Math.floor(Math.random()*AI_NAMES.length)], isPlayer:false, support: 25+Math.random()*20},
+    ]
+  };
+  log('Король стар и бездетен — начинается борьба за трон! Совет решит через 5 дней.', 'a');
+  render();
+}
+function gatherSupport(){
+  if(!state.succession) return;
+  const cost=200;
+  if(state.player.gold<cost) return showToast('Нужно ₴'+cost);
+  if(!spendAp(1)) return;
+  state.player.gold -= cost;
+  const me = state.succession.candidates.find(c=>c.isPlayer);
+  me.support += 8+state.player.charisma*0.15;
+  log('Собраны новые сторонники притязаний на трон.');
+  render();
+}
+function resolveSuccession(){
+  const k = findKingdom(state.player.kingdomId);
+  const sorted = [...state.succession.candidates].sort((a,b)=>b.support-a.support);
+  const winner = sorted[0];
+  if(winner.isPlayer){
+    state.player.title = 'Правитель';
+    state.player.isRuler = true;
+    k.ruler = state.player.name;
+    log(`👑 ${state.player.name} восходит на трон «${k.name}»!`, 'g');
+  } else {
+    log(`Совет отдаёт трон ${winner.name}. Ваши притязания отвергнуты — пока.`, 'r');
+  }
+  state.succession = null;
+  render();
+}
+function declareWar(targetId){
+  if(!state.player.isRuler) return showToast('Объявлять войну может только правитель');
+  const my = findKingdom(state.player.kingdomId), enemy = findKingdom(targetId);
+  const myPower = my.army*(0.8+Math.random()*0.4);
+  const enemyPower = enemy.army*(0.8+Math.random()*0.4);
+  const win = myPower>enemyPower;
+  const lossesMine = Math.round(my.army*(win?0.08:0.18));
+  const lossesEnemy = Math.round(enemy.army*(win?0.2:0.09));
+  my.army = Math.max(5, my.army-lossesMine);
+  enemy.army = Math.max(5, enemy.army-lossesEnemy);
+  if(win){
+    my.treasury += 200; my.prestige -= 2; enemy.prestige -= 1; enemy.treasury -= 150; enemy.unrest += 5;
+    log(`⚔️ Победа над «${enemy.name}»! Захвачены трофеи, но война отняла силы.`, 'g');
+  } else {
+    my.unrest += 8; my.treasury -= 120;
+    log(`⚔️ Поражение в войне против «${enemy.name}». Потери тяжелы.`, 'r');
+  }
+  render();
+}
+
+/* ============================= COMBAT (визуализированный бой) ============================= */
+function startEncounterFromList(list, biome, isBoss){
+  const m = list[Math.floor(Math.random()*list.length)];
+  state.encounter = {
+    name:m.name, icon:m.icon, hp:m.maxHp, maxHp:m.maxHp, atk:m.atk, reward:m.reward,
+    messages:[`Вы сталкиваетесь с противником: ${m.name}!`], skillUsed:false, biome, isBoss:!!isBoss,
+  };
+  state.turnLock = false;
+  render();
+}
+function pushMsg(text){ if(state.encounter) state.encounter.messages.push(text); }
+function fx(name){ state.fx[name]=true; render(); setTimeout(()=>{ state.fx[name]=false; render(); }, 350); }
+function floatText(target, text, cls){
+  const id = Math.random().toString(36).slice(2);
+  state.floatText.push({id, target, text, cls});
+  setTimeout(()=>{ state.floatText = state.floatText.filter(f=>f.id!==id); render(); }, 850);
+}
+function skillInfo(){
+  const p = state.player;
+  if(p.tier.warrior>=0) return {name:'Мощный удар', calc:(pp,e)=>({dmg:Math.round(pp.strength*0.9+weaponDmg()*1.6+10)})};
+  if(p.tier.shadow>=0) return {name:'Удар из тени', calc:(pp,e)=>({dmg:Math.round(pp.agility*0.9+weaponDmg()*1.4+(e.hp<e.maxHp*0.4?15:0))})};
+  if(p.tier.cleric>=0) return {name:'Праведный гнев', calc:(pp,e)=>({dmg:Math.round(pp.faith*0.7+weaponDmg()+8), heal:10})};
+  if(p.tier.court>=0) return {name:'Вдохновляющий клич', calc:(pp,e)=>({dmg:Math.round(pp.charisma*0.6+weaponDmg()), heal:6})};
+  if(p.tier.craft>=0) return {name:'Смекалистый приём', calc:(pp,e)=>({dmg:Math.round(pp.intelligence*0.7+weaponDmg()+6)})};
+  return {name:'Отчаянный рывок', calc:(pp,e)=>({dmg:Math.round(pp.strength*0.7+weaponDmg()+Math.random()*10)})};
+}
+function skillLabel(){ return skillInfo().name; }
+function computeSkill(){
+  const info = skillInfo();
+  const r = info.calc(state.player, state.encounter);
+  return {dmg:r.dmg, heal:r.heal||0, text:info.name};
+}
+
+function playerTurn(kind){
+  const p = state.player, e = state.encounter;
+  if(!e || state.turnLock) return;
+  state.turnLock = true;
+
+  if(kind==='attack'){
+    const dmg = Math.max(1, Math.round(p.strength*0.5 + weaponDmg() + Math.random()*8));
+    e.hp -= dmg;
+    fx('enemyHit'); floatText('enemy','-'+dmg,'dmg');
+    pushMsg(`Вы атакуете и наносите ${dmg} урона!`);
+  } else if(kind==='skill'){
+    if(e.skillUsed){ state.turnLock=false; return; }
+    e.skillUsed = true;
+    const {dmg, heal, text} = computeSkill();
+    e.hp -= dmg;
+    if(heal) p.hp = Math.min(p.maxHp, p.hp+heal);
+    fx('enemyHit'); floatText('enemy','-'+dmg,'crit');
+    if(heal) floatText('player','+'+heal,'heal');
+    pushMsg(`${text}! Нанесено ${dmg} урона${heal?`, исцеление ${heal}`:''}.`);
+  } else if(kind==='item'){
+    if(p.inventory.herbs<1){ state.turnLock=false; return; }
+    p.inventory.herbs -= 1;
+    const heal = 20;
+    p.hp = Math.min(p.maxHp, p.hp+heal);
+    floatText('player','+'+heal,'heal');
+    pushMsg('Вы съедаете целебные травы и восстанавливаете силы.');
+  } else if(kind==='defend'){
+    pushMsg('Вы готовитесь к обороне.');
+  } else if(kind==='flee'){
+    if(Math.random() < 0.5 + p.agility/200){
+      pushMsg('Вам удаётся бежать!');
+      render();
+      setTimeout(()=>{ state.encounter=null; state.turnLock=false; render(); }, 700);
+      return;
+    }
+    pushMsg('Побег не удался!');
+  }
+
+  render();
+  if(e.hp<=0){ setTimeout(winBattle, 550); return; }
+  setTimeout(()=> enemyTurn(kind), 750);
+}
+
+function enemyTurn(playerKind){
+  const p = state.player, e = state.encounter;
+  if(!e){ state.turnLock=false; return; }
+  let dmg = Math.max(1, Math.round(e.atk*(Math.random()*0.6+0.7)) - armorDef());
+  if(playerKind==='defend') dmg = Math.round(dmg*0.4);
+  dmg = Math.max(0, dmg);
+  p.hp -= dmg;
+  fx('playerHit'); fx('shake'); floatText('player','-'+dmg,'dmg');
+  pushMsg(`${e.name} атакует и наносит ${dmg} урона!`);
+  render();
+  state.turnLock = false;
+  if(p.hp<=0) setTimeout(loseBattle, 550);
+}
+
+function winBattle(){
+  const p = state.player, e = state.encounter;
+  if(!e) return;
+  p.gold += e.reward.gold; gainXp(e.reward.xp);
+  log(`Повержен(а) ${e.name}! +₴${e.reward.gold}, +${e.reward.xp} опыта.`, 'g');
+  state.encounter = null; state.turnLock = false;
+  render();
+}
+function loseBattle(){
+  const p = state.player;
+  p.hp = 1;
+  const lost = Math.round(p.gold*0.2);
+  p.gold -= lost;
+  log(`Вы были повержены и очнулись у дома, потеряв ₴${lost}.`, 'r');
+  state.encounter = null; state.turnLock = false;
+  state.currentMap = 'world';
+  p.pos = {...MAPS.world.start};
+  state.currentLoc = null;
+  render();
+}
+
+/* ============================= DAY TICK ============================= */
+function advanceDay(){
+  state.day += 1;
+  state.ap = state.maxAp;
+  state.player.hp = Math.min(state.player.maxHp, state.player.hp + Math.round(state.player.maxHp*0.3));
+  state.kingdoms.forEach(k=>{
+    k.treasury += Math.round((Math.random()-0.4)*15);
+    k.population += Math.round(Math.random()*400);
+    k.unrest = Math.max(0, Math.min(100, k.unrest + Math.round((Math.random()-0.5)*3)));
+    k.granary += Math.round((Math.random()-0.45)*8);
+  });
+  if(Math.random()<0.4){
+    const ev = EVENT_POOL[Math.floor(Math.random()*EVENT_POOL.length)];
+    const k = state.kingdoms[Math.floor(Math.random()*state.kingdoms.length)];
+    ev.effect(k);
+    log(`📜 [${k.name}] ${ev.text}`, ev.type==='good'?'g':(ev.type==='bad'?'r':'a'));
+  }
+  if(state.succession){
+    state.succession.daysLeft -= 1;
+    state.succession.candidates.forEach(c=>{ if(!c.isPlayer) c.support += (Math.random()-0.4)*4; });
+    if(state.succession.daysLeft<=0) resolveSuccession();
+  }
+  render();
+}
+
+/* ============================= RENDER: ONBOARD ============================= */
+function renderOnboard(){
+  const picked = state._pickedKingdom;
+  return `
+  <div class="onboard">
+    <div class="brand-mark" style="margin:0 auto 14px;width:52px;height:52px;"><span style="font-size:20px;">Х</span></div>
+    <div class="display">ХРОНИКИ ВАЛЬДОРА</div>
+    <div class="sub">карта, мини-карты локаций и визуализированные бои</div>
+    <p class="muted" style="margin:18px 0 6px;">Выберите королевство рождения:</p>
+  </div>
+  <div class="country-pick">
+    ${state.kingdoms.map(k=>`
+      <div class="card ${picked===k.id?'sel':''}" onclick="pickKingdom('${k.id}')">
+        <div class="row"><span style="font-size:20px;">${k.banner}</span><span class="badge ${k.unrest<25?'g':k.unrest<45?'a':'r'}">смута ${k.unrest}</span></div>
+        <h4 style="margin-top:8px;">${k.name}</h4>
+        <div class="muted">Правитель: ${k.ruler}</div>
+        <div class="muted">Казна ₴${fmt(k.treasury)} · Войско ${fmt(k.army)}</div>
+      </div>`).join('')}
+  </div>
+  <div style="max-width:420px;margin:22px auto 0;text-align:center;">
+    <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;">Имя персонажа</label>
+    <input id="nameInput" style="width:100%;background:#140d08;border:1px solid var(--line);color:var(--fg);padding:9px 10px;border-radius:6px;font-size:13px;" placeholder="Введите имя" value="Кайден из Вальдора"/>
+    <div style="height:12px;"></div>
+    <button style="width:100%;" onclick="startGame(document.getElementById('nameInput').value)" ${picked?'':'disabled'}>Начать странствие</button>
+  </div>
+  `;
+}
+
+/* ============================= RENDER: DOSSIER / SIDEBAR ============================= */
+function attrRow(label, val){
+  return `<div class="attr-row"><span>${label}</span><span style="display:flex;align-items:center;gap:8px;">
+    <div class="bar"><i style="width:${Math.min(100,val)}%"></i></div><b>${val}</b></span></div>`;
+}
+function renderDossier(){
+  const p = state.player, k = findKingdom(p.kingdomId);
+  return `
+  <div class="dossier">
+    <div class="seal">ГЕРБ<br>${k.banner}</div>
+    <div class="muted mono" style="font-size:10px;letter-spacing:.08em;">СВИТОК № ${String(state.day).padStart(4,'0')}</div>
+    <h2>${p.name}</h2>
+    <div class="role">${p.title} · ур. ${p.level}</div>
+    <div style="margin:8px 0 4px;">
+      <div class="row" style="font-size:11px;margin-bottom:2px;"><span>Здоровье</span><span>${fmt(p.hp)}/${fmt(p.maxHp)}</span></div>
+      <div class="hpbar"><i style="width:${Math.max(0,p.hp/p.maxHp*100)}%"></i></div>
+    </div>
+    <div style="margin-top:10px;">
+      ${attrRow('Сила', p.strength)}
+      ${attrRow('Ловкость', p.agility)}
+      ${attrRow('Разум', p.intelligence)}
+      ${attrRow('Харизма', p.charisma)}
+      ${attrRow('Вера', p.faith)}
+      ${attrRow('Удача', p.luck)}
+    </div>
+    <div class="row" style="margin-top:12px;font-family:ui-monospace,monospace;font-size:13px;">
+      <span>Кошель</span><b>₴${fmt(p.gold)}</b>
+    </div>
+    <div class="row" style="font-family:ui-monospace,monospace;font-size:13px;">
+      <span>Репутация</span><b>${fmt(p.reputation)}</b>
+    </div>
+  </div>`;
+}
+function renderSidebar(){
+  const k = findKingdom(state.player.kingdomId);
+  return `
+  ${renderDossier()}
+  <div class="panel" style="margin-top:14px;">
+    <h3>Снаряжение</h3>
+    <div class="stat-mini"><span>Оружие</span><b>${WEAPONS.find(w=>w.id===state.player.weaponId).name}</b></div>
+    <div class="stat-mini"><span>Доспех</span><b>${ARMORS.find(a=>a.id===state.player.armorId).name}</b></div>
+  </div>
+  <div class="panel" style="margin-top:14px;">
+    <h3>Сума</h3>
+    ${Object.keys(ITEM_NAMES).map(it=>`<div class="stat-mini"><span>${ITEM_NAMES[it]}</span><b>${fmt(state.player.inventory[it])}</b></div>`).join('')}
+  </div>
+  <div class="panel" style="margin-top:14px;">
+    <h3>${k.name}</h3>
+    <div class="stat-mini"><span>Правитель</span><b>${k.ruler}</b></div>
+    <div class="stat-mini"><span>Казна</span><b>₴${fmt(k.treasury)}</b></div>
+    <div class="stat-mini"><span>Войско</span><b>${fmt(k.army)}</b></div>
+    <div class="stat-mini"><span>Смута</span><b>${fmt(k.unrest)}</b></div>
+  </div>
+  `;
+}
+
+/* ============================= RENDER: BATTLE ============================= */
+function renderBattle(){
+  const p = state.player, e = state.encounter;
+  const bgClass = 'battle-bg-' + (e.biome==='mine' ? 'mine' : (e.biome==='forest' ? 'forest' : 'field'));
+  return `
+  <div class="battle-stage ${bgClass} ${state.fx.shake?'shake':''}">
+    <div class="battle-ground"></div>
+    <div class="enemy-slot">
+      <div class="enemy-sprite ${state.fx.enemyHit?'hit':''}">${e.icon}</div>
+      <div class="enemy-name">${e.name}${e.isBoss?' <span class="badge r">ЛОГОВО</span>':''}</div>
+      <div class="hpbar enemy-hp"><i style="width:${Math.max(0,e.hp/e.maxHp*100)}%"></i></div>
+      ${state.floatText.filter(f=>f.target==='enemy').map(f=>`<span class="float-dmg ${f.cls}">${f.text}</span>`).join('')}
+    </div>
+    <div class="player-slot ${state.fx.playerHit?'hit':''}">🧝
+      ${state.floatText.filter(f=>f.target==='player').map(f=>`<span class="float-dmg ${f.cls}">${f.text}</span>`).join('')}
+    </div>
+  </div>
+  <div class="battle-status">
+    <div class="status-box">
+      <div class="row"><b>${p.name}</b><span class="muted">ур. ${p.level}</span></div>
+      <div class="hpbar" style="margin-top:6px;"><i style="width:${Math.max(0,p.hp/p.maxHp*100)}%"></i></div>
+      <div class="muted" style="font-size:10px;margin-top:2px;">HP ${fmt(p.hp)}/${fmt(p.maxHp)}</div>
+    </div>
+    <div class="msg-box">
+      ${e.messages.slice(-3).map(m=>`<div>${m}</div>`).join('')}
+      <span class="blink">▼</span>
+    </div>
+  </div>
+  <div class="cmd-window">
+    <button onclick="playerTurn('attack')">▶ Атаковать</button>
+    <button onclick="playerTurn('skill')" ${e.skillUsed?'disabled':''}>▶ ${skillLabel()}</button>
+    <button class="secondary" onclick="playerTurn('item')" ${p.inventory.herbs<1?'disabled':''}>▶ Травы (${p.inventory.herbs})</button>
+    <button class="secondary" onclick="playerTurn('defend')">▶ Защита</button>
+    <button class="wine" onclick="playerTurn('flee')">▶ Бежать</button>
+  </div>
+  `;
+}
+
+/* ============================= RENDER: MAP TAB ============================= */
+function locationBody(code){
+  const p = state.player;
+  switch(code){
+    case 'home': return `<div class="loc-title">🏠 Дом</div>
+      <div class="loc-desc">Скромный кров. Здесь можно перевести дух и осмотреть свиток судьбы.</div>
+      <button onclick="setTab('character')">📜 Открыть свиток персонажа</button>`;
+
+    case 'church': return `<div class="loc-title">⛪ Церковь</div>
+      <div class="loc-desc">Свет сквозь витражи, запах ладана. Тихое место для веры и раздумий.</div>
+      <div class="row" style="gap:8px;">
+        <button onclick="pray()">🙏 Молиться</button>
+        <button class="secondary" onclick="tithe()">Внести пожертвование (₴50)</button>
+      </div>`;
+
+    case 'market': return `<div class="loc-title">🏪 Рыночная площадь</div>
+      <div class="loc-desc">Торговые ряды гудят голосами. Продайте добытое или закупитесь снаряжением.</div>
+      <table>
+        <tr><th>Товар</th><th>Цена</th><th>У вас</th><th></th></tr>
+        ${Object.keys(ITEM_NAMES).map(it=>`
+        <tr>
+          <td>${ITEM_NAMES[it]}</td><td>₴${findKingdom(p.kingdomId).price[it]}</td><td>${fmt(p.inventory[it])}</td>
+          <td style="display:flex;gap:6px;">
+            <button class="secondary" style="padding:5px 8px;" onclick="marketTrade('${it}','buy',5)">Купить 5</button>
+            <button class="secondary" style="padding:5px 8px;" onclick="marketTrade('${it}','sell',5)">Продать 5</button>
+          </td>
+        </tr>`).join('')}
+      </table>
+      <h4 style="margin-top:14px;">Оружейная лавка</h4>
+      <table>
+        <tr><th>Оружие</th><th>Урон</th><th>Цена</th><th></th></tr>
+        ${WEAPONS.map(w=>`<tr><td>${w.name}${p.weaponId===w.id?' <span class="badge g">надето</span>':''}</td><td>${w.dmg}</td><td>₴${w.price}</td>
+          <td><button class="secondary" style="padding:5px 8px;" ${p.weaponId===w.id?'disabled':''} onclick="buyGear('weapon','${w.id}')">Купить</button></td></tr>`).join('')}
+      </table>
+      <table style="margin-top:8px;">
+        <tr><th>Доспех</th><th>Защита</th><th>Цена</th><th></th></tr>
+        ${ARMORS.map(a=>`<tr><td>${a.name}${p.armorId===a.id?' <span class="badge g">надето</span>':''}</td><td>${a.def}</td><td>₴${a.price}</td>
+          <td><button class="secondary" style="padding:5px 8px;" ${p.armorId===a.id?'disabled':''} onclick="buyGear('armor','${a.id}')">Купить</button></td></tr>`).join('')}
+      </table>`;
+
+    case 'tavern': return `<div class="loc-title">🍺 Таверна «Гусь и Кубок»</div>
+      <div class="loc-desc">Дым, смех и звон кружек. Отличное место послушать сплетни или испытать удачу.</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <button class="secondary" onclick="rumors()">Послушать слухи</button>
+        <button class="secondary" onclick="gamble(50)">Сыграть в кости (₴50)</button>
+        <button class="secondary" onclick="setTab('paths')">Перемолвиться с тенями</button>
+      </div>`;
+
+    case 'yard': return `<div class="loc-title">⚔️ Двор тренировок</div>
+      <div class="loc-desc">Звон стали и скрип кожаных доспехов. Место для закалки тела.</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <button onclick="train('strength')">Тренировать силу</button>
+        <button class="secondary" onclick="train('agility')">Тренировать ловкость</button>
+        <button class="wine" onclick="spar()">Спарринг с оруженосцами</button>
+      </div>`;
+
+    case 'den': return `<div class="loc-title">🗡️ Тёмный переулок</div>
+      <div class="loc-desc">Тени шепчутся у стен. Здесь не место честным людям.</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <button class="wine" onclick="steal()">Промышлять кражей</button>
+        <button class="secondary" onclick="setTab('paths')">Предложить услуги гильдии</button>
+      </div>`;
+
+    case 'throne': return `<div class="loc-title">👑 Тронный зал</div>
+      <div class="loc-desc">Лорд восседает на резном троне, окружённый советниками.</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <button class="secondary" onclick="setTab('paths')">Просить титул</button>
+        ${(!p.isRuler && canClaimThrone() && !state.succession) ? `<button class="wine" onclick="startSuccession()">Заявить право на трон</button>`:''}
+        ${state.succession ? `<button onclick="gatherSupport()">Собирать сторонников (₴200)</button>`:''}
+      </div>`;
+
+    case 'treasury': return `<div class="loc-title">🗄️ Казначейство</div>
+      <div class="loc-desc">Мешки с монетами и свитки учёта податей.</div>
+      <div class="row" style="gap:8px;">
+        <button onclick="payDues()">Уплатить подать (₴80)</button>
+        <button class="secondary" onclick="setTab('kingdom')">Осмотреть казну королевства</button>
+      </div>`;
+
+    case 'armory': return `<div class="loc-title">🛡️ Оружейная</div>
+      <div class="loc-desc">Стражники разрешают поупражняться среди стоек с оружием.</div>
+      <div class="row" style="gap:8px;">
+        <button onclick="train('strength')">Тренировать силу</button>
+        <button class="secondary" onclick="train('agility')">Тренировать ловкость</button>
+      </div>`;
+
+    case 'herbs': return `<div class="loc-title">🌿 Травяная поляна</div>
+      <div class="loc-desc">Заросли пахучих трав среди мха и корней.</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <button class="secondary" onclick="gatherHerbs()">Собирать травы</button>
+        <button class="wine" onclick="ventureForest()">Разведать округу (риск встречи)</button>
+      </div>`;
+
+    case 'wood': return `<div class="loc-title">🪵 Лесоповал</div>
+      <div class="loc-desc">Поваленные стволы ждут топора дровосека.</div>
+      <button onclick="labor('forest')">Рубить лес</button>`;
+
+    case 'ore': return `<div class="loc-title">⛏️ Рудная жила</div>
+      <div class="loc-desc">Блеск металла среди тёмного камня.</div>
+      <button onclick="labor('mine')">Работать в руднике</button>`;
+
+    case 'grain': return `<div class="loc-title">🌾 Поле пшеницы</div>
+      <div class="loc-desc">Золотые колосья тянутся до горизонта.</div>
+      <button onclick="labor('farm')">Работать в поле</button>`;
+
+    case 'boss_forest': return `<div class="loc-title">💀 Логово зверя</div>
+      <div class="loc-desc">Здесь обитает свирепый волк-оборотень, наводящий ужас на округу.</div>
+      <button class="wine" onclick="startEncounterFromList([BOSSES.boss_forest], 'forest', true)">Войти в логово</button>`;
+
+    case 'boss_mine': return `<div class="loc-title">💎 Логово тролля</div>
+      <div class="loc-desc">В глубине штолен ворочается что-то огромное.</div>
+      <button class="wine" onclick="startEncounterFromList([BOSSES.boss_mine], 'mine', true)">Спуститься в глубину</button>`;
+
+    case 'road': return `<div class="loc-title">🌉 Тракт</div>
+      <div class="loc-desc">Дорога уходит за горизонт, к соседним королевствам.</div>
+      <button class="secondary" onclick="setTab('kingdom')">Взглянуть на карту земель</button>`;
+
+    default: return '';
+  }
+}
+function renderLocationPanel(){
+  if(!state.currentLoc) return `<div class="card"><div class="loc-title">В пути…</div><div class="loc-desc">Вы бредёте по местности. Пройдите к одной из отмеченных построек.</div></div>`;
+  return `<div class="card">${locationBody(state.currentLoc)}</div>`;
+}
+
+function renderMapTab(){
+  if(state.encounter) return renderBattle();
+  const map = MAPS[state.currentMap];
+  const ts = 40;
+  const hereName = state.currentLoc ? (map.points.find(pp=>pp.action===state.currentLoc)||{}).name : null;
+  return `
+  <div class="card">
+    <div class="minimap-wrap">
+      <canvas id="miniMapCanvas" width="66" height="48"></canvas>
+      <div>
+        <div class="loc-title" style="font-size:14px;">${map.title}</div>
+        <div class="muted" style="font-size:11px;">${hereName ? '📍 '+hereName : '📍 В пути'}</div>
+      </div>
+      <div style="flex:1;"></div>
+      <div class="muted" style="text-align:right;font-size:10px;">Светового времени<br><b class="mono" style="color:var(--gold);font-size:15px;">${state.ap}/${state.maxAp}</b></div>
+    </div>
+    <div class="map-wrap">
+      <canvas id="mapCanvas" width="${map.w*ts}" height="${map.h*ts}"></canvas>
+    </div>
+    <div class="dpad">
+      <div></div><button onclick="movePlayer(0,-1)">▲</button><div></div>
+      <button onclick="movePlayer(-1,0)">◀</button><div class="mid">🚶</div><button onclick="movePlayer(1,0)">▶</button>
+      <div></div><button onclick="movePlayer(0,1)">▼</button><div></div>
+    </div>
+    ${map.id!=='world' ? `<button class="secondary" style="margin-top:10px;width:100%;" onclick="exitMap()">↩ Вернуться на карту мира</button>`:''}
+    <div class="legend">${map.points.map(l=>`<span>${l.icon} ${l.name}</span>`).join('')}</div>
+  </div>
+  ${renderLocationPanel()}
+  `;
+}
+
+/* ============================= RENDER: OTHER TABS ============================= */
+function renderCharacterTab(){
+  const p = state.player;
+  return `
+  <div class="card">
+    <h4>Уровень и опыт</h4>
+    <div class="row"><span>Уровень ${p.level}</span><span class="muted">Опыт: ${fmt(p.xp)}/${fmt(p.level*100)}</span></div>
+  </div>
+  <div class="card">
+    <h4>Путь героя</h4>
+    ${Object.keys(PATHS).map(pk=>{
+      const path = PATHS[pk]; const cur = p.tier[pk];
+      const curName = cur>=0 ? path.tiers[cur].name : '—';
+      return `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);">
+        <span>${path.icon} ${path.name}</span><b class="mono" style="color:var(--gold);">${curName}</b>
+      </div>`;
+    }).join('')}
+    <button class="secondary" style="margin-top:10px;" onclick="setTab('paths')">Все ступени пути →</button>
+  </div>
+  `;
+}
+function renderPathsTab(){
+  const p = state.player;
+  return Object.keys(PATHS).map(pk=>{
+    const path = PATHS[pk];
+    return `<div class="card">
+      <h4>${path.icon} ${path.name}</h4>
+      ${path.tiers.map((tier,idx)=>{
+        const achieved = p.tier[pk] >= idx;
+        const isNext = p.tier[pk] === idx-1;
+        const reqParts = [];
+        Object.keys(tier.req).forEach(k=>{
+          const label = k==='gold'?'₴':k==='reputation'?'репутация':ATTR_NAMES[k]||k;
+          reqParts.push(`${label} ${tier.req[k]}`);
+        });
+        return `<div class="row" style="padding:7px 0;border-bottom:1px dashed var(--line);">
+          <div>
+            <div>${idx+1}. ${tier.name} ${achieved?'<span class="badge g">достигнуто</span>':''}</div>
+            <div class="muted">${reqParts.join(' · ')}</div>
+          </div>
+          ${(!achieved && isNext) ? `<button class="secondary" onclick="advancePath('${pk}',${idx})">Пройти ступень</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+function renderKingdomTab(){
+  const p = state.player;
+  return `
+  <div class="card">
+    <h4>Земли известного мира</h4>
+    <table>
+      <tr><th>Королевство</th><th>Правитель</th><th>Казна</th><th>Войско</th><th>Смута</th><th></th></tr>
+      ${state.kingdoms.map(k=>`
+        <tr class="${k.id===p.kingdomId?'me':''}">
+          <td>${k.banner} ${k.name}</td><td>${k.ruler}</td><td>₴${fmt(k.treasury)}</td><td>${fmt(k.army)}</td>
+          <td class="${k.unrest<30?'pos':'neg'}">${fmt(k.unrest)}</td>
+          <td>${(p.isRuler && k.id!==p.kingdomId) ? `<button class="wine" style="padding:6px 10px;" onclick="declareWar('${k.id}')">⚔️ Война</button>`:''}</td>
+        </tr>`).join('')}
+    </table>
+    ${!p.isRuler ? `<p class="muted" style="margin-top:10px;">Объявлять войну может только правитель королевства (см. вкладку «Пути» — достигните вершины любого пути и заявите право на трон в замке).</p>`:''}
+  </div>
+  ${state.succession ? `
+  <div class="card">
+    <h4>🗡 Борьба за трон — осталось дней: ${state.succession.daysLeft}</h4>
+    ${state.succession.candidates.sort((a,b)=>b.support-a.support).map(c=>`
+      <div class="row" style="padding:6px 0;">
+        <span>${c.isPlayer?'👤 <b>'+c.name+'</b> (вы)':c.name}</span>
+        <div class="bar" style="width:140px;"><i style="width:${Math.min(100,c.support)}%;background:${c.isPlayer?'var(--gold)':'var(--muted)'}"></i></div>
+      </div>`).join('')}
+  </div>`:''}
+  `;
+}
+function renderChronicleTab(){
+  return `<div class="card"><h4>Хроника событий</h4>
+    ${state.log.length? state.log.map(l=>`<div class="log-item"><span class="t">${l.t}</span>${l.text}</div>`).join(''):'<p class="muted">Летопись пока пуста.</p>'}
+  </div>`;
+}
+
+const TABS = [
+  {id:"map", label:"Карта", render:renderMapTab},
+  {id:"character", label:"Персонаж", render:renderCharacterTab},
+  {id:"paths", label:"Пути", render:renderPathsTab},
+  {id:"kingdom", label:"Королевство", render:renderKingdomTab},
+  {id:"chronicle", label:"Хроника", render:renderChronicleTab},
+];
+function setTab(id){ state.activeTab=id; render(); }
+
+/* ============================= RENDER: GAME ROOT ============================= */
+function renderGame(){
+  const p = state.player, k = findKingdom(p.kingdomId);
+  const tickerItems = state.log.slice(0,8).length ? state.log.slice(0,8) : [{text:'Земли спокойны. Начните действовать.'}];
+  return `
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"><span>Х</span></div>
+      <div><h1>ХРОНИКИ ВАЛЬДОРА</h1><small>карта · мини-карты · визуализированный бой</small></div>
+    </div>
+    <div class="clock"><b>День ${state.day}</b>${k.banner} ${k.name} · ${p.title}</div>
+  </div>
+  <div class="ticker-wrap"><div class="ticker">
+    ${tickerItems.map(l=>`<span>❧ ${l.text}</span>`).join('')}
+    ${tickerItems.map(l=>`<span>❧ ${l.text}</span>`).join('')}
+  </div></div>
+
+  <div class="grid">
+    <div>${renderSidebar()}</div>
+    <div>
+      <div class="tabs">
+        ${TABS.map(t=>`<div class="tab ${state.activeTab===t.id?'active':''}" onclick="setTab('${t.id}')">${t.label}</div>`).join('')}
+        <div style="flex:1;"></div>
+        <button onclick="advanceDay()" ${state.encounter?'disabled':''}>🌅 Дождаться рассвета</button>
+      </div>
+      ${TABS.find(t=>t.id===state.activeTab).render()}
+    </div>
+  </div>
+  ${state.toast?`<div class="toast">${state.toast}</div>`:''}
+  `;
+}
+
+function render(){
+  document.getElementById('app').innerHTML = state.started ? renderGame() : renderOnboard();
+  if(state.started && state.activeTab==='map' && !state.encounter) drawMap();
+}
+
+render();
+</script>
+</body>
+</html>
