@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Хроники Вальдора</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Nunito:wght@400;600;700;800&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parchment: #ecdfc0;
+    --parchment-dark: #dcc99f;
+    --ink: #3a2b1c;
+    --ink-soft: #6b5236;
+    --gold: #b8871f;
+    --wood: #6b8f4e;
+    --stone: #7c7368;
+    --crystal: #2fa8a3;
+    --royal: #6a4a9e;
+    --danger: #a13d2c;
+    --success: #3f7a3a;
+    --shadow: rgba(58,43,28,.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Nunito',sans-serif; background:
+      radial-gradient(circle at 20% 10%, #f4e8c9 0%, transparent 60%),
+      linear-gradient(160deg,#e9dcb9,#d8c69a 60%, #c9b482);
+    color:var(--ink); min-height:100vh;
+  }
+  h1,h2,h3,.display{ font-family:'Cinzel Decorative', serif; }
+  .label{ font-family:'IM Fell English SC', serif; letter-spacing:.03em; }
+  button{ font-family:'Nunito',sans-serif; cursor:pointer; border:none; }
+  .screen{ display:none; padding:14px; max-width:960px; margin:0 auto; }
+  .screen.active{ display:block; }
+
+  /* ---------- MENU ---------- */
+  #screen-menu{ text-align:center; padding-top:28px;}
+  .title-banner{
+    background:linear-gradient(180deg,#4d3521,#2c1f14);
+    color:#f1e0b0; padding:18px 12px; border-radius:10px;
+    box-shadow:0 6px 0 #1c130b, 0 10px 18px var(--shadow);
+    margin-bottom:6px;
+  }
+  .title-banner h1{ margin:0; font-size:2.1em; text-shadow:0 2px 0 #000;}
+  .title-banner p{ margin:6px 0 0; font-size:.95em; color:#e3cf9c; font-style:italic;}
+  .section-title{ font-family:'IM Fell English SC',serif; font-size:1.3em; margin:22px 0 10px; color:var(--ink-soft);}
+  .race-grid, .mode-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .pick-card{
+    background:var(--parchment); border:3px solid var(--parchment-dark); border-radius:12px;
+    padding:12px 8px; transition:.15s; box-shadow:0 3px 0 #b39c6d;
+  }
+  .pick-card:hover{ transform:translateY(-2px); }
+  .pick-card.selected{ border-color:var(--royal); box-shadow:0 0 0 3px var(--royal) inset, 0 3px 0 #b39c6d; background:#f2e8cf;}
+  .pick-card .emoji{ font-size:2.4em; }
+  .pick-card b{ display:block; margin:4px 0 2px; font-size:1.05em;}
+  .pick-card small{ display:block; color:var(--ink-soft); line-height:1.3; font-size:.8em;}
+  .big-btn{
+    background:linear-gradient(180deg,#c9a227,#96761a); color:#2c1f0a; font-weight:800;
+    padding:14px 30px; border-radius:10px; font-size:1.1em; margin-top:22px;
+    box-shadow:0 4px 0 #6b5310, 0 6px 12px var(--shadow); border:2px solid #6b5310;
+  }
+  .big-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 #6b5310;}
+  .disclaimer{ margin-top:14px; font-size:.78em; color:var(--ink-soft); font-style:italic; }
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;
+    background:#2c1f14; color:#f1e0b0; padding:8px 12px; border-radius:10px; margin-bottom:12px;
+    box-shadow:0 4px 10px var(--shadow);
+  }
+  .res-pill{ display:flex; gap:10px; flex-wrap:wrap;}
+  .res{ display:flex; align-items:center; gap:4px; background:#3d2c1c; padding:3px 9px; border-radius:20px; font-weight:700; font-size:.9em;}
+  .day-pill{ background:#4a3520; padding:4px 12px; border-radius:20px; font-weight:800; font-family:'Cinzel Decorative',serif; font-size:.85em;}
+  .topbar .actions{ display:flex; gap:6px; flex-wrap:wrap; }
+  .mini-btn{ background:#7c5c2e; color:#fff2d1; padding:6px 10px; border-radius:8px; font-weight:700; font-size:.82em; box-shadow:0 2px 0 #4a3418;}
+  .mini-btn:active{ transform:translateY(2px); box-shadow:none; }
+
+  /* ---------- VILLAGE ---------- */
+  .village-layout{ display:grid; grid-template-columns:1.3fr 1fr; gap:14px; }
+  @media(max-width:760px){ .village-layout{ grid-template-columns:1fr; } }
+  .panel{ background:var(--parchment); border:3px solid var(--parchment-dark); border-radius:12px; padding:10px; box-shadow:0 3px 8px var(--shadow); margin-bottom:12px;}
+  .panel h3{ margin:2px 0 8px; font-size:1.05em; color:var(--ink-soft); border-bottom:2px dashed var(--parchment-dark); padding-bottom:6px;}
+  .map-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .tile{
+    background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:8px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .tile .ico{ font-size:1.7em; }
+  .tile b{ font-size:.85em; }
+  .tile .lvl{ font-size:.72em; color:var(--ink-soft); }
+  .tile button{ margin-top:4px; background:var(--royal); color:#fff; border-radius:6px; padding:4px 8px; font-size:.72em; font-weight:700; }
+  .tile button:disabled{ background:#9a8b7a; cursor:not-allowed; }
+
+  .hero-card{ display:flex; gap:10px; align-items:center; }
+  .hero-emoji{ font-size:3em; }
+  .xpbar{ background:#d8c69a; border-radius:6px; height:8px; overflow:hidden; margin-top:4px;}
+  .xpbar div{ background:var(--royal); height:100%; }
+  .stat-row{ display:flex; justify-content:space-between; font-size:.85em; margin-top:2px;}
+
+  .unit-row{ display:flex; align-items:center; gap:8px; padding:6px 4px; border-bottom:1px dashed var(--parchment-dark); font-size:.85em; }
+  .unit-row:last-child{ border-bottom:none; }
+  .unit-ico{ font-size:1.5em; width:30px; text-align:center;}
+  .unit-info{ flex:1; }
+  .unit-info b{ display:block; }
+  .unit-info span{ color:var(--ink-soft); font-size:.85em; }
+  .recruit-btn{ background:var(--success); color:#fff; border-radius:6px; padding:5px 8px; font-size:.75em; font-weight:700; white-space:nowrap;}
+  .recruit-btn:disabled{ background:#9a8b7a; cursor:not-allowed; }
+
+  /* ---------- TROOP OVERVIEW GRID (6 tiers at a glance) ---------- */
+  .troop-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  @media(min-width:480px){ .troop-grid{ grid-template-columns:repeat(6,1fr); } }
+  .troop-cell{ background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .troop-cell.locked{ opacity:.5; }
+  .troop-cell-ico{ font-size:1.4em; }
+  .troop-cell-name{ font-size:.68em; color:var(--ink-soft); font-weight:700; }
+  .troop-cell-counts{ display:flex; gap:6px; font-size:.72em; font-weight:800; }
+  .tc-garrison{ color:var(--royal); }
+  .tc-army{ color:var(--danger); }
+
+  /* ---------- GARRISON / ARMY TAB SWITCH (shares one panel to save space) ---------- */
+  .tab-switch{ display:flex; gap:6px; margin-bottom:8px; }
+  .tab-btn{ flex:1; background:#d8c69a; color:var(--ink); padding:7px 8px; border-radius:8px; font-weight:700; font-size:.82em; }
+  .tab-btn.active{ background:var(--royal); color:#fff; }
+
+  /* ---------- MARKET (buy on top, sell below — stacked to avoid horizontal scrolling on mobile) ---------- */
+  .market-card{ border:2px solid var(--parchment-dark); border-radius:10px; padding:8px; margin-bottom:10px; background:#f4ecd4; }
+  .market-card:last-child{ margin-bottom:0; }
+  .market-card-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .market-card-head .unit-ico{ flex-shrink:0; }
+  .market-card-head .unit-info{ min-width:0; }
+  .market-section-label{ font-size:.72em; font-weight:800; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; margin:6px 0 3px; }
+  .market-actions{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .market-actions .recruit-btn{ white-space:normal; width:100%; line-height:1.25; padding:6px 6px; }
+
+  .log-box{ max-height:130px; overflow-y:auto; font-size:.82em; }
+  .log-box p{ margin:3px 0; padding:3px 6px; border-radius:6px; background:#f4ecd4; }
+  .log-box p.event{ background:#f0dcc0; border-left:3px solid var(--gold); }
+  .log-box p.combat{ background:#e6d5c0; border-left:3px solid var(--danger); }
+
+  /* ---------- BATTLE ---------- */
+  .battlefield{ display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:start; }
+  .side{ display:flex; flex-direction:column; gap:6px; }
+  .side.enemy{ align-items:flex-end; }
+  .unit-chip{
+    background:var(--parchment); border:2px solid var(--parchment-dark); border-radius:8px; padding:6px 8px;
+    display:flex; gap:6px; align-items:center; min-width:150px; font-size:.82em;
+  }
+  .side.enemy .unit-chip{ flex-direction:row-reverse; }
+  .vs-mark{ font-family:'Cinzel Decorative',serif; font-size:1.6em; align-self:center; color:var(--danger); }
+  .battle-log{ background:#2c1f14; color:#f1e0b0; border-radius:10px; padding:10px; margin-top:12px; max-height:220px; overflow-y:auto; font-size:.85em;}
+  .battle-log p{ margin:3px 0; }
+  #battle-continue-btn{ display:none; margin-top:10px; }
+
+  /* ---------- TACTICAL BATTLEFIELD ---------- */
+  .bf-wrap{ position:relative; width:100%; aspect-ratio:8/6; border-radius:10px; overflow:hidden; background:#3f7a3a; box-shadow:0 2px 8px var(--shadow) inset; }
+  .bf-grid{ display:grid; width:100%; height:100%; gap:2px; }
+  .bf-cell{ position:relative; background:#5a9a4a; display:flex; align-items:center; justify-content:center; }
+  .bf-cell.bf-obstacle{ background:#6b5236; font-size:1.3em; }
+  .bf-cell.bf-reachable{ background:#8fd07a; cursor:pointer; }
+  .bf-stack{ position:relative; width:80%; height:80%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.25em; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,.4); }
+  .bf-stack.bf-player{ background:#2e5fae; border:2px solid #163a73; }
+  .bf-stack.bf-enemy{ background:#a13d2c; border:2px solid #6b2318; }
+  .bf-stack.bf-selected{ outline:3px solid #f0c419; }
+  .bf-stack.bf-attackable{ outline:3px solid #ff5252; animation:bf-pulse 1s infinite; }
+  .bf-stack.bf-magic-target{ outline:3px solid #b98af0; animation:bf-pulse 1s infinite; }
+  .bf-stack.bf-acted-mark{ opacity:.55; }
+  .bf-count{ position:absolute; bottom:-5px; right:-5px; background:#fff; color:#111; font-size:.6em; font-weight:800; border-radius:8px; padding:1px 4px; box-shadow:0 1px 2px rgba(0,0,0,.4); }
+  .bf-acted{ position:absolute; top:-5px; left:-5px; background:#222; color:#fff; font-size:.55em; border-radius:8px; padding:0 3px; }
+  @keyframes bf-pulse{ 0%,100%{ box-shadow:0 0 0 rgba(255,82,82,.5);} 50%{ box-shadow:0 0 9px rgba(255,82,82,.95);} }
+  .bf-ranged-mark{ position:absolute; top:-5px; right:-5px; font-size:.6em; }
+
+  /* ---------- SPELL MENU ---------- */
+  .spell-menu{ display:none; flex-wrap:wrap; gap:8px; margin:10px 0; align-items:stretch; }
+  .spell-card{
+    background:var(--parchment); border:2px solid var(--parchment-dark); border-radius:10px; padding:8px 10px;
+    min-width:120px; flex:1 1 130px; cursor:pointer; text-align:center; box-shadow:0 2px 0 #b39c6d;
+  }
+  .spell-card:hover{ transform:translateY(-1px); }
+  .spell-card.disabled{ opacity:.45; cursor:not-allowed; }
+  .spell-card .spell-ico{ font-size:1.6em; }
+  .spell-card b{ display:block; font-size:.85em; margin:2px 0; }
+  .spell-card span{ font-size:.78em; color:var(--royal); font-weight:800; }
+  .spell-card small{ display:block; font-size:.68em; color:var(--ink-soft); margin-top:2px; line-height:1.25; }
+
+  .fx-fireball{ animation:fx-fire .6s ease; }
+  .fx-chain{ animation:fx-chain .6s ease; }
+  .fx-heal{ animation:fx-heal .6s ease; }
+  @keyframes fx-fire{ 0%{ filter:brightness(1);} 30%{ filter:brightness(2.1) drop-shadow(0 0 10px #ff8a2b);} 100%{ filter:brightness(1);} }
+  @keyframes fx-chain{ 0%{ filter:brightness(1);} 30%{ filter:brightness(2.1) drop-shadow(0 0 10px #9be7ff);} 100%{ filter:brightness(1);} }
+  @keyframes fx-heal{ 0%{ filter:brightness(1);} 30%{ filter:brightness(1.7) drop-shadow(0 0 10px #7CFC00);} 100%{ filter:brightness(1);} }
+
+  /* ---------- BATTLE RESULT MODAL ---------- */
+  .result-modal{ text-align:center; }
+  .loot-row{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:12px 0 4px; }
+  .loot-chip{ background:#f0dcc0; border:2px solid var(--parchment-dark); border-radius:20px; padding:4px 12px; font-weight:800; font-size:.9em; }
+  .loot-chip.loot-bad{ background:#e8c9be; border-color:#c99c8c; color:var(--danger); }
+
+  /* ---------- MARKET ---------- */
+  .market-note{ font-size:.78em; color:var(--ink-soft); margin:0 0 6px; }
+
+  /* ---------- WORLD MAP ---------- */
+  .worldmap-hint{ font-size:.82em; color:var(--ink-soft); margin:0 0 8px; }
+  .worldmap-msg{ min-height:1.4em; font-size:.85em; color:var(--danger); font-weight:700; margin-bottom:6px; }
+  .worldmap-wrap{ position:relative; width:100%; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px var(--shadow) inset; }
+  .worldmap-grid{ display:grid; width:100%; height:100%; gap:2px; background:#4a6b3a; }
+  .wtile{ position:relative; display:flex; align-items:center; justify-content:center; font-size:1.3em; user-select:none; }
+  .wtile.t-grass{ background:#bcd98f; cursor:pointer; }
+  .wtile.t-forest{ background:#6b8f4e; cursor:pointer; }
+  .wtile.t-mountain{ background:#93897a; cursor:not-allowed; }
+  .wtile.t-water{ background:#6fa8b8; cursor:not-allowed; }
+  .wtile.t-home{ background:#e8cf8a; cursor:pointer; }
+  .wtile:hover:not(.t-mountain):not(.t-water){ filter:brightness(1.12); }
+  .camp-badge{ position:absolute; bottom:1px; right:1px; font-size:.5em; background:#2c1f14; color:#f1e0b0; padding:0 3px; border-radius:5px; line-height:1.4; }
+  .hero-token{ position:absolute; font-size:1.7em; transform:translate(-50%,-65%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:6; filter:drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+  .party-token{ position:absolute; display:flex; gap:1px; font-size:.68em; transform:translate(-50%, 20%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:5; }
+  .party-token span{ background:rgba(44,31,20,.75); color:#f1e0b0; border-radius:5px; padding:0 3px; }
+  .legend{ font-size:.78em; color:var(--ink-soft); margin-top:8px; }
+
+  /* ---------- MODAL ---------- */
+  .modal-bg{ display:none; position:fixed; inset:0; background:rgba(20,14,8,.6); align-items:center; justify-content:center; z-index:50; padding:14px;}
+  .modal-bg.active{ display:flex; }
+  .modal{ background:var(--parchment); border:3px solid var(--parchment-dark); border-radius:14px; padding:18px; max-width:480px; width:100%; max-height:82vh; overflow-y:auto; box-shadow:0 10px 30px var(--shadow); }
+  .modal h2{ margin-top:0; }
+  table.lb{ width:100%; border-collapse:collapse; font-size:.88em; }
+  table.lb th, table.lb td{ padding:6px 8px; border-bottom:1px solid var(--parchment-dark); text-align:left; }
+  table.lb tr.me{ background:#f0dcc0; font-weight:800; }
+  .close-btn{ background:var(--danger); color:#fff; padding:8px 16px; border-radius:8px; font-weight:700; margin-top:12px;}
+  .event-modal .emoji-big{ font-size:3em; text-align:center; display:block; }
+</style>
+</head>
+<body>
+
+<!-- ============ MAIN MENU ============ -->
+<div class="screen active" id="screen-menu">
+  <div class="title-banner">
+    <h1>⚔️ Хроники Вальдора</h1>
+    <p>«Где неурожай страшнее дракона, а бухгалтерия — самая жестокая магия»</p>
+  </div>
+
+  <div class="section-title">Выбери расу</div>
+  <div class="race-grid" id="race-grid"></div>
+
+  <div class="section-title">Выбери режим боя</div>
+  <div class="mode-grid" id="mode-grid"></div>
+
+  <button class="big-btn" onclick="startGame()">Начать правление 👑</button>
+  <div class="disclaimer">В этом прототипе бой всегда идёт против ИИ-соперника — живых оппонентов подвезут в следующей сборке.</div>
+</div>
+
+<!-- ============ VILLAGE ============ -->
+<div class="screen" id="screen-village">
+  <div class="topbar">
+    <div class="res-pill" id="res-pill"></div>
+    <div class="day-pill" id="day-pill"></div>
+    <div class="actions">
+      <button class="mini-btn" onclick="openLeaderboard()">🏆 Лидеры</button>
+      <button class="mini-btn" onclick="openWorldMap()">🗺️ Покинуть поселение</button>
+      <button class="mini-btn" onclick="goToBattle()">⚔️ Быстрый бой</button>
+      <button class="mini-btn" onclick="endTurn()">⏭️ Завершить ход</button>
+    </div>
+  </div>
+
+  <div class="village-layout">
+    <div>
+      <div class="panel">
+        <h3>🗺️ Поселение</h3>
+        <div class="map-grid" id="map-grid"></div>
+      </div>
+      <div class="panel">
+        <h3>🛡️ Отряды: сводка</h3>
+        <div class="troop-grid" id="troop-grid"></div>
+      </div>
+      <div class="panel">
+        <h3>📜 Хроника событий</h3>
+        <div class="log-box" id="log-box"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>🧙 Герой</h3>
+        <div class="hero-card">
+          <div class="hero-emoji" id="hero-emoji"></div>
+          <div style="flex:1">
+            <b id="hero-name"></b>
+            <div class="stat-row"><span>Уровень</span><span id="hero-level"></span></div>
+            <div class="xpbar"><div id="hero-xpbar" style="width:0%"></div></div>
+            <div class="stat-row"><span>⚔️ Атака</span><span id="hero-atk"></span></div>
+            <div class="stat-row"><span>🛡️ Защита</span><span id="hero-def"></span></div>
+            <div class="stat-row"><span>✨ Сила магии</span><span id="hero-sp"></span></div>
+            <div class="stat-row"><span>💠 Мана</span><span id="hero-mana"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>🏰 Отряды (найм идёт в гарнизон)</h3>
+        <div class="tab-switch">
+          <button class="tab-btn" id="tab-btn-garrison" onclick="setGarrisonTab('garrison')">🏰 Гарнизон</button>
+          <button class="tab-btn" id="tab-btn-army" onclick="setGarrisonTab('army')">⚔️ В походе</button>
+        </div>
+        <p class="market-note" id="garrison-tab-hint"></p>
+        <div id="garrison-list"></div>
+        <div id="army-list"></div>
+      </div>
+    </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WORLD MAP ============ -->
+<div class="screen" id="screen-worldmap">
+  <div class="topbar">
+    <div class="res-pill" id="res-pill-world"></div>
+    <div class="day-pill" id="day-pill-world"></div>
+    <div class="actions">
+      <button class="mini-btn" onclick="endTurn()">⏭️ Завершить ход</button>
+      <button class="mini-btn" onclick="showScreen('screen-village'); renderVillage();">🏰 В замок</button>
+    </div>
+  </div>
+  <div class="panel">
+    <p class="worldmap-hint">Кликни левой кнопкой мыши по клетке — герой со свитой поскачет туда. Наступишь на вражеский лагерь — начнётся бой.</p>
+    <p class="worldmap-msg" id="worldmap-msg"></p>
+    <div class="worldmap-wrap">
+      <div class="worldmap-grid" id="worldmap-grid"></div>
+      <div class="hero-token" id="hero-token">🤺</div>
+      <div class="party-token" id="party-token"></div>
+    </div>
+    <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;💀🧔🧝 Вражеские лагеря (цифра — размер отряда)</div>
+  </div>
+</div>
+
+<!-- ============ BATTLE ============ -->
+<div class="screen" id="screen-battle">
+  <div class="topbar">
+    <div class="day-pill" id="battle-title">⚔️ Битва</div>
+    <div class="actions">
+      <button class="mini-btn" onclick="toggleMagic()">📖 Магия</button>
+      <button class="mini-btn" onclick="skipSelected()">⏭ Пропустить отряд</button>
+      <button class="mini-btn" onclick="endPlayerPhaseBtn()">🏳 Закончить ход</button>
+      <button class="mini-btn" onclick="retreatBattle()">↩️ Отступить</button>
+    </div>
+  </div>
+  <div class="panel">
+    <p class="worldmap-hint" id="battle-phase-label"></p>
+    <p class="worldmap-msg" id="battle-msg"></p>
+    <div class="spell-menu" id="battle-magic-panel"></div>
+    <div class="bf-wrap" id="battlefield-wrap"></div>
+    <div class="legend">🔵 Ваши отряды • 🔴 Враг • 🪨 Препятствие • 🏹 стрелки бьют издалека, не приближаясь</div>
+    <div class="battle-log" id="battle-log"></div>
+  </div>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="modal-bg" id="modal-leaderboard">
+  <div class="modal">
+    <h2>🏆 Таблица лидеров Вальдора</h2>
+    <table class="lb">
+      <thead><tr><th>#</th><th>Правитель</th><th>Раса</th><th>Очки</th></tr></thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+    <button class="close-btn" onclick="closeModal('modal-leaderboard')">Закрыть свиток</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-event">
+  <div class="modal event-modal">
+    <span class="emoji-big" id="event-emoji">📯</span>
+    <h2 id="event-title" style="text-align:center;"></h2>
+    <p id="event-text" style="text-align:center;"></p>
+    <div style="text-align:center;"><button class="close-btn" id="event-close-btn" onclick="handleEventModalClose()">Принять судьбу</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-battle-result">
+  <div class="modal result-modal">
+    <span class="emoji-big" id="result-emoji">🎉</span>
+    <h2 id="result-title" style="text-align:center;"></h2>
+    <p id="result-subtitle" style="text-align:center;"></p>
+    <div class="loot-grid" id="result-loot"></div>
+    <div style="text-align:center;"><button class="big-btn" onclick="closeBattleResultAndContinue()">Продолжить путь →</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-market">
+  <div class="modal">
+    <h2>🏪 Рынок</h2>
+    <p class="market-note">Продавайте излишки или докупайте недостающее — курс каждый день немного гуляет.</p>
+    <div id="market-list"></div>
+    <button class="close-btn" onclick="closeModal('modal-market')">Закрыть лавку</button>
+  </div>
+</div>
+
+
+<script>
+/* ===================== DATA ===================== */
+const RACES = [
+  {id:'humans', name:'Люди', emoji:'👨‍🌾', bonus:'+20% к золоту. Ничем не выделяются, зато не жалуются.', mod:{gold:1.2,wood:1,stone:1,crystal:1}, heroEmoji:'🤺'},
+  {id:'elves', name:'Эльфы', emoji:'🧝', bonus:'+30% к кристаллам, герой начинает с бонусом к магии.', mod:{gold:1,wood:1,stone:1,crystal:1.3}, heroEmoji:'🧙‍♀️', spBonus:3},
+  {id:'dwarves', name:'Гномы', emoji:'🧔', bonus:'+30% к камню, отряды прочнее на 10%.', mod:{gold:1,wood:1,stone:1.3,crystal:1}, heroEmoji:'🪓', defBonus:0.1},
+  {id:'undead', name:'Нежить', emoji:'🧟', bonus:'Иммунитет к мору и неурожаю (есть-то не надо), +10% к атаке.', mod:{gold:1,wood:1,stone:1,crystal:1}, heroEmoji:'💀', atkBonus:0.1, immuneBadEvents:true},
+];
+const MODES = [
+  {id:'1x1', name:'1 на 1', desc:'Дуэль правителей'},
+  {id:'2x2', name:'2 на 2', desc:'Битва союзов'},
+  {id:'1x2', name:'1 на 2', desc:'Против двоих сразу — для смелых'},
+];
+// Single source of truth per unit: name, icon and whether it fights at range.
+// Ranged = archers, throwers (axes/spears), crossbowmen, and spellcasting "mage" units.
+// Everyone else (militia, knights, guards, riders, blademasters, undead brutes...) is melee.
+const UNIT_DATA = {
+  humans: [
+    {name:'Ополченец', icon:'🧑‍🌾', ranged:false},
+    {name:'Копейщик', icon:'🔱', ranged:false},
+    {name:'Лучник', icon:'🏹', ranged:true},
+    {name:'Рыцарь', icon:'🛡️', ranged:false},
+    {name:'Паладин', icon:'⚜️', ranged:false},
+    {name:'Королевский гвардеец', icon:'👑', ranged:false},
+  ],
+  elves: [
+    {name:'Лесной разведчик', icon:'🍃', ranged:false},
+    {name:'Стрелок', icon:'🏹', ranged:true},
+    {name:'Друид', icon:'🌿', ranged:true},
+    {name:'Всадник на олене', icon:'🦌', ranged:false},
+    {name:'Мастер клинка', icon:'🗡️', ranged:false},
+    {name:'Архимаг рощи', icon:'🧙', ranged:true},
+  ],
+  dwarves: [
+    {name:'Щитоносец', icon:'🛡️', ranged:false},
+    {name:'Метатель топоров', icon:'🪓', ranged:true},
+    {name:'Молотобоец', icon:'🔨', ranged:false},
+    {name:'Арбалетчик', icon:'🎯', ranged:true},
+    {name:'Рунный страж', icon:'🔰', ranged:false},
+    {name:'Повелитель кузни', icon:'👑', ranged:false},
+  ],
+  undead: [
+    {name:'Скелет', icon:'💀', ranged:false},
+    {name:'Зомби', icon:'🧟', ranged:false},
+    {name:'Костяной лучник', icon:'🏹', ranged:true},
+    {name:'Призрак', icon:'👻', ranged:false},
+    {name:'Костяной рыцарь', icon:'🛡️', ranged:false},
+    {name:'Личность-лич', icon:'🧙', ranged:true},
+  ],
+};
+function unitInfo(raceId, tier){ return (UNIT_DATA[raceId]||UNIT_DATA.humans)[tier-1]; }
+const RANGED_FULL_RANGE = 3; // full damage within this many cells; half damage beyond
+
+/* ---- Global (overworld) map ---- */
+// . grass  f forest  m mountain  w water  H home/castle  1/2/3 enemy camps
+// NOTE: bigger than a single settlement's turf on purpose — this is the seed of the
+// eventual shared world map (other players' castles/armies will live here later).
+const WORLD_TEMPLATE = [
+  "....m..f...",
+  ".H....f..1.",
+  "...m.f.....",
+  "f.....m..f.",
+  ".w..m.....f",
+  "..2.....3..",
+  "f..f.m.....",
+];
+const WORLD_COLS = WORLD_TEMPLATE[0].length;
+const WORLD_ROWS = WORLD_TEMPLATE.length;
+const CAMP_DEFS = {
+  '1': {race:'dwarves', label:'Лагерь гномов-контрабандистов', armyTiers:[{tier:2,count:4},{tier:1,count:3}]},
+  '2': {race:'undead',  label:'Логово нежити', armyTiers:[{tier:1,count:6},{tier:2,count:2}]},
+  '3': {race:'elves',   label:'Эльфийский дозор', armyTiers:[{tier:3,count:3},{tier:4,count:2},{tier:2,count:2}]},
+};
+const RESOURCE_PICKUP_COUNT = 10;
+
+/* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
+const CONFIG = {
+  MANA_REGEN_PER_DAY: 4,      // gradual regen while out adventuring
+  WEEKLY_TICK_DAYS: 7,        // army reinforcements, camp respawns, resource refresh cadence
+  MARKET: {
+    baseRates: { wood:0.7, stone:0.7, crystal:9 },
+    minMult: 0.65, maxMult: 1.5, driftPerDay: 0.10, // floating price random-walk bounds
+    buyMarkup: 1.4, // buying costs current rate × this markup (merchant's cut)
+  },
+  WAREHOUSE: {
+    baseCap: 300,   // storage cap per resource (wood/stone/crystal) at warehouse level 1
+    perLevel: 150,  // extra cap per warehouse level above 1
+  },
+  BARRACKS: {
+    // barracks level required to unlock recruiting each higher tier (tiers 1-3 are always open)
+    unlockLevel: { 4:2, 5:3, 6:5 },
+    capPerLevel: 4, // extra unit cap (on top of townhall's base cap) per barracks level, for tiers 4-6 only
+  },
+  WALLS: {
+    garrisonDefPerLevel: 3, // extra defense granted to garrisoned troops per walls level (siege groundwork)
+  },
+};
+
+/* ---- Random resource pickups & ambushes ---- */
+const AMBUSH_DEFS = {
+  gold:   {name:'Скелет-старик', icon:'💀', flavor:'Пока вы наклонились за монетами, из-под куста с диким скрежетом выскочил разъярённый скелет-старик — видимо, тоже претендовал на золото.'},
+  wood:   {name:'Стая волков', icon:'🐺', flavor:'Вы потянулись за поленьями, но из чащи выскочила голодная стая волков — дровами тут явно не откупиться.'},
+  stone:  {name:'Каменный голем', icon:'🪨', flavor:'Булыжник оказался частью голема, который очень обиделся на попытку его присвоить.'},
+  crystal:{name:'Кристальный дух', icon:'👻', flavor:'Кристалл засветился, и из него соткался обиженный дух — сокровище явно было под охраной.'},
+};
+const LOOT_JOKES = {
+  gold:['Монеты подозрительно тёплые — видимо, лежали тут со времён последнего восстания.','Никто не пострадал. Пока.'],
+  wood:['Дрова сухие — можно топить всю зиму.','Кора отвалилась и упала прямо в сапог герою.'],
+  stone:['Булыжник увесистый — герой сразу поверил в его ценность.','Обычный камень. Но тяжёлый и полезный.'],
+  crystal:['Кристалл гудит и слегка вибрирует. Наверное, это нормально.','Маги Башни будут рады такому трофею.'],
+};
+
+/* ===================== STATE ===================== */
+let state = null;
+
+function newGame(raceId, modeId){
+  const race = RACES.find(r=>r.id===raceId);
+  const baseMana = 10 + (race.spBonus||0)*2;
+  return {
+    race, mode: modeId, day: 1,
+    res: {gold:150, wood:100, stone:100, crystal:20},
+    buildings: [
+      {key:'townhall', name:'Ратуша', ico:'🏰', level:1, produces:null},
+      {key:'farm', name:'Ферма (дерево)', ico:'🌾', level:1, produces:'wood', base:8},
+      {key:'mine', name:'Золотая жила', ico:'💰', level:1, produces:'gold', base:12},
+      {key:'quarry', name:'Каменоломня', ico:'⛏️', level:1, produces:'stone', base:8},
+      {key:'crystalcave', name:'Кристальная пещера', ico:'💎', level:1, produces:'crystal', base:3},
+      {key:'tower', name:'Башня мага', ico:'🔮', level:1, produces:null},
+      {key:'barracks', name:'Казармы', ico:'⚔️', level:1, produces:null},
+      {key:'warehouse', name:'Склад', ico:'📦', level:1, produces:null},
+      {key:'walls', name:'Стены', ico:'🧱', level:1, produces:null},
+      {key:'market', name:'Рынок', ico:'🏪', level:0, produces:null},
+    ],
+    hero: {
+      level:1, xp:0, xpNeeded:40,
+      atk: 5 + (race.atkBonus? Math.round(5*race.atkBonus):0),
+      def: 5 + (race.defBonus? Math.round(5*race.defBonus):0),
+      sp: 5 + (race.spBonus||0),
+      mana: baseMana, maxManaBase: baseMana,
+    },
+    // troops recruited go to the garrison first; the player deploys some to the marching army before heading out
+    army: [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?3:0})),
+    garrison: [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?3:0})),
+    log: [],
+    leaderboard: seedLeaderboard(raceId),
+    worldMap: WORLD_TEMPLATE.slice(),
+    heroPos: findCharPos(WORLD_TEMPLATE, 'H'),
+    movePoints: 5,
+    maxMovePoints: 5,
+    moveAnimating: false,
+    camps: findAllCharPositions(WORLD_TEMPLATE).map(c=>({
+      id:c.ch, x:c.x, y:c.y, defeated:false, def: CAMP_DEFS[c.ch]
+    })),
+    resourcePickups: generateResourcePickups(WORLD_TEMPLATE, findCharPos(WORLD_TEMPLATE,'H')),
+    marketRates: Object.assign({}, CONFIG.MARKET.baseRates),
+  };
+}
+
+function generateResourcePickups(template, home){
+  const spots = [];
+  for(let y=0;y<template.length;y++){
+    for(let x=0;x<template[y].length;x++){
+      const ch = template[y][x];
+      if((ch==='.'||ch==='f') && !(x===home.x && y===home.y)) spots.push({x,y});
+    }
+  }
+  for(let i=spots.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [spots[i],spots[j]]=[spots[j],spots[i]]; }
+  const types = ['gold','wood','stone','crystal'];
+  return spots.slice(0,RESOURCE_PICKUP_COUNT).map((s,i)=>({
+    id:'res'+i, x:s.x, y:s.y, type: types[Math.floor(Math.random()*types.length)],
+    amount: 15+Math.floor(Math.random()*35), collected:false,
+  }));
+}
+
+function findCharPos(template, ch){
+  for(let y=0;y<template.length;y++){
+    const x = template[y].indexOf(ch);
+    if(x!==-1) return {x,y};
+  }
+  return {x:0,y:0};
+}
+function findAllCharPositions(template){
+  const out = [];
+  for(let y=0;y<template.length;y++){
+    for(let x=0;x<template[y].length;x++){
+      const ch = template[y][x];
+      if(CAMP_DEFS[ch]) out.push({x,y,ch});
+    }
+  }
+  return out;
+}
+
+function seedLeaderboard(myRaceId){
+  const names = ['Барон Освальд','Леди Миррин','Ярл Хротгар','Некромант Зейлус','Тень Аскара','Капитан Верна','Старейшина Тавиэль','Кузнец Гром'];
+  const races = ['humans','elves','dwarves','undead'];
+  return names.map((n,i)=>({name:n, race: races[i%4], score: 180 + Math.floor(Math.random()*220)}));
+}
+
+/* ===================== NAV / MENU ===================== */
+let pickedRace = 'humans', pickedMode = '1x1';
+
+function renderMenu(){
+  const rg = document.getElementById('race-grid');
+  rg.innerHTML = RACES.map(r=>`
+    <div class="pick-card ${r.id===pickedRace?'selected':''}" onclick="pickRace('${r.id}')">
+      <div class="emoji">${r.emoji}</div>
+      <b>${r.name}</b>
+      <small>${r.bonus}</small>
+    </div>`).join('');
+  const mg = document.getElementById('mode-grid');
+  mg.innerHTML = MODES.map(m=>`
+    <div class="pick-card ${m.id===pickedMode?'selected':''}" onclick="pickMode('${m.id}')">
+      <div class="emoji">${m.id==='1x1'?'⚔️':m.id==='2x2'?'⚔️⚔️':'🗡️🆚🗡️🗡️'}</div>
+      <b>${m.name}</b>
+      <small>${m.desc}</small>
+    </div>`).join('');
+}
+function pickRace(id){ pickedRace=id; renderMenu(); }
+function pickMode(id){ pickedMode=id; renderMenu(); }
+
+function startGame(){
+  state = newGame(pickedRace, pickedMode);
+  garrisonTab = 'garrison';
+  addLog(`Правление народа «${state.race.name}» началось. Да прибудет с вами казна!`, 'event');
+  showScreen('screen-village');
+  renderVillage();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ===================== VILLAGE RENDER ===================== */
+function renderVillage(){
+  const rp = document.getElementById('res-pill');
+  rp.innerHTML = `
+    <div class="res">💰 ${Math.floor(state.res.gold)}</div>
+    <div class="res">🌲 ${Math.floor(state.res.wood)}/${storageCap('wood')}</div>
+    <div class="res">🪨 ${Math.floor(state.res.stone)}/${storageCap('stone')}</div>
+    <div class="res">💎 ${Math.floor(state.res.crystal)}/${storageCap('crystal')}</div>
+  `;
+  document.getElementById('day-pill').textContent = `📅 День ${state.day} (до пополнения: ${7 - ((state.day-1)%7)})`;
+
+  const mg = document.getElementById('map-grid');
+  mg.innerHTML = state.buildings.map(b=>{
+    const isUnbuilt = b.level===0;
+    const upgradeCost = buildingUpgradeCost(b);
+    const canAfford = (!isUnbuilt && b.level>=5) ? false : affordable(upgradeCost);
+    const lvlLine = isUnbuilt ? 'Не построено' : (b.produces? 'Ур. '+b.level+' • +'+Math.round(b.base*b.level*raceMod(b.produces)) : 'Ур. '+b.level);
+    const upgradeBtn = (!isUnbuilt && b.level>=5)
+      ? '<span style="font-size:.7em;color:#6b5236;">MAX</span>'
+      : `<button ${canAfford?'':'disabled'} onclick="upgradeBuilding('${b.key}')">${isUnbuilt?'🔨 Построить':'⬆'} ${Object.entries(upgradeCost).map(([k,v])=>v+iconOf(k)).join(' ')}</button>`;
+    const marketBtn = (b.key==='market' && !isUnbuilt) ? `<button style="background:var(--royal);" onclick="openMarket()">🛒 Открыть рынок</button>` : '';
+    return `<div class="tile" oncontextmenu="showBuildingInfo(event,'${b.key}')" title="ПКМ — что это здание даёт">
+      <div class="ico">${b.ico}</div>
+      <b>${b.name}</b>
+      <div class="lvl">${lvlLine}</div>
+      ${upgradeBtn}
+      ${marketBtn}
+    </div>`;
+  }).join('');
+
+  const hero = state.hero;
+  document.getElementById('hero-emoji').textContent = state.race.heroEmoji;
+  document.getElementById('hero-name').textContent = `Герой народа «${state.race.name}»`;
+  document.getElementById('hero-level').textContent = `${hero.level} / 25`;
+  document.getElementById('hero-xpbar').style.width = Math.min(100, Math.round(100*hero.xp/hero.xpNeeded))+'%';
+  document.getElementById('hero-atk').textContent = hero.atk;
+  document.getElementById('hero-def').textContent = hero.def;
+  document.getElementById('hero-sp').textContent = hero.sp;
+  document.getElementById('hero-mana').textContent = `${hero.mana}/${getMaxMana()}`;
+
+  renderTroopOverview();
+  renderGarrison();
+  renderMarchingArmy();
+  renderGarrisonTabs();
+
+  const lb = document.getElementById('log-box');
+  lb.innerHTML = state.log.slice(-25).reverse().map(l=>`<p class="${l.type}">${l.text}</p>`).join('');
+  renderMarket();
+}
+
+function iconOf(k){ return {gold:'💰',wood:'🌲',stone:'🪨',crystal:'💎'}[k]; }
+function raceMod(res){ return state.race.mod[res]||1; }
+function affordable(cost){ return Object.entries(cost).every(([k,v])=> state.res[k] >= v); }
+function pay(cost){ Object.entries(cost).forEach(([k,v])=> state.res[k]-=v); }
+
+function buildingUpgradeCost(b){
+  if(b.level===0){
+    return {gold:50, wood:20, stone:20}; // one-time construction cost for buildings that start unbuilt (e.g. market)
+  }
+  const lvl = b.level;
+  return {gold: 30*lvl, wood: b.produces==='wood'?0:12*lvl, stone: b.produces==='stone'?0:12*lvl};
+}
+function upgradeBuilding(key){
+  const b = state.buildings.find(x=>x.key===key);
+  const cost = buildingUpgradeCost(b);
+  if(b.level>=5 || !affordable(cost)) return;
+  const wasUnbuilt = b.level===0;
+  pay(cost); b.level++;
+  if(wasUnbuilt){ addLog(`«${b.name}» построен! Теперь доступен в поселении.`, 'event'); }
+  else { addLog(`«${b.name}» отстроена до уровня ${b.level}. Каменщики довольны (в меру).`, 'event'); }
+  renderVillage();
+}
+
+/* ---- Building descriptions (right-click / context menu on a building tile) ---- */
+const BUILDING_INFO = {
+  townhall: (b)=> `Сердце поселения — усиливает всё войско сразу. Сейчас: −${Math.round((1-unitCostMultiplier())*100)}% к цене найма, лимит найма ${unitCapPerTier(1)} бойцов на каждый уровень отряда 1–3 (казармы добавляют лимит для старших), +${townStatBonus()} к атаке и защите всех ваших отрядов в бою. Следующий уровень усилит все три бонуса разом.`,
+  farm: (b)=> `Даёт дерево каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('wood'))} за ход. Нужно для построек и найма войск.`,
+  mine: (b)=> `Даёт золото каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('gold'))} за ход. Основа казны: без золота не нанять бойцов и не отстроиться.`,
+  quarry: (b)=> `Даёт камень каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('stone'))} за ход. Нужен для построек и снаряжения тяжёлых отрядов.`,
+  crystalcave: (b)=> `Даёт кристаллы каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('crystal'))} за ход. Редкий ресурс для найма старших отрядов и рыночных сделок.`,
+  tower: (b)=> `Усиливает магию героя — сейчас +${(b.level-1)*4} к максимуму маны (итого ${getMaxMana()}). Чем выше уровень, тем дольше герой колдует в походе, не забегая домой отдыхать.`,
+  barracks: (b)=> {
+    const lines = [4,5,6].map(t=>{
+      const need = CONFIG.BARRACKS.unlockLevel[t];
+      const status = barracksLevel()>=need ? `открыт, лимит ${unitCapPerTier(t)}` : `нужен уровень казарм ${need}`;
+      return `Ур.${t} — ${status}`;
+    }).join('; ');
+    return `Открывает наём старших отрядов (4–6 уровня) и повышает для них лимит. ${lines}. Отряды 1–3 уровня казармы не касаются — за их лимит отвечает ратуша.`;
+  },
+  warehouse: (b)=> `Хранилище дерева, камня и кристаллов — сейчас лимит ${storageCap('wood')} на каждый из этих трёх ресурсов. Золото хранится в казне отдельно и лимита не имеет. Излишки сверх лимита пропадают, так что при активной добыче стоит достраивать склад заранее.`,
+  walls: (b)=> `Крепостные стены — пока дают +${garrisonDefBonus()} к защите отрядам в гарнизоне (в походе бонус не действует). Задел на будущую механику осад: чем выше стены, тем труднее будет штурмовать поселение.`,
+  market: (b)=> b.level===0 ? `Ещё не построен. Постройте рынок, чтобы открыть покупку и продажу ресурсов по плавающему курсу.` : `Открывает окно торговли: продажа излишков дерева, камня и кристаллов за золото, и обратная покупка при нужде. Курс каждый день немного гуляет — следите за трендом (📈/📉) перед крупной сделкой.`,
+};
+function showBuildingInfo(evt, key){
+  evt.preventDefault();
+  const b = state.buildings.find(x=>x.key===key);
+  const text = (BUILDING_INFO[key] || (()=>'Пока просто красивое здание.'))(b);
+  const titleSuffix = b.level===0 ? '— не построено' : `— уровень ${b.level}`;
+  showEventModal2({icon:b.ico, title:`${b.name} ${titleSuffix}`, text, buttonLabel:'Понятно'});
+}
+
+/* ---- Town Hall & Mage Tower bonuses (shared by village UI and battle stacks) ---- */
+function townHallLevel(){ const b = state.buildings.find(x=>x.key==='townhall'); return b ? b.level : 1; }
+function mageTowerLevel(){ const b = state.buildings.find(x=>x.key==='tower'); return b ? b.level : 1; }
+function unitCostMultiplier(){ return Math.max(0.7, 1 - 0.04*(townHallLevel()-1)); }
+function unitCapPerTier(tier){
+  const base = 8 + 4*(townHallLevel()-1);
+  const barracksBonus = (tier>=4) ? CONFIG.BARRACKS.capPerLevel*(barracksLevel()-1) : 0;
+  return base + barracksBonus;
+}
+function townStatBonus(){ return Math.floor((townHallLevel()-1)/2); }
+function getMaxMana(){ return state.hero.maxManaBase + (mageTowerLevel()-1)*4; }
+
+function barracksLevel(){ const b = state.buildings.find(x=>x.key==='barracks'); return b ? b.level : 1; }
+function isTierUnlocked(tier){
+  const need = CONFIG.BARRACKS.unlockLevel[tier];
+  return !need || barracksLevel() >= need;
+}
+
+function warehouseLevel(){ const b = state.buildings.find(x=>x.key==='warehouse'); return b ? b.level : 1; }
+function storageCap(type){
+  if(type==='gold') return Infinity; // gold is kept in the treasury and never overflows
+  return CONFIG.WAREHOUSE.baseCap + CONFIG.WAREHOUSE.perLevel*(warehouseLevel()-1);
+}
+// Adds `amount` of `type` to state.res, clamped to the warehouse cap. Returns the actual amount added
+// (may be less than requested if the warehouse is full) so callers can warn about overflow if they care.
+function addRes(type, amount){
+  const before = state.res[type] || 0;
+  if(amount <= 0){ state.res[type] = Math.max(0, before + amount); return amount; }
+  const cap = storageCap(type);
+  const after = Math.min(cap, before + amount);
+  state.res[type] = after;
+  return after - before;
+}
+
+function wallsLevel(){ const b = state.buildings.find(x=>x.key==='walls'); return b ? b.level : 1; }
+function garrisonDefBonus(){ return CONFIG.WALLS.garrisonDefPerLevel*(wallsLevel()-1); }
+
+function unitCost(tier){
+  const mult = unitCostMultiplier();
+  return {
+    gold: Math.round(10*tier*tier*mult), wood: Math.round(4*tier*mult), stone: Math.round(4*tier*mult),
+    crystal: tier>=5 ? Math.round(3*(tier-4)*mult) : 0,
+  };
+}
+function raceUnitAtk(tier, raceObj){ return 3*tier + Math.round(3*tier*((raceObj&&raceObj.atkBonus)||0)); }
+function raceUnitDef(tier, raceObj){ return 2*tier + Math.round(2*tier*((raceObj&&raceObj.defBonus)||0)); }
+function unitAtk(tier){ return raceUnitAtk(tier, state.race) + townStatBonus(); }
+function unitDef(tier){ return raceUnitDef(tier, state.race) + townStatBonus(); }
+function unitDefGarrison(tier){ return unitDef(tier) + garrisonDefBonus(); } // walls only protect troops standing in garrison
+function unitHp(tier){ return 10*tier; }
+function resName(type){ return {gold:'золота', wood:'дерева', stone:'камня', crystal:'кристаллов'}[type]; }
+
+function totalOwned(tier){
+  const g = state.garrison.find(x=>x.tier===tier).count;
+  const a = state.army.find(x=>x.tier===tier).count;
+  return g+a;
+}
+
+function recruit(tier){
+  const u = state.garrison.find(x=>x.tier===tier);
+  const cost = unitCost(tier);
+  if(!isTierUnlocked(tier)) return;
+  if(totalOwned(tier) >= unitCapPerTier(tier)) return;
+  if(!affordable(cost)) return;
+  pay(cost); u.count++;
+  addLog(`В гарнизон встал ещё один ${unitInfo(state.race.id,tier).name.toLowerCase()}. Кузница не спит.`, 'event');
+  renderVillage();
+}
+
+function deployToField(tier){
+  const g = state.garrison.find(x=>x.tier===tier);
+  const a = state.army.find(x=>x.tier===tier);
+  if(g.count<=0) return;
+  a.count += g.count;
+  addLog(`${unitInfo(state.race.id,tier).name} (x${g.count}) выступает из гарнизона в поход.`, 'event');
+  g.count = 0;
+  renderVillage();
+}
+function recallToGarrison(tier){
+  const g = state.garrison.find(x=>x.tier===tier);
+  const a = state.army.find(x=>x.tier===tier);
+  if(a.count<=0) return;
+  g.count += a.count;
+  addLog(`${unitInfo(state.race.id,tier).name} (x${a.count}) возвращается в гарнизон поселения.`, 'event');
+  a.count = 0;
+  renderVillage();
+}
+
+function renderGarrison(){
+  const gl = document.getElementById('garrison-list');
+  if(!gl) return;
+  gl.innerHTML = state.garrison.map(u=>{
+    const info = unitInfo(state.race.id, u.tier);
+    const cost = unitCost(u.tier);
+    const locked = !isTierUnlocked(u.tier);
+    const cap = unitCapPerTier(u.tier);
+    const atCap = totalOwned(u.tier) >= cap;
+    const canBuy = affordable(cost) && !atCap && !locked;
+    let btnLabel;
+    if(locked) btnLabel = `🔒 Нужны казармы ур.${CONFIG.BARRACKS.unlockLevel[u.tier]}`;
+    else if(atCap) btnLabel = 'Лимит';
+    else btnLabel = 'Нанять: '+Object.entries(cost).map(([k,v])=>v+iconOf(k)).join(' ');
+    return `<div class="unit-row">
+      <div class="unit-ico">${info.icon}</div>
+      <div class="unit-info">
+        <b>Ур.${u.tier} ${info.name}${info.ranged?' 🏹':''}</b>
+        <span>в гарнизоне: x${u.count} • атк ${unitAtk(u.tier)} / защ ${unitDefGarrison(u.tier)}${garrisonDefBonus()>0?' (+'+garrisonDefBonus()+' от стен)':''} • лимит ${totalOwned(u.tier)}/${cap}</span>
+      </div>
+      <button class="recruit-btn" ${canBuy?'':'disabled'} onclick="recruit(${u.tier})">${btnLabel}</button>
+      <button class="recruit-btn" ${u.count>0?'':'disabled'} onclick="deployToField(${u.tier})" style="background:var(--royal);">➡ В поход</button>
+    </div>`;
+  }).join('');
+}
+function renderMarchingArmy(){
+  const al = document.getElementById('army-list');
+  if(!al) return;
+  al.innerHTML = state.army.map(u=>{
+    const info = unitInfo(state.race.id, u.tier);
+    return `<div class="unit-row">
+      <div class="unit-ico">${info.icon}</div>
+      <div class="unit-info">
+        <b>Ур.${u.tier} ${info.name}${info.ranged?' 🏹':''}</b>
+        <span>в походе: x${u.count} • атк ${unitAtk(u.tier)} / защ ${unitDef(u.tier)}</span>
+      </div>
+      <button class="recruit-btn" ${u.count>0?'':'disabled'} onclick="recallToGarrison(${u.tier})" style="background:var(--ink-soft);">⬅ В гарнизон</button>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Compact 6-cell overview of all tiers (garrison vs marching counts at a glance) ---- */
+function renderTroopOverview(){
+  const tg = document.getElementById('troop-grid');
+  if(!tg) return;
+  tg.innerHTML = [1,2,3,4,5,6].map(tier=>{
+    const info = unitInfo(state.race.id, tier);
+    const g = state.garrison.find(x=>x.tier===tier).count;
+    const a = state.army.find(x=>x.tier===tier).count;
+    const locked = !isTierUnlocked(tier);
+    return `<div class="troop-cell ${locked?'locked':''}" title="Ур.${tier} ${info.name}${locked?' (закрыто, нужны казармы)':''}">
+      <div class="troop-cell-ico">${locked?'🔒':info.icon}</div>
+      <div class="troop-cell-name">Ур.${tier}</div>
+      <div class="troop-cell-counts"><span class="tc-garrison">🏰${g}</span><span class="tc-army">⚔️${a}</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Garrison / marching-army share one panel; a tab switch shows one list at a time to save space ---- */
+let garrisonTab = 'garrison'; // UI-only, not part of save state
+function setGarrisonTab(tab){
+  garrisonTab = tab;
+  renderGarrisonTabs();
+}
+function renderGarrisonTabs(){
+  const gBtn = document.getElementById('tab-btn-garrison');
+  const aBtn = document.getElementById('tab-btn-army');
+  const gList = document.getElementById('garrison-list');
+  const aList = document.getElementById('army-list');
+  const hint = document.getElementById('garrison-tab-hint');
+  if(!gBtn) return;
+  const onGarrison = garrisonTab==='garrison';
+  gBtn.classList.toggle('active', onGarrison);
+  aBtn.classList.toggle('active', !onGarrison);
+  gList.style.display = onGarrison ? '' : 'none';
+  aList.style.display = onGarrison ? 'none' : '';
+  hint.textContent = onGarrison
+    ? 'Новобранцы сперва встают на защиту поселения. Отправляйте их в поход, когда будете готовы.'
+    : 'Отряды в походе участвуют в боях и вылазках. Отзовите их в гарнизон, если нужно защитить поселение.';
+}
+
+/* ---- Market (prices float day to day, see CONFIG.MARKET) ---- */
+const MARKET_JOKES = [
+  'Купец подкручивает усы и явно доволен сделкой больше, чем вы.',
+  'Монеты пересчитаны трижды — доверие в торговле превыше всего.',
+  'Рыночный глашатай уже кричит о новой партии на продажу.',
+  'Сделка честная. Ну, почти.',
+];
+function driftMarketRates(){
+  const cfg = CONFIG.MARKET;
+  Object.keys(cfg.baseRates).forEach(type=>{
+    const base = cfg.baseRates[type];
+    const cur = state.marketRates[type] ?? base;
+    const swing = 1 + (Math.random()*2-1)*cfg.driftPerDay;
+    const next = Math.min(base*cfg.maxMult, Math.max(base*cfg.minMult, cur*swing));
+    state.marketRates[type] = Math.round(next*100)/100;
+  });
+}
+function marketLevel(){ const b = state.buildings.find(x=>x.key==='market'); return b ? b.level : 0; }
+function openMarket(){
+  if(marketLevel()<1) return; // market not built yet
+  renderMarket();
+  openModal('modal-market');
+}
+function sellResource(type, qty){
+  const rate = state.marketRates[type];
+  const amount = Math.min(qty, Math.floor(state.res[type]||0));
+  if(amount<=0) return;
+  state.res[type] -= amount;
+  const gold = Math.round(amount*rate);
+  addRes('gold', gold);
+  const joke = MARKET_JOKES[Math.floor(Math.random()*MARKET_JOKES.length)];
+  addLog(`🏪 Рынок: продано ${amount}${iconOf(type)} за ${gold}💰. ${joke}`, 'event');
+  renderVillage();
+}
+function buyResource(type, qty){
+  const rate = state.marketRates[type] * CONFIG.MARKET.buyMarkup;
+  const space = Math.max(0, storageCap(type) - Math.floor(state.res[type]||0));
+  const amount = Math.min(qty, space);
+  if(amount<=0) return;
+  const cost = Math.ceil(amount*rate);
+  if(state.res.gold < cost) return;
+  state.res.gold -= cost;
+  state.res[type] = (state.res[type]||0) + amount; // safe: already clamped to free warehouse space above
+  const joke = MARKET_JOKES[Math.floor(Math.random()*MARKET_JOKES.length)];
+  addLog(`🏪 Рынок: куплено ${amount}${iconOf(type)} за ${cost}💰. ${joke}`, 'event');
+  renderVillage();
+}
+function renderMarket(){
+  const ml = document.getElementById('market-list');
+  if(!ml) return;
+  const sellable = ['wood','stone','crystal'];
+  ml.innerHTML = sellable.map(type=>{
+    const rate = state.marketRates[type];
+    const buyRate = rate * CONFIG.MARKET.buyMarkup;
+    const base = CONFIG.MARKET.baseRates[type];
+    const trend = rate>base*1.03 ? '📈' : (rate<base*0.97 ? '📉' : '➡️');
+    const amount = Math.floor(state.res[type]||0);
+    const sell10Amount = Math.min(10, amount);
+    const cap = storageCap(type);
+    const space = Math.max(0, cap-amount);
+    const buy5Amount = Math.min(5, space);
+    const buy20Amount = Math.min(20, space);
+    const buy5Cost = Math.ceil(buy5Amount*buyRate);
+    const buy20Cost = Math.ceil(buy20Amount*buyRate);
+    return `<div class="market-card">
+      <div class="market-card-head">
+        <div class="unit-ico">${iconOf(type)}</div>
+        <div class="unit-info"><b>${resName(type)}</b><span>Есть: ${amount}/${cap} • покупка 1:${buyRate.toFixed(2)}💰 • продажа 1:${rate.toFixed(2)}💰 ${trend}</span></div>
+      </div>
+      <div class="market-section-label">🛒 Купить</div>
+      <div class="market-actions">
+        <button class="recruit-btn" style="background:var(--royal);" ${(buy5Amount<=0||state.res.gold<buy5Cost)?'disabled':''} onclick="buyResource('${type}',5)">Купить 5 (−${buy5Cost}💰)</button>
+        <button class="recruit-btn" style="background:var(--royal);" ${(buy20Amount<=0||state.res.gold<buy20Cost)?'disabled':''} onclick="buyResource('${type}',20)">Купить 20 (−${buy20Cost}💰)</button>
+      </div>
+      <div class="market-section-label">💰 Продать</div>
+      <div class="market-actions">
+        <button class="recruit-btn" ${sell10Amount<=0?'disabled':''} onclick="sellResource('${type}',10)">Продать 10 (+${Math.round(sell10Amount*rate)}💰)</button>
+        <button class="recruit-btn" ${amount<=0?'disabled':''} onclick="sellResource('${type}',${amount})">Продать всё (+${Math.round(amount*rate)}💰)</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addLog(text, type='event'){ state.log.push({text,type}); }
+
+/* ===================== TURN / EVENTS ===================== */
+const EVENTS = [
+  {title:'Неурожай!', emoji:'🥀', bad:true, text:'Мыши сожрали половину амбара, а вторую половину — управляющий. Дерево и золото немного просели.',
+    apply:s=>{ s.res.wood=Math.max(0,s.res.wood*0.8); s.res.gold=Math.max(0,s.res.gold*0.9); }},
+  {title:'Затяжные дожди', emoji:'🌧️', bad:true, text:'Каменоломню затопило, зато огород радуется. Добыча камня временно упала.',
+    apply:s=>{ s.res.stone=Math.max(0,s.res.stone*0.85); }},
+  {title:'Мор в поселении', emoji:'☠️', bad:true, text:'Кто-то принёс блох из соседнего королевства. Отряд ополчения поредел.',
+    apply:s=>{ const u=s.army[0]; u.count=Math.max(0, u.count - Math.ceil(u.count*0.3)); }},
+  {title:'Странствующий торговец', emoji:'🧳', bad:false, text:'Хитрый купец продал «древние реликвии» втридорога, но заплатил вперёд за постой.',
+    apply:s=>{ addRes('gold', 40); addRes('crystal', 3); }},
+  {title:'Благословение волхвов', emoji:'🕊️', bad:false, text:'Местный оракул прочитал герою длинную нотацию о судьбе. Получилось на удивление полезно.',
+    apply:s=>{ s.hero.xp += 25; }},
+  {title:'Тихая неделя', emoji:'😴', bad:false, text:'Ничего не случилось. Летописец в отчаянии выдумал этот абзац для галочки.', apply:s=>{}},
+];
+
+function endTurn(){
+  const s = state;
+  const wasInVillage = !document.getElementById('screen-worldmap').classList.contains('active');
+
+  // income
+  const overflowed = new Set();
+  s.buildings.forEach(b=>{
+    if(b.produces){
+      const amt = Math.round(b.base*b.level*raceMod(b.produces));
+      const added = addRes(b.produces, amt);
+      if(added < amt) overflowed.add(b.produces);
+    }
+  });
+  if(overflowed.size){
+    addLog(`📦 Склад переполнен: излишки ${[...overflowed].map(iconOf).join('')} пропали втуне. Стоит достроить склад.`, 'event');
+  }
+  s.day++;
+
+  // random event ~50%
+  if(Math.random() < 0.55){
+    let ev = EVENTS[Math.floor(Math.random()*EVENTS.length)];
+    if(ev.bad && s.race.immuneBadEvents){
+      addLog(`${ev.title} пришёл в поселение нежити — и никого не впечатлил. Скелеты не едят и не болеют.`, 'event');
+    } else {
+      ev.apply(s);
+      addLog(`${ev.emoji} ${ev.title}: ${ev.text}`, 'event');
+      showEventModal(ev);
+    }
+  }
+
+  // weekly tick: reinforcements, monster respawn, resource refresh
+  if((s.day-1)%CONFIG.WEEKLY_TICK_DAYS===0){
+    s.garrison[0].count += 2;
+    s.garrison[1].count += 1;
+    let respawned = 0;
+    s.camps.forEach(c=>{ if(c.defeated){ c.defeated=false; respawned++; } });
+    s.resourcePickups.forEach(p=>{
+      if(p.collected){ p.collected=false; p.amount = 15+Math.floor(Math.random()*35); }
+    });
+    addLog('📯 Пополнение резервов! В гарнизон встало свежее подкрепление (неделя прошла).', 'event');
+    if(respawned>0) addLog(`👹 Монстры осмелели и вернулись в ${respawned} логово(а) — неделя всё лечит, даже нежити.`, 'event');
+    addLog('💰 На дорогах снова заметили обронённые кем-то ресурсы.', 'event');
+  }
+
+  // hero passive xp trickle + level ups
+  s.hero.xp += 5;
+  tryLevelUp();
+
+  // mana: full instant refill if resting in the castle, otherwise gradual regen on the road
+  if(wasInVillage){ s.hero.mana = getMaxMana(); }
+  else { s.hero.mana = Math.min(getMaxMana(), s.hero.mana + CONFIG.MANA_REGEN_PER_DAY); }
+
+  // floating market prices: small random walk within configured bounds
+  driftMarketRates();
+
+  // rival leaderboard growth
+  s.leaderboard.forEach(r=> r.score += Math.floor(Math.random()*18));
+
+  s.movePoints = s.maxMovePoints;
+
+  if(document.getElementById('screen-worldmap').classList.contains('active')){
+    renderWorldMap();
+  } else {
+    renderVillage();
+  }
+}
+
+function tryLevelUp(){
+  const h = state.hero;
+  while(h.xp >= h.xpNeeded && h.level < 25){
+    h.xp -= h.xpNeeded;
+    h.level++;
+    h.atk += 1; h.def += 1; h.sp += 1; h.maxManaBase += 2; h.mana = Math.min(getMaxMana(), h.mana+2);
+    h.xpNeeded = Math.round(h.xpNeeded * 1.12);
+    addLog(`⭐ Герой достиг ${h.level} уровня! Статы подросли, эго — тоже.`, 'event');
+  }
+}
+
+function showEventModal(ev){
+  document.getElementById('event-emoji').textContent = ev.emoji;
+  document.getElementById('event-title').textContent = ev.title;
+  document.getElementById('event-text').textContent = ev.text;
+  document.getElementById('event-close-btn').textContent = 'Принять судьбу';
+  pendingEventClose = null;
+  openModal('modal-event');
+}
+
+let pendingEventClose = null;
+function showEventModal2(opts){
+  document.getElementById('event-emoji').textContent = opts.icon;
+  document.getElementById('event-title').textContent = opts.title;
+  document.getElementById('event-text').textContent = opts.text;
+  document.getElementById('event-close-btn').textContent = opts.buttonLabel || 'Закрыть';
+  pendingEventClose = opts.onClose || null;
+  openModal('modal-event');
+}
+function handleEventModalClose(){
+  closeModal('modal-event');
+  const cb = pendingEventClose;
+  pendingEventClose = null;
+  if(cb) cb();
+}
+
+/* ===================== LEADERBOARD ===================== */
+function myScore(){
+  const s = state;
+  const resScore = s.res.gold + s.res.wood + s.res.stone + s.res.crystal*3;
+  const armyScore = s.army.reduce((sum,u)=> sum + u.count*u.tier*8, 0);
+  const garrisonScore = s.garrison.reduce((sum,u)=> sum + u.count*u.tier*8, 0);
+  return Math.round(resScore + armyScore + garrisonScore + s.hero.level*50);
+}
+function openLeaderboard(){
+  const rows = [...state.leaderboard, {name:'Ты', race: state.race.id, score: myScore(), me:true}]
+    .sort((a,b)=>b.score-a.score);
+  const raceName = id => RACES.find(r=>r.id===id).name;
+  const raceEmoji = id => RACES.find(r=>r.id===id).emoji;
+  document.getElementById('lb-body').innerHTML = rows.map((r,i)=>`
+    <tr class="${r.me?'me':''}"><td>${i+1}</td><td>${r.name}</td><td>${raceEmoji(r.race)} ${raceName(r.race)}</td><td>${r.score}</td></tr>
+  `).join('');
+  openModal('modal-leaderboard');
+}
+
+/* ===================== WORLD MAP ===================== */
+function openWorldMap(){
+  showScreen('screen-worldmap');
+  renderWorldMap();
+}
+
+function terrainClass(ch){
+  if(ch==='f') return 't-forest';
+  if(ch==='m') return 't-mountain';
+  if(ch==='w') return 't-water';
+  if(ch==='H') return 't-home';
+  if(CAMP_DEFS[ch]) return 't-grass';
+  return 't-grass';
+}
+function terrainIcon(ch){
+  if(ch==='f') return '🌲';
+  if(ch==='m') return '⛰️';
+  if(ch==='w') return '🌊';
+  if(ch==='H') return '🏰';
+  return '';
+}
+
+function renderWorldMap(){
+  updateWorldTopbar();
+  const wrap = document.querySelector('.worldmap-wrap');
+  if(wrap) wrap.style.aspectRatio = WORLD_COLS+'/'+WORLD_ROWS;
+  const grid = document.getElementById('worldmap-grid');
+  grid.style.gridTemplateColumns = `repeat(${WORLD_COLS},1fr)`;
+  grid.style.gridTemplateRows = `repeat(${WORLD_ROWS},1fr)`;
+  let html = '';
+  for(let y=0;y<WORLD_ROWS;y++){
+    for(let x=0;x<WORLD_COLS;x++){
+      const ch = state.worldMap[y][x];
+      const camp = state.camps.find(c=>c.x===x && c.y===y && !c.defeated);
+      let inner = terrainIcon(ch);
+      let badge = '';
+      if(camp){
+        inner = RACES.find(r=>r.id===camp.def.race).emoji;
+        const size = camp.def.armyTiers.reduce((s,t)=>s+t.count,0);
+        badge = `<span class="camp-badge">${size}</span>`;
+      } else {
+        const pickup = state.resourcePickups.find(p=>p.x===x && p.y===y && !p.collected);
+        if(pickup){
+          inner = iconOf(pickup.type);
+          badge = `<span class="camp-badge">${pickup.amount}</span>`;
+        }
+      }
+      html += `<div class="wtile ${terrainClass(ch)}" onclick="handleWorldClick(${x},${y})">${inner}${badge}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+  document.getElementById('hero-token').textContent = state.race.heroEmoji;
+  updateHeroTokenPosition();
+}
+
+function updateWorldTopbar(){
+  const rp = document.getElementById('res-pill-world');
+  rp.innerHTML = `
+    <div class="res">💰 ${Math.floor(state.res.gold)}</div>
+    <div class="res">🌲 ${Math.floor(state.res.wood)}</div>
+    <div class="res">🪨 ${Math.floor(state.res.stone)}</div>
+    <div class="res">💎 ${Math.floor(state.res.crystal)}</div>
+  `;
+  document.getElementById('day-pill-world').textContent = `📅 День ${state.day} • 🥾 Ходов: ${state.movePoints}/${state.maxMovePoints}`;
+}
+
+function updateHeroTokenPosition(){
+  const leftPct = (state.heroPos.x + 0.5) / WORLD_COLS * 100;
+  const topPct = (state.heroPos.y + 0.5) / WORLD_ROWS * 100;
+  const heroEl = document.getElementById('hero-token');
+  const partyEl = document.getElementById('party-token');
+  if(!heroEl) return;
+  heroEl.style.left = leftPct + '%';
+  heroEl.style.top = topPct + '%';
+  partyEl.style.left = leftPct + '%';
+  partyEl.style.top = topPct + '%';
+  const units = state.army.filter(u=>u.count>0).sort((a,b)=>b.tier-a.tier).slice(0,4);
+  partyEl.innerHTML = units.length ? units.map(u=>`<span>${unitInfo(state.race.id,u.tier).icon}${u.count}</span>`).join('') : '';
+}
+
+function flashWorldMsg(text){
+  const el = document.getElementById('worldmap-msg');
+  el.textContent = text;
+  setTimeout(()=>{ if(el.textContent===text) el.textContent=''; }, 2200);
+}
+
+function isPassableChar(ch){ return ch!=='m' && ch!=='w'; }
+
+function bfsPath(start, target){
+  const grid = state.worldMap;
+  if(start.x===target.x && start.y===target.y) return [];
+  const key = (x,y)=>x+','+y;
+  const visited = new Set([key(start.x,start.y)]);
+  const queue = [{x:start.x,y:start.y, path:[]}];
+  const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+  while(queue.length){
+    const cur = queue.shift();
+    for(const [dx,dy] of dirs){
+      const nx=cur.x+dx, ny=cur.y+dy;
+      if(nx<0||ny<0||ny>=WORLD_ROWS||nx>=WORLD_COLS) continue;
+      if(visited.has(key(nx,ny))) continue;
+      const ch = grid[ny][nx];
+      if(!isPassableChar(ch)) continue;
+      const newPath = [...cur.path, {x:nx,y:ny}];
+      if(nx===target.x && ny===target.y) return newPath;
+      visited.add(key(nx,ny));
+      queue.push({x:nx,y:ny, path:newPath});
+    }
+  }
+  return null;
+}
+
+function handleWorldClick(x,y){
+  if(state.moveAnimating) return;
+  const ch = state.worldMap[y][x];
+  if(!isPassableChar(ch)){ flashWorldMsg('Туда не пройти — местность непроходима.'); return; }
+  const path = bfsPath(state.heroPos, {x,y});
+  if(path===null){ flashWorldMsg('Путь не найден.'); return; }
+  if(path.length===0) return;
+  const limited = path.slice(0, state.movePoints);
+  if(limited.length===0){ flashWorldMsg('Очки хода закончились — заверши ход.'); return; }
+  animatePath(limited);
+}
+
+function animatePath(path){
+  state.moveAnimating = true;
+  let i = 0;
+  function step(){
+    if(i >= path.length){ state.moveAnimating = false; return; }
+    const p = path[i];
+    state.heroPos = {x:p.x, y:p.y};
+    state.movePoints--;
+    updateHeroTokenPosition();
+    updateWorldTopbar();
+    i++;
+    const ch = state.worldMap[p.y][p.x];
+    const camp = state.camps.find(c=>c.x===p.x && c.y===p.y && !c.defeated);
+    if(camp){ state.moveAnimating = false; setTimeout(()=>triggerCampBattle(camp.id), 350); return; }
+    const pickup = state.resourcePickups.find(r=>r.x===p.x && r.y===p.y && !r.collected);
+    if(pickup){ state.moveAnimating = false; setTimeout(()=>triggerResourceEvent(pickup), 350); return; }
+    if(ch==='H'){ state.moveAnimating = false; setTimeout(()=>{ showScreen('screen-village'); renderVillage(); }, 350); return; }
+    setTimeout(step, 260);
+  }
+  step();
+}
+
+function triggerCampBattle(campId){
+  const camp = state.camps.find(c=>c.id===campId);
+  if(!camp || camp.defeated) return;
+  const raceObj = RACES.find(r=>r.id===camp.def.race);
+  const defs = camp.def.armyTiers.map(t=>({tier:t.tier, count:t.count, raceObj}));
+  startTacticalBattle(defs, {source:'camp', campId:camp.id, introText:`${camp.def.label} преграждает путь! ${raceObj.emoji}`});
+}
+
+function continueAfterBattle(){
+  if(battle && (battle.meta.source==='camp' || battle.meta.source==='ambush')){
+    const playerAlive = battle.stacks.some(s=>s.side==='player' && s.alive);
+    if(!playerAlive){ showScreen('screen-village'); renderVillage(); }
+    else { showScreen('screen-worldmap'); renderWorldMap(); }
+  } else {
+    showScreen('screen-village'); renderVillage();
+  }
+}
+
+function triggerResourceEvent(pickup){
+  pickup.collected = true;
+  renderWorldMap();
+  const isAmbush = Math.random() < 0.35;
+  if(isAmbush){
+    const def = AMBUSH_DEFS[pickup.type];
+    const count = 1 + Math.floor(state.day/5) + (Math.random()<0.35?1:0);
+    showEventModal2({
+      icon: def.icon, title:'Засада!', text: def.flavor, buttonLabel:'Обнажить меч!',
+      onClose: ()=>{
+        startTacticalBattle([{tier:2, count, name:def.name, icon:def.icon}],
+          {source:'ambush', pickupId:pickup.id, loot:{[pickup.type]:pickup.amount}, introText:def.flavor});
+      }
+    });
+  } else {
+    const gained = addRes(pickup.type, pickup.amount);
+    const overflowNote = gained < pickup.amount ? ' (склад переполнен, часть пропала)' : '';
+    const jokes = LOOT_JOKES[pickup.type];
+    const joke = jokes[Math.floor(Math.random()*jokes.length)] + overflowNote;
+    showEventModal2({
+      icon: iconOf(pickup.type), title:'Находка!',
+      text:`Вы подобрали ${pickup.amount} ${resName(pickup.type)}. ${joke}`,
+      buttonLabel:'Забрать', onClose:null,
+    });
+    addLog(`Найдено ${pickup.amount}${iconOf(pickup.type)} на дороге.`, 'event');
+  }
+}
+
+/* ===================== TACTICAL BATTLE ===================== */
+let battle = null;
+
+function buildStack(id, side, tier, count, opts){
+  opts = opts || {};
+  const raceObj = opts.raceObj || null;
+  const info = raceObj ? unitInfo(raceObj.id, tier) : null;
+  const name = opts.name || (info ? info.name : `Тварь ур.${tier}`);
+  const icon = opts.icon || (info ? info.icon : '👹');
+  const hpEach = unitHp(tier);
+  const bonus = side==='player' ? townStatBonus() : 0;
+  return {
+    id, side, tier, name, icon, count, originalCount: count,
+    raceId: raceObj ? raceObj.id : null,
+    unitHpVal: hpEach, hp: count*hpEach,
+    atk: raceUnitAtk(tier, raceObj) + bonus, def: raceUnitDef(tier, raceObj) + bonus,
+    speed: 3 + Math.floor(tier/3),
+    ranged: info ? info.ranged : false,
+    x:0, y:0, acted:false, alive:true, fx:null,
+  };
+}
+function assignPositions(list, colX, rows){
+  const n = list.length;
+  list.forEach((s,i)=>{ s.x = colX; s.y = Math.min(rows-1, Math.floor((i+0.5)*rows/n)); });
+}
+function generateObstacles(cols, rows, count){
+  const out = [];
+  let guard = 0;
+  while(out.length < count && guard < 60){
+    guard++;
+    const x = 2 + Math.floor(Math.random()*(cols-4));
+    const y = Math.floor(Math.random()*rows);
+    if(out.some(o=>o.x===x && o.y===y)) continue;
+    out.push({x,y});
+  }
+  return out;
+}
+
+function startTacticalBattle(enemyDefs, meta){
+  const cols = 8, rows = 6;
+  const playerStacks = state.army.filter(u=>u.count>0).map(u=> buildStack('p'+u.tier, 'player', u.tier, u.count, {raceObj: state.race}));
+  if(playerStacks.length===0) playerStacks.push(buildStack('p1','player',1,1,{raceObj: state.race}));
+  assignPositions(playerStacks, 0, rows);
+  const enemyStacks = enemyDefs.map((e,i)=> buildStack('e'+i, 'enemy', e.tier, e.count, {raceObj:e.raceObj, name:e.name, icon:e.icon}));
+  assignPositions(enemyStacks, cols-1, rows);
+
+  const occupied = new Set([...playerStacks, ...enemyStacks].map(s=>s.x+','+s.y));
+  const obstacles = generateObstacles(cols, rows, 4+Math.floor(Math.random()*2)).filter(o=>!occupied.has(o.x+','+o.y));
+
+  battle = {
+    cols, rows, round:1, phase:'player', obstacles,
+    stacks:[...playerStacks, ...enemyStacks],
+    selectedId:null, reachable:null, attackable:null, attackableIds:null,
+    magicMode:false, magicUsedThisRound:false, spellMenuOpen:false, selectedSpell:null,
+    over:false, meta,
+  };
+
+  showScreen('screen-battle');
+  document.getElementById('battle-log').innerHTML = `<p>${meta.introText || 'Битва начинается!'}</p>`;
+  renderMagicPanel();
+  renderBattleField();
+}
+
+function terrainKey(x,y){ return x+','+y; }
+function isCellBlocked(x,y, excludeId){
+  if(x<0||y<0||x>=battle.cols||y>=battle.rows) return true;
+  if(battle.obstacles.some(o=>o.x===x&&o.y===y)) return true;
+  if(battle.stacks.some(s=>s.alive && s.x===x && s.y===y && s.id!==excludeId)) return true;
+  return false;
+}
+function reachableCells(start, maxSteps, movingId){
+  const dist = new Map([[terrainKey(start.x,start.y), 0]]);
+  const queue = [{x:start.x,y:start.y,d:0}];
+  const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+  while(queue.length){
+    const cur = queue.shift();
+    if(cur.d >= maxSteps) continue;
+    for(const [dx,dy] of dirs){
+      const nx=cur.x+dx, ny=cur.y+dy, k=terrainKey(nx,ny);
+      if(dist.has(k)) continue;
+      if(isCellBlocked(nx,ny,movingId)) continue;
+      dist.set(k, cur.d+1);
+      queue.push({x:nx,y:ny,d:cur.d+1});
+    }
+  }
+  return dist;
+}
+function isAdjacent8(a,b){ return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y))===1; }
+function chebyshev(a,b){ return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y)); }
+function manhattan(a,b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
+
+function renderBattleField(){
+  const wrap = document.getElementById('battlefield-wrap');
+  let html = `<div class="bf-grid" style="grid-template-columns:repeat(${battle.cols},1fr);grid-template-rows:repeat(${battle.rows},1fr);">`;
+  for(let y=0;y<battle.rows;y++){
+    for(let x=0;x<battle.cols;x++){
+      const obstacle = battle.obstacles.some(o=>o.x===x&&o.y===y);
+      const stack = battle.stacks.find(s=>s.alive && s.x===x && s.y===y);
+      let cellCls = 'bf-cell';
+      if(obstacle) cellCls += ' bf-obstacle';
+      if(!stack && battle.reachable && battle.reachable.has(terrainKey(x,y))) cellCls += ' bf-reachable';
+      let inner = obstacle ? '🪨' : '';
+      if(stack){
+        let extra = '';
+        if(stack.id===battle.selectedId) extra += ' bf-selected';
+        if(battle.magicMode){
+          const sp = battle.selectedSpell;
+          const isValidTarget = sp && sp.type==='heal' ? stack.side==='player' : stack.side==='enemy';
+          if(isValidTarget) extra += ' bf-magic-target';
+        } else if(battle.attackableIds && battle.attackableIds.has(stack.id)) extra += ' bf-attackable';
+        if(stack.acted) extra += ' bf-acted-mark';
+        if(stack.fx) extra += ' fx-'+stack.fx;
+        const rangedMark = stack.ranged ? '<span class="bf-ranged-mark">🏹</span>' : '';
+        inner = `<div class="bf-stack bf-${stack.side}${extra}" onclick="event.stopPropagation();handleStackClick('${stack.id}')">${stack.icon}<span class="bf-count">${stack.count}</span>${stack.acted?'<span class="bf-acted">✓</span>':''}${rangedMark}</div>`;
+      }
+      html += `<div class="${cellCls}" onclick="handleCellClick(${x},${y})">${inner}</div>`;
+    }
+  }
+  html += `</div>`;
+  wrap.innerHTML = html;
+  updateBattleTopbar();
+}
+
+function updateBattleTopbar(){
+  document.getElementById('battle-title').textContent = `⚔️ Раунд ${battle.round}`;
+  document.getElementById('battle-phase-label').textContent = battle.phase==='player'
+    ? (battle.magicMode ? `✨ ${battle.selectedSpell.name}: выбери цель.` : 'Ваш ход — выбери отряд, затем клетку для хода или врага для атаки.')
+    : 'Ход противника...';
+}
+
+function flashBattleMsg(text){
+  const el = document.getElementById('battle-msg');
+  el.textContent = text;
+  setTimeout(()=>{ if(el.textContent===text) el.textContent=''; }, 2200);
+}
+
+function selectStack(id){
+  const stack = battle.stacks.find(s=>s.id===id);
+  battle.selectedId = id;
+  battle.reachable = reachableCells({x:stack.x,y:stack.y}, stack.speed, id);
+  battle.attackable = {};
+  battle.attackableIds = new Set();
+  if(stack.ranged){
+    // shooters can hit anyone on the field without moving into melee
+    battle.stacks.filter(s=>s.alive && s.side!==stack.side).forEach(e=>{
+      battle.attackable[e.id] = {moveTo:{x:stack.x,y:stack.y}};
+      battle.attackableIds.add(e.id);
+    });
+  } else {
+    battle.stacks.filter(s=>s.alive && s.side!==stack.side).forEach(e=>{
+      if(isAdjacent8(stack,e)){ battle.attackable[e.id] = {moveTo:{x:stack.x,y:stack.y}}; battle.attackableIds.add(e.id); return; }
+      let best=null, bestDist=Infinity;
+      for(const [k,d] of battle.reachable){
+        const [cx,cy] = k.split(',').map(Number);
+        if(cx===stack.x && cy===stack.y) continue;
+        if(isAdjacent8({x:cx,y:cy}, e) && d<bestDist){ bestDist=d; best={x:cx,y:cy}; }
+      }
+      if(best){ battle.attackable[e.id] = {moveTo:best}; battle.attackableIds.add(e.id); }
+    });
+  }
+  renderBattleField();
+}
+function deselectStack(){
+  battle.selectedId = null; battle.reachable = null; battle.attackable = null; battle.attackableIds = null;
+  renderBattleField();
+}
+
+function handleCellClick(x,y){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  const stack = battle.stacks.find(s=>s.alive && s.x===x && s.y===y);
+  if(stack){ handleStackClick(stack.id); return; }
+  if(battle.magicMode){ flashBattleMsg('Выбери отряд-цель для заклинания.'); return; }
+  if(!battle.selectedId) return;
+  const key = terrainKey(x,y);
+  if(battle.reachable && battle.reachable.has(key)){
+    const mover = battle.stacks.find(s=>s.id===battle.selectedId);
+    mover.x = x; mover.y = y; mover.acted = true;
+    logBattle(`${mover.icon} ${mover.name} совершает манёвр.`);
+    deselectStack();
+    afterPlayerAction();
+  }
+}
+
+function handleStackClick(id){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  const stack = battle.stacks.find(s=>s.id===id);
+  if(!stack || !stack.alive) return;
+  if(battle.magicMode){
+    const sp = battle.selectedSpell;
+    const wantsOwn = sp.type==='heal';
+    if((wantsOwn && stack.side==='player') || (!wantsOwn && stack.side==='enemy')){
+      castSpellOn(sp, stack);
+    } else {
+      flashBattleMsg(wantsOwn ? 'Эту магию нужно направить на свой отряд.' : 'Эту магию нужно направить на врага.');
+    }
+    return;
+  }
+  if(stack.side==='player'){
+    if(stack.acted){ flashBattleMsg('Этот отряд уже походил в этом раунде.'); return; }
+    if(battle.selectedId===id){ deselectStack(); return; }
+    selectStack(id);
+  } else {
+    if(!battle.selectedId){ flashBattleMsg('Сначала выбери свой отряд.'); return; }
+    if(battle.attackableIds && battle.attackableIds.has(id)){
+      const attacker = battle.stacks.find(s=>s.id===battle.selectedId);
+      const info = battle.attackable[id];
+      attacker.x = info.moveTo.x; attacker.y = info.moveTo.y;
+      resolveCombat(attacker, stack);
+      attacker.acted = true;
+      deselectStack();
+      afterPlayerAction();
+    } else {
+      flashBattleMsg('Этот отряд вне досягаемости.');
+    }
+  }
+}
+
+function afterPlayerAction(){
+  renderBattleField();
+  if(battle.over) return;
+  const remaining = battle.stacks.filter(s=>s.side==='player' && s.alive && !s.acted);
+  if(remaining.length===0) setTimeout(endPlayerPhase, 500);
+}
+
+function skipSelected(){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  if(!battle.selectedId){ flashBattleMsg('Сначала выбери отряд.'); return; }
+  const stack = battle.stacks.find(s=>s.id===battle.selectedId);
+  stack.acted = true;
+  logBattle(`${stack.icon} ${stack.name} пропускает ход, разглядывая облака.`);
+  deselectStack();
+  afterPlayerAction();
+}
+
+function endPlayerPhaseBtn(){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  battle.stacks.filter(s=>s.side==='player' && s.alive).forEach(s=>s.acted=true);
+  deselectStack();
+  endPlayerPhase();
+}
+
+function endPlayerPhase(){
+  if(!battle || battle.over) return;
+  battle.phase = 'enemy';
+  renderBattleField();
+  setTimeout(runEnemyPhase, 500);
+}
+
+function runEnemyPhase(){
+  const enemies = battle.stacks.filter(s=>s.side==='enemy' && s.alive);
+  let idx = 0;
+  function stepEnemy(){
+    if(battle.over) return;
+    if(idx>=enemies.length){ startNewRound(); return; }
+    const e = enemies[idx]; idx++;
+    if(e.alive) aiActStack(e);
+    renderBattleField();
+    if(battle.over) return;
+    setTimeout(stepEnemy, 550);
+  }
+  stepEnemy();
+}
+
+function aiActStack(e){
+  const targets = battle.stacks.filter(s=>s.side==='player' && s.alive);
+  if(targets.length===0) return;
+  targets.sort((a,b)=> manhattan(e,a)-manhattan(e,b));
+  const target = targets[0];
+  if(e.ranged){
+    // try to shuffle into full-damage range first, then shoot regardless of distance
+    if(chebyshev(e,target) > RANGED_FULL_RANGE){
+      const reach = reachableCells({x:e.x,y:e.y}, e.speed, e.id);
+      let best=null, bestScore=chebyshev(e,target);
+      for(const [k,d] of reach){
+        const [cx,cy] = k.split(',').map(Number);
+        if(cx===e.x && cy===e.y) continue;
+        const score = chebyshev({x:cx,y:cy}, target);
+        if(score<bestScore){ bestScore=score; best={x:cx,y:cy}; }
+      }
+      if(best){ e.x=best.x; e.y=best.y; }
+    }
+    resolveCombat(e, target);
+    return;
+  }
+  if(isAdjacent8(e,target)){ resolveCombat(e,target); return; }
+  const reach = reachableCells({x:e.x,y:e.y}, e.speed, e.id);
+  let best=null, bestScore=Infinity;
+  for(const [k,d] of reach){
+    const [cx,cy] = k.split(',').map(Number);
+    if(cx===e.x && cy===e.y) continue;
+    const score = manhattan({x:cx,y:cy}, target);
+    if(score<bestScore){ bestScore=score; best={x:cx,y:cy}; }
+  }
+  if(best){
+    e.x = best.x; e.y = best.y;
+    logBattle(`${e.icon} ${e.name} подбирается ближе.`);
+    if(isAdjacent8(e,target)) resolveCombat(e,target);
+  }
+}
+
+// Jokes are keyed to the actual attacker (race+tier, or creature name for wild ambush foes)
+// so a human spearman never fires an "elven arrow" line — add new units' jokes here.
+const UNIT_JOKES = {
+  humans: {
+    1: ['Ополченец машет вилами так, будто это меч. Работает!', 'Вилы явно не по уставу, но противник этого не знает.'],
+    2: ['Копейщик выставляет копьё точно по учебнику — почти по учебнику.', 'Древко копья длиннее, чем терпение копейщика.'],
+    3: ['Стрела человеческого лучника летит криво, но метко.', 'Лучник щурится, будто прицел мешает больше, чем противник.'],
+    4: ['Рыцарь атакует с достоинством, звеня доспехами громче, чем нужно.', 'Латы рыцаря звенят при каждом ударе — соседи по лагерю уже жалуются.'],
+    5: ['Паладин бьёт врага и одновременно читает короткую морализаторскую речь.', 'Свет правосудия слепит противника — или просто солнце удачно светит.'],
+    6: ['Гвардеец бьёт строго по уставу — импровизация не поощряется.', 'Королевский гвардеец скучает по параду, но и бой сойдёт.'],
+  },
+  elves: {
+    1: ['Разведчик бьёт из тени и тут же снова в ней растворяется.', 'Лесной разведчик двигается тише, чем его собственная стрела.'],
+    2: ['Эльфийская стрела находит щель в доспехе. Как обычно.', 'Стрелок-эльф бьёт без промаха — годы тренировок не пропали даром.'],
+    3: ['Друид насылает шипастые корни прямо под ноги врагу.', 'Друид что-то шепчет дереву — и оно определённо помогает.'],
+    4: ['Олень скачет с достоинством, всадник — с яростью.', 'Копыта оленя стучат в ритм атаки всадника.'],
+    5: ['Клинок мастера мелькает быстрее, чем противник успевает моргнуть.', 'Мастер клинка бьёт с изяществом, будто это балет, а не бой.'],
+    6: ['Архимаг рощи вплетает в удар отголосок древней магии леса.', 'Листья кружатся вокруг архимага — эффектно, но чисто декоративно.'],
+  },
+  dwarves: {
+    1: ['Щитоносец бьёт щитом — тот факт, что это не меч, его не смущает.', 'Гномий щит впечатывается в противника с гулким "бумс".'],
+    2: ['Топор метателя летит с гулким свистом и почти не задевает своих.', 'Метатель топоров подмигивает — топор уже летит куда надо.'],
+    3: ['Молот опускается с грохотом, достойным кузницы.', 'Гном орёт боевую кричалку про пиво — противник в замешательстве.'],
+    4: ['Арбалетный болт бьёт точно и без лишней сентиментальности.', 'Арбалетчик перезаряжается быстрее, чем противник успевает обидеться.'],
+    5: ['Рунный страж бьёт, и рунные узоры на броне вспыхивают от натуги.', 'Древние руны на щите гудят перед самым ударом.'],
+    6: ['Повелитель кузни бьёт молотом, будто кует врага заново — не очень удачно для врага.', 'Наковальня плачет от зависти, глядя на этот удар.'],
+  },
+  undead: {
+    1: ['Скелет спотыкается о собственную ногу, но упорно наступает.', 'Кости скелета дребезжат при каждом взмахе — а как иначе.'],
+    2: ['Зомби бьёт медленно, но верно, и совершенно не торопится.', 'Зомби что-то невнятно стонет — видимо, боевой клич.'],
+    3: ['Костяная стрела летит с сухим скрипом, но метко.', 'Костяной лучник целится пустыми глазницами — и почему-то не мажет.'],
+    4: ['Призрак проходит сквозь строй и бьёт с неожиданной стороны.', 'Призрачный вой заставляет вздрогнуть даже видавших виды бойцов.'],
+    5: ['Костяной рыцарь атакует с гулким лязгом ржавых доспехов.', 'Латы рассыпаются пылью при каждом ударе, но держатся до следующего.'],
+    6: ['Лич бьёт с холодным расчётом — эмоции ему чужды.', 'Лич взмахивает посохом, и мгла соткается вокруг удара.'],
+  },
+};
+// wild ambush critters (no race) get their own flavor instead of falling back to a random race's joke
+const CREATURE_JOKES = {
+  'Скелет-старик': ['Скелет-старик замахивается с кряхтением — годы (точнее, века) берут своё.', 'Старые кости скрипят, но целятся на удивление точно.'],
+  'Стая волков': ['Волки нападают слаженной стаей — видна многолетняя практика.', 'Волчий вой сливается с рычанием — жутко и по делу.'],
+  'Каменный голем': ['Голем бьёт медленно, но противник ощущает это всем телом.', 'Каменный кулак впечатывается в землю рядом с целью — почти попал.'],
+  'Кристальный дух': ['Кристальный дух бьёт волной ледяного света.', 'Дух звенит, будто разбитое стекло, прямо перед ударом.'],
+};
+const GENERIC_JOKES = ['Хор рогов трубит атаку — и тут же сбивается с ритма.', 'Удар засчитан, а зрителей на трибунах, к счастью, нет.'];
+const GENERIC_RANGED_JOKES = [
+  'Стрела летит с лёгким презрением к идее рукопашной.',
+  'Выстрел точен. Автор выстрела скромно поправляет капюшон.',
+];
+function pickCombatJoke(attacker, isRangedShot){
+  if(attacker.raceId && UNIT_JOKES[attacker.raceId] && UNIT_JOKES[attacker.raceId][attacker.tier]){
+    const pool = UNIT_JOKES[attacker.raceId][attacker.tier];
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  if(CREATURE_JOKES[attacker.name]){
+    const pool = CREATURE_JOKES[attacker.name];
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  const pool = isRangedShot ? GENERIC_RANGED_JOKES : GENERIC_JOKES;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function resolveCombat(attacker, defender){
+  const heroAtkBonus = attacker.side==='player' ? Math.round(state.hero.atk/2) : 0;
+  const heroDefBonus = defender.side==='player' ? Math.round(state.hero.def/2) : 0;
+  const power = (attacker.atk+heroAtkBonus) * attacker.count;
+  const resist = (defender.def+heroDefBonus) * defender.count * 0.3;
+  let dmg = Math.max(3, Math.round(power*0.55*(0.8+Math.random()*0.4) - resist));
+  const adjacent = isAdjacent8(attacker,defender);
+  let rangeNote = '';
+  const isRangedShot = attacker.ranged && !adjacent;
+  if(isRangedShot){
+    const dist = chebyshev(attacker, defender);
+    if(dist > RANGED_FULL_RANGE){ dmg = Math.max(2, Math.round(dmg*0.5)); rangeNote = ' (дальняя дистанция, урон вполсилы)'; }
+    else rangeNote = ' (полный урон выстрела)';
+  }
+  applyStackDamage(defender, dmg);
+  logBattle(`${attacker.icon} ${attacker.name} наносит ${defender.icon} ${defender.name} ${dmg} урона${rangeNote}. ${pickCombatJoke(attacker, isRangedShot)}`);
+  checkBattleEnd();
+  if(battle.over) return;
+  if(adjacent && defender.alive && defender.count>0){
+    const retalPower = (defender.atk + (defender.side==='player'?Math.round(state.hero.atk/2):0)) * defender.count;
+    const retalResist = (attacker.def + (attacker.side==='player'?Math.round(state.hero.def/2):0)) * attacker.count * 0.3;
+    const retalDmg = Math.max(1, Math.round(retalPower*0.35 - retalResist));
+    applyStackDamage(attacker, retalDmg);
+    logBattle(`${defender.icon} ${defender.name} огрызается в ответ на ${retalDmg}. ${pickCombatJoke(defender, false)}`);
+    checkBattleEnd();
+  }
+}
+function applyStackDamage(stack, dmg){
+  stack.hp = Math.max(0, stack.hp-dmg);
+  if(stack.hp<=0){ stack.hp=0; stack.count=0; stack.alive=false; }
+  else { stack.count = Math.max(1, Math.ceil(stack.hp/stack.unitHpVal)); }
+}
+function logBattle(text){
+  const log = document.getElementById('battle-log');
+  log.innerHTML += `<p>${text}</p>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+function checkBattleEnd(){
+  if(battle.over) return;
+  const playerAlive = battle.stacks.some(s=>s.side==='player' && s.alive);
+  const enemyAlive = battle.stacks.some(s=>s.side==='enemy' && s.alive);
+  if(!playerAlive || !enemyAlive){
+    battle.over = true;
+    const result = (!enemyAlive && playerAlive) ? 'win' : (!playerAlive ? 'lose' : 'draw');
+    finishTacticalBattle(result);
+  }
+}
+
+function startNewRound(){
+  if(battle.over) return;
+  battle.round++;
+  battle.stacks.forEach(s=>{ if(s.alive) s.acted=false; });
+  battle.magicUsedThisRound = false;
+  battle.phase = 'player';
+  logBattle(`— Раунд ${battle.round} —`);
+  renderBattleField();
+}
+
+/* ---- Spells ---- */
+const SPELLS = [
+  {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:12, dmgMax:20,
+    desc:'Самое дешёвое заклинание. Урон случаен в заданном диапазоне.'},
+  {id:'chain', name:'Цепная молния', icon:'⚡', cost:12, type:'chain', dmgMin:16, dmgMax:26,
+    desc:'Бьёт полным уроном по цели, затем перескакивает на ближайшего к ней врага с половинным уроном.'},
+  {id:'heal', name:'Исцеление', icon:'💚', cost:8, type:'heal', healMin:18, healMax:30,
+    desc:'Возвращает бойцов своего отряда в строй.'},
+];
+const SPELL_JOKES = {
+  fireball: ['Дёшево и сердито — как и обещал рекламный свиток.', 'Пламя недорогое, а вопли — бесплатные.'],
+  chain: ['Молния скачет по врагам, как студент по экзаменам — без разбора и с треском.', 'Второй отряд получил "подарок" по акции: два по цене одного.'],
+  heal: ['Лекарь-герой не имеет диплома, но раны затягиваются на глазах.', 'Бойцы бодро отряхиваются — видимо, магия работает как энергетик.'],
+};
+
+function toggleMagic(){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  if(battle.magicUsedThisRound){ flashBattleMsg('Магия уже использована в этом раунде.'); return; }
+  battle.spellMenuOpen = !battle.spellMenuOpen;
+  if(battle.spellMenuOpen){ deselectStack(); battle.magicMode=false; battle.selectedSpell=null; }
+  renderMagicPanel();
+  renderBattleField();
+}
+function renderMagicPanel(){
+  const el = document.getElementById('battle-magic-panel');
+  if(!el) return;
+  if(!battle || !battle.spellMenuOpen){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='flex';
+  el.innerHTML = SPELLS.map(sp=>{
+    const disabled = state.hero.mana < sp.cost;
+    return `<div class="spell-card ${disabled?'disabled':''}" onclick="${disabled?'':`chooseSpell('${sp.id}')`}">
+      <div class="spell-ico">${sp.icon}</div>
+      <b>${sp.name}</b>
+      <span>${sp.cost}💠 маны</span>
+      <small>${sp.desc}</small>
+    </div>`;
+  }).join('') + `<button class="mini-btn" onclick="cancelMagic()" style="align-self:center;">✖ Отмена</button>`;
+}
+function chooseSpell(id){
+  const sp = SPELLS.find(s=>s.id===id);
+  if(state.hero.mana < sp.cost){ flashBattleMsg('Не хватает маны для этого заклинания.'); return; }
+  battle.selectedSpell = sp;
+  battle.magicMode = true;
+  battle.spellMenuOpen = false;
+  renderMagicPanel();
+  renderBattleField();
+  updateBattleTopbar();
+}
+function cancelMagic(){
+  battle.spellMenuOpen = false; battle.magicMode = false; battle.selectedSpell = null;
+  renderMagicPanel();
+  renderBattleField();
+  updateBattleTopbar();
+}
+function spellJoke(id){ const jk = SPELL_JOKES[id]; return jk[Math.floor(Math.random()*jk.length)]; }
+function playFx(stack, fxName){
+  stack.fx = fxName;
+  renderBattleField();
+  setTimeout(()=>{ stack.fx=null; if(!battle.over) renderBattleField(); }, 650);
+}
+function castSpellOn(sp, target){
+  state.hero.mana -= sp.cost;
+  battle.magicUsedThisRound = true;
+  battle.magicMode = false;
+  battle.selectedSpell = null;
+  if(sp.type==='damage'){
+    const dmg = Math.round(sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3);
+    applyStackDamage(target, dmg);
+    logBattle(`${sp.icon} ${sp.name} обрушивается на ${target.icon} ${target.name}: ${dmg} урона! ${spellJoke(sp.id)}`);
+    playFx(target, 'fireball');
+  } else if(sp.type==='chain'){
+    const dmg = Math.round(sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3);
+    applyStackDamage(target, dmg);
+    logBattle(`${sp.icon} ${sp.name} бьёт в ${target.icon} ${target.name}: ${dmg} урона!`);
+    playFx(target, 'chain');
+    const others = battle.stacks.filter(s=>s.alive && s.side==='enemy' && s.id!==target.id);
+    if(others.length){
+      others.sort((a,b)=> manhattan(a,target)-manhattan(b,target));
+      const secondary = others[0];
+      const dmg2 = Math.round(dmg/2);
+      applyStackDamage(secondary, dmg2);
+      logBattle(`⚡ Молния перескакивает на ближайшего ${secondary.icon} ${secondary.name}: ${dmg2} урона (половина). ${spellJoke(sp.id)}`);
+      setTimeout(()=>{ if(!battle.over) playFx(secondary,'chain'); }, 200);
+    }
+  } else if(sp.type==='heal'){
+    const heal = Math.round(sp.healMin + Math.random()*(sp.healMax-sp.healMin) + state.hero.sp*1.5);
+    const maxHp = target.originalCount * target.unitHpVal;
+    target.hp = Math.min(maxHp, target.hp + heal);
+    target.count = Math.max(target.count, Math.ceil(target.hp/target.unitHpVal));
+    logBattle(`${sp.icon} ${sp.name} возвращает силы отряду ${target.icon} ${target.name}: +${heal} HP. ${spellJoke(sp.id)}`);
+    playFx(target, 'heal');
+  }
+  checkBattleEnd();
+  if(!battle.over){ renderBattleField(); updateBattleTopbar(); }
+}
+
+function retreatBattle(){
+  if(!battle || battle.over) return;
+  battle.over = true;
+  battle.stacks.filter(s=>s.side==='player').forEach(s=>{
+    const u = state.army.find(a=>a.tier===s.tier);
+    if(u) u.count = s.count;
+  });
+  logBattle('🏳️ Отряд отступает с поля боя, поджав хвост, но сохранив голову.');
+  showBattleResult({emoji:'🏳️', title:'Отступление', subtitle:'Отряд цел, но без трофеев.', lootHtml:''});
+}
+
+function goToBattle(){
+  const enemyRaceObj = RACES[Math.floor(Math.random()*RACES.length)];
+  const scale = 0.6 + state.day*0.05 + Math.random()*0.4;
+  let defs = state.army.filter(u=>u.count>0).map(u=>({
+    tier:u.tier, count: Math.max(1, Math.round(u.count*scale*(0.6+Math.random()*0.8))), raceObj: enemyRaceObj,
+  }));
+  if(defs.length===0) defs = [{tier:1, count:3, raceObj:enemyRaceObj}];
+  startTacticalBattle(defs, {source:'quick', introText:`Разведчики заметили армию расы «${enemyRaceObj.name}» на границе владений. ${enemyRaceObj.emoji}`});
+}
+
+function finishTacticalBattle(result){
+  battle.stacks.filter(s=>s.side==='player').forEach(s=>{
+    const u = state.army.find(a=>a.tier===s.tier);
+    if(u) u.count = s.count;
+  });
+  if(result==='win'){
+    const loot = battle.meta.loot ? Object.assign({gold:0,wood:0,stone:0,crystal:0}, battle.meta.loot) : {gold:30+state.day*3, wood:10, stone:10, crystal:2};
+    let lootOverflowed = false;
+    Object.entries(loot).forEach(([k,v])=>{ if(addRes(k,v) < v) lootOverflowed = true; });
+    const xp = 35;
+    state.hero.xp += xp;
+    tryLevelUp();
+    const lootHtml = Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>`<span class="loot-chip">+${v}${iconOf(k)}</span>`).join('') + `<span class="loot-chip">+${xp}✨XP</span>`;
+    logBattle(`<b>🎉 Победа!</b> Трофеи: ${Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>v+iconOf(k)).join(' ')}. Герой получил опыт.${lootOverflowed?' 📦 Часть добычи не влезла на склад и была брошена.':''}`);
+    let subtitle = 'Отряд возвращается с добычей.';
+    if(battle.meta.source==='camp'){
+      const camp = state.camps.find(c=>c.id===battle.meta.campId);
+      if(camp){ camp.defeated = true; }
+      subtitle = 'Лагерь зачищен и больше не появится на карте.';
+      logBattle(subtitle);
+    }
+    addLog('Победа в тактическом бою! Отряд возвращается с добычей.', 'combat');
+    showBattleResult({emoji:'🎉', title:'Победа!', subtitle, lootHtml});
+  } else if(result==='lose'){
+    state.res.gold = Math.max(0, state.res.gold*0.9);
+    logBattle('<b>💀 Поражение.</b> Уцелевшие бегут, растеряв часть казны по дороге.');
+    let subtitle = 'Уцелевшие бегут, растеряв часть казны по дороге.';
+    if(battle.meta.source==='camp' || battle.meta.source==='ambush'){
+      state.heroPos = findCharPos(state.worldMap, 'H');
+      state.movePoints = 0;
+      subtitle += ' Герой позорно улепётывает обратно в замок.';
+      logBattle('Герой позорно улепётывает обратно в замок.');
+    }
+    addLog('Отряд разбит в тактическом бою.', 'combat');
+    showBattleResult({emoji:'💀', title:'Поражение...', subtitle, lootHtml:'<span class="loot-chip loot-bad">-10% 💰</span>'});
+  } else {
+    logBattle('<b>🤝 Ничья.</b> Обе стороны разошлись зализывать раны.');
+    addLog('Битва закончилась ничьей — трубадуры не знают, что сочинять.', 'combat');
+    showBattleResult({emoji:'🤝', title:'Ничья', subtitle:'Обе стороны разошлись зализывать раны.', lootHtml:'<span class="loot-chip">Без трофеев</span>'});
+  }
+}
+
+function showBattleResult(opts){
+  document.getElementById('result-emoji').textContent = opts.emoji;
+  document.getElementById('result-title').textContent = opts.title;
+  document.getElementById('result-subtitle').textContent = opts.subtitle || '';
+  document.getElementById('result-loot').innerHTML = opts.lootHtml ? `<div class="loot-row">${opts.lootHtml}</div>` : '';
+  openModal('modal-battle-result');
+}
+function closeBattleResultAndContinue(){
+  closeModal('modal-battle-result');
+  continueAfterBattle();
+}
+
+/* ===================== MODALS ===================== */
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ===================== INIT ===================== */
+renderMenu();
+</script>
+</body>
+</html>
