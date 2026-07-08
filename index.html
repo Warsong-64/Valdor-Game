@@ -751,8 +751,13 @@ function saveGame(){
     const now = Date.now();
     if(now - lastCloudSaveAt < CLOUD_SAVE_MIN_INTERVAL) return; // debounced; will catch up on the next call
     lastCloudSaveAt = now;
-    TG.CloudStorage.setItem(SAVE_KEY, json, (err)=>{ if(err) console.error('Telegram CloudStorage save error:', err); });
-  }
+    TG.CloudStorage.setItem(SAVE_KEY, json, (err)=>{
+    if(err){
+        alert("Ошибка сохранения:\n" + JSON.stringify(err));
+    } else {
+        alert("Сохранено в CloudStorage!");
+    }
+});
 }
 function forceSaveNow(){ lastCloudSaveAt = 0; saveGame(); } // bypasses the debounce, used before leaving to the menu
 
