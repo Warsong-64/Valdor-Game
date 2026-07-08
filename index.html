@@ -188,6 +188,9 @@
   .bf-cell.bf-wall{ background:#8a7a63; cursor:not-allowed; }
   .bf-cell.bf-wall .bf-obstacle-ico{ font-size:1.3em; filter:drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
   .bf-cell.bf-gate .bf-gate-ico{ font-size:1.2em; opacity:.85; }
+  .bf-cell.bf-moat{ background:#4a7a91; }
+  .bf-cell.bf-moat-staked{ background:#5c4632; }
+  .bf-cell.bf-moat .bf-moat-ico, .bf-cell.bf-moat-staked .bf-moat-ico{ font-size:1.1em; opacity:.9; }
   .fx-hit{ animation:fx-hit .4s ease; }
   .fx-strike{ animation:fx-strike .3s ease; }
   @keyframes fx-hit{ 0%{ transform:translateX(0);} 20%{ transform:translateX(-4px); filter:brightness(1.5) drop-shadow(0 0 6px #ff3b3b);} 40%{ transform:translateX(4px);} 60%{ transform:translateX(-3px);} 80%{ transform:translateX(2px);} 100%{ transform:translateX(0); filter:brightness(1);} }
@@ -406,7 +409,7 @@
     <p class="worldmap-msg" id="battle-msg"></p>
     <div class="spell-menu" id="battle-magic-panel"></div>
     <div class="bf-wrap" id="battlefield-wrap"></div>
-    <div class="legend">🔵 Ваши отряды • 🔴 Враг • 🪨 Препятствие • 🏹 стрелки бьют издалека • полоска под отрядом — очки здоровья • при осаде: 🧱 стена, 🚪 ворота (проход только тут), 🏹-башни в стене</div>
+    <div class="legend">🔵 Ваши отряды • 🔴 Враг • 🪨 Препятствие • 🏹 стрелки бьют издалека • полоска под отрядом — очки здоровья • при осаде: 🧱 стена, 🚪 ворота (проход только тут), 🏹-башни в стене, 〰️/🔱 ров (на макс. уровне стен колья ранят каждый раунд)</div>
     <div class="battle-log" id="battle-log"></div>
   </div>
 </div>
@@ -522,26 +525,95 @@ const RANGED_FULL_RANGE = 3; // full damage within this many cells; half damage 
 // NOTE: bigger than a single settlement's turf on purpose — this is the seed of the
 // eventual shared world map (other players' castles/armies will live here later).
 const WORLD_TEMPLATE = [
-  "....m..f.D.",
+  "....m..f...",
   ".H....f..1.",
   "...m.f.....",
   "f.....m..f.",
   ".w..m.....f",
   "..2.....3..",
-  "f..f.m...G.",
+  "f..f.m.....",
 ];
 const WORLD_COLS = WORLD_TEMPLATE[0].length;
 const WORLD_ROWS = WORLD_TEMPLATE.length;
-const CAMP_DEFS = {
-  '1': {race:'dwarves', label:'Лагерь гномов-контрабандистов', armyTiers:[{tier:2,count:4},{tier:1,count:3}]},
-  '2': {race:'undead',  label:'Логово нежити', armyTiers:[{tier:1,count:6},{tier:2,count:2}]},
-  '3': {race:'elves',   label:'Эльфийский дозор', armyTiers:[{tier:3,count:3},{tier:4,count:2},{tier:2,count:2}]},
+const CAMP_MARKER_CHARS = ['1','2','3']; // world-map positions are fixed; WHO occupies them is rolled at runtime
+const CAMP_FLAVOR_NAMES = {
+  humans:  ['Лагерь дезертиров', 'Бандитский острог', 'Стоянка наёмников'],
+  elves:   ['Эльфийский дозор', 'Лесная застава', 'Стоянка стражей рощи'],
+  dwarves: ['Лагерь гномов-контрабандистов', 'Гномья застава', 'Старательский лагерь'],
+  undead:  ['Логово нежити', 'Забытое кладбище', 'Курган мертвецов'],
 };
 const DRAGON_TIER = 6;
-const DRAGON_DEFS = {
-  'D': {label:'Логово дракона «Огнехвост»', icon:'🐉', loot:{gold:220, crystal:18}},
-  'G': {label:'Логово дракона «Ледокрыл»',  icon:'🐲', loot:{gold:160, wood:90, stone:90}},
-};
+const DRAGON_NAMES = [
+  {label:'Логово дракона «Огнехвост»', icon:'🐉'},
+  {label:'Логово дракона «Ледокрыл»',  icon:'🐲'},
+  {label:'Логово дракона «Пепелище»',  icon:'🐉'},
+  {label:'Логово дракона «Штормокрыл»', icon:'🐲'},
+];
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+function tileDistance(a, b){ return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y)); } // chebyshev, matches grid movement
+function unitPowerValue(tier){ return tier*tier*4; } // rough "how much budget one of these costs"
+
+// Camp positions are fixed (the '1'/'2'/'3' markers on WORLD_TEMPLATE), but their race and
+// army composition are rolled fresh at game start and every time the camp respawns. Difficulty
+// is driven purely by distance from the castle, so it never depends on how many days have passed.
+function rollCampContent(x, y){
+  const home = findCharPos(WORLD_TEMPLATE, 'H');
+  const dist = tileDistance({x,y}, home);
+  const cfg = CONFIG.CAMP;
+  const jitter = 1 + (Math.random()*2-1)*cfg.jitter;
+  const budget = Math.max(20, Math.round((cfg.baseBudget + dist*cfg.budgetPerDistance)*jitter));
+
+  const raceObj = RACES[Math.floor(Math.random()*RACES.length)];
+  let maxTier = 1;
+  for(let t=1;t<=6;t++){ if(budget >= unitPowerValue(t)*1.3) maxTier = t; }
+  const stackCount = 1 + Math.floor(Math.random()*Math.min(3, maxTier));
+  const chosenTiers = [];
+  while(chosenTiers.length < stackCount){
+    const t = 1 + Math.floor(Math.random()*maxTier);
+    if(!chosenTiers.includes(t)) chosenTiers.push(t);
+  }
+  const perStackBudget = budget/chosenTiers.length;
+  const armyTiers = chosenTiers.map(t=>{
+    const spend = perStackBudget*(0.75+Math.random()*0.5);
+    return {tier:t, count: Math.max(1, Math.round(spend/unitPowerValue(t)))};
+  });
+  const namePool = CAMP_FLAVOR_NAMES[raceObj.id] || CAMP_FLAVOR_NAMES.humans;
+  const label = namePool[Math.floor(Math.random()*namePool.length)];
+  return {race: raceObj.id, label, armyTiers};
+}
+
+// Dragon lairs have no fixed spot at all: 1-3 of them, position AND strength rerolled every week.
+function rollDragonLairs(resourcePickups){
+  const home = findCharPos(WORLD_TEMPLATE, 'H');
+  const campSpots = findAllCharPositions(WORLD_TEMPLATE);
+  const occupied = new Set([home.x+','+home.y, ...campSpots.map(c=>c.x+','+c.y), ...resourcePickups.map(p=>p.x+','+p.y)]);
+  const candidates = [];
+  for(let y=0;y<WORLD_ROWS;y++){
+    for(let x=0;x<WORLD_COLS;x++){
+      const ch = WORLD_TEMPLATE[y][x];
+      if((ch==='.'||ch==='f') && !occupied.has(x+','+y)) candidates.push({x,y});
+    }
+  }
+  shuffleArray(candidates);
+  const cfg = CONFIG.DRAGON;
+  const lairCount = Math.min(candidates.length, cfg.minLairs + Math.floor(Math.random()*(cfg.maxLairs-cfg.minLairs+1)));
+  const lairs = [];
+  for(let i=0;i<lairCount;i++){
+    const {x,y} = candidates[i];
+    const dist = tileDistance({x,y}, home);
+    const jitter = 0.8 + Math.random()*0.4;
+    const count = Math.min(cfg.maxCount, Math.max(1, Math.round((cfg.baseCount + dist*cfg.countPerDistance)*jitter)));
+    const flavor = DRAGON_NAMES[Math.floor(Math.random()*DRAGON_NAMES.length)];
+    const secondary = ['wood','stone','crystal'][Math.floor(Math.random()*3)];
+    const loot = { gold: Math.round(cfg.lootGoldPerDragon*count*(0.85+Math.random()*0.3)) };
+    loot[secondary] = Math.round(cfg.lootBonusPerDragon*count*(0.85+Math.random()*0.3));
+    lairs.push({ id:`dragon${i}_${x}_${y}_${Math.random().toString(36).slice(2,6)}`, x, y, defeated:false, count, def:{label:flavor.label, icon:flavor.icon, loot} });
+  }
+  return lairs;
+}
 const RESOURCE_PICKUP_COUNT = 10;
 
 /* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
@@ -575,6 +647,17 @@ const CONFIG = {
     minMult: 0.85, maxMult: 1.25, // enemy army size vs player's marching army — stays roughly even, never a 2-3x blowout
     perUnitJitter: 0.15,          // +/- per-tier jitter on top, for some variety without swinging the whole fight
   },
+  CAMP: {
+    // camp difficulty scales with distance from the castle, NOT the day counter (same reasoning as
+    // quick battles: day-based scaling breaks balance once the player slows down or rushes ahead).
+    // Distant tiles being genuinely harder also gives the eventual bigger shared map a reason to exist.
+    baseBudget: 35, budgetPerDistance: 15, jitter: 0.25,
+  },
+  DRAGON: {
+    minLairs: 1, maxLairs: 3,          // lair count itself is rerolled weekly
+    baseCount: 1, countPerDistance: 0.35, maxCount: 5,
+    lootGoldPerDragon: 70, lootBonusPerDragon: 25,
+  },
 };
 
 /* ---- Random resource pickups & ambushes ---- */
@@ -597,6 +680,12 @@ let state = null;
 function newGame(raceId, modeId){
   const race = RACES.find(r=>r.id===raceId);
   const baseMana = 10 + (race.spBonus||0)*2;
+  const homePos = findCharPos(WORLD_TEMPLATE, 'H');
+  const camps = findAllCharPositions(WORLD_TEMPLATE).map(c=>({
+    id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y)
+  }));
+  const resourcePickups = generateResourcePickups(WORLD_TEMPLATE, homePos);
+  const dragonLairs = rollDragonLairs(resourcePickups);
   return {
     race, mode: modeId, day: 1,
     res: {gold:150, wood:100, stone:100, crystal:20},
@@ -625,18 +714,13 @@ function newGame(raceId, modeId){
     log: [],
     leaderboard: seedLeaderboard(raceId),
     worldMap: WORLD_TEMPLATE.slice(),
-    heroPos: findCharPos(WORLD_TEMPLATE, 'H'),
+    heroPos: homePos,
     movePoints: 5,
     maxMovePoints: 5,
     moveAnimating: false,
-    camps: findAllCharPositions(WORLD_TEMPLATE).map(c=>({
-      id:c.ch, x:c.x, y:c.y, defeated:false, def: CAMP_DEFS[c.ch]
-    })),
-    dragonLairs: findDragonLairPositions(WORLD_TEMPLATE).map(c=>({
-      id:c.ch, x:c.x, y:c.y, defeated:false, def: DRAGON_DEFS[c.ch],
-      count: 1 + Math.floor(Math.random()*3), // 1-3 tier-6 dragons guarding this lair
-    })),
-    resourcePickups: generateResourcePickups(WORLD_TEMPLATE, findCharPos(WORLD_TEMPLATE,'H')),
+    camps,
+    dragonLairs,
+    resourcePickups,
     marketRates: Object.assign({}, CONFIG.MARKET.baseRates),
   };
 }
@@ -669,17 +753,7 @@ function findAllCharPositions(template){
   for(let y=0;y<template.length;y++){
     for(let x=0;x<template[y].length;x++){
       const ch = template[y][x];
-      if(CAMP_DEFS[ch]) out.push({x,y,ch});
-    }
-  }
-  return out;
-}
-function findDragonLairPositions(template){
-  const out = [];
-  for(let y=0;y<template.length;y++){
-    for(let x=0;x<template[y].length;x++){
-      const ch = template[y][x];
-      if(DRAGON_DEFS[ch]) out.push({x,y,ch});
+      if(CAMP_MARKER_CHARS.includes(ch)) out.push({x,y,ch});
     }
   }
   return out;
@@ -932,7 +1006,11 @@ const BUILDING_INFO = {
     const lvl = wallsLevel();
     const towers = lvl>=4 ? 2 : (lvl>=2 ? 1 : 0);
     const nextTowerNote = towers<2 ? (lvl>=2 ? ' Следующая стрелковая башня появится на 4 уровне.' : ' Первая стрелковая башня появится на 2 уровне.') : '';
-    return `Крепостные стены — дают +${garrisonDefBonus()} к защите отрядам в гарнизоне (в походе бонус не действует). При осаде на поле боя появляется стена с единственными воротами и ${towers} стрелковой(ыми) башней(ями) — противник вынужден идти через горловину под обстрелом.${nextTowerNote}`;
+    let moatNote;
+    if(lvl>=5) moatNote = ' Ров у стен ощетинился кольями — застрявшие в нём отряды получают урон каждый раунд.';
+    else if(lvl>=3) moatNote = ' Перед стеной вырыт ров, замедляющий штурм. На максимальном уровне в нём появятся колья.';
+    else moatNote = ' Ров перед стеной появится на 3 уровне.';
+    return `Крепостные стены — дают +${garrisonDefBonus()} к защите отрядам в гарнизоне (в походе бонус не действует). При осаде на поле боя появляется стена с единственными воротами и ${towers} стрелковой(ыми) башней(ями) — противник вынужден идти через горловину под обстрелом.${nextTowerNote}${moatNote}`;
   },
   market: (b)=> b.level===0 ? `Ещё не построен. Постройте рынок, чтобы открыть покупку и продажу ресурсов по плавающему курсу.` : `Открывает окно торговли: продажа излишков дерева, камня и кристаллов за золото, и обратная покупка при нужде. Курс каждый день немного гуляет — следите за трендом (📈/📉) перед крупной сделкой.`,
 };
@@ -1324,13 +1402,16 @@ function endTurn(){
     s.garrison[0].count += 2;
     s.garrison[1].count += 1;
     let respawned = 0;
-    s.camps.forEach(c=>{ if(c.defeated){ c.defeated=false; respawned++; } });
-    s.dragonLairs.forEach(d=>{ if(d.defeated){ d.defeated=false; d.count = 1+Math.floor(Math.random()*3); respawned++; } });
+    s.camps.forEach(c=>{
+      if(c.defeated){ c.defeated=false; c.def = rollCampContent(c.x, c.y); respawned++; }
+    });
+    s.dragonLairs = rollDragonLairs(s.resourcePickups); // position and strength reroll every week, win or lose
     s.resourcePickups.forEach(p=>{
       if(p.collected){ p.collected=false; p.amount = 15+Math.floor(Math.random()*35); }
     });
     addLog('📯 Пополнение резервов! В гарнизон встало свежее подкрепление (неделя прошла).', 'event');
-    if(respawned>0) addLog(`👹 Монстры осмелели и вернулись в ${respawned} логово(а) — неделя всё лечит, даже нежити.`, 'event');
+    if(respawned>0) addLog(`👹 Монстры осмелели и вернулись в ${respawned} логово(а) — уже под новым флагом, неделя всё лечит, даже нежити.`, 'event');
+    addLog('🐉 Драконы облюбовали новые земли — старые логова опустели, где-то появились новые.', 'event');
     addLog('💰 На дорогах снова заметили обронённые кем-то ресурсы.', 'event');
   }
 
@@ -1441,7 +1522,6 @@ function terrainClass(ch){
   if(ch==='m') return 't-mountain';
   if(ch==='w') return 't-water';
   if(ch==='H') return 't-home';
-  if(CAMP_DEFS[ch]) return 't-grass';
   return 't-grass';
 }
 function terrainIcon(ch){
@@ -1697,7 +1777,7 @@ function generateObstacles(cols, rows, count){
 // Siege battlefield: a wall column with one open gate, plus arrow-tower stacks flanking it.
 // Killing a tower opens a gap in that spot (only the gate is passable while towers stand).
 function generateSiegeLayout(cols, rows){
-  const wallX = cols - 3;
+  const wallX = Math.floor(cols/2); // pulled toward the middle of the field, not tucked in a corner
   const gateY = Math.floor(rows/2);
   const lvl = wallsLevel();
   const towerCount = lvl>=4 ? 2 : (lvl>=2 ? 1 : 0);
@@ -1707,7 +1787,11 @@ function generateSiegeLayout(cols, rows){
     if(y===gateY || towerRows.includes(y)) continue;
     wallCells.push({x:wallX, y, icon:'🧱', type:'wall'});
   }
-  return {wallX, gateY, towerRows, wallCells};
+  const hasMoat = lvl>=3;
+  const moatHasStakes = lvl>=5; // max wall level: the moat itself starts hurting whoever stands in it
+  const moatX = wallX+1; // the side facing the attackers' spawn
+  const moatCells = hasMoat ? Array.from({length:rows}, (_,y)=>({x:moatX, y})) : [];
+  return {wallX, gateY, towerRows, wallCells, moatCells, moatHasStakes};
 }
 function makeTowerStack(id, x, y){
   const lvl = wallsLevel();
@@ -1792,14 +1876,17 @@ function renderBattleField(){
     for(let x=0;x<battle.cols;x++){
       const obstacleCell = battle.obstacles.find(o=>o.x===x&&o.y===y);
       const isGate = battle.siegeLayout && x===battle.siegeLayout.wallX && y===battle.siegeLayout.gateY;
+      const moatCell = battle.siegeLayout && battle.siegeLayout.moatCells.some(m=>m.x===x&&m.y===y);
       const stack = battle.stacks.find(s=>s.alive && s.x===x && s.y===y);
       let cellCls = 'bf-cell';
       if(obstacleCell) cellCls += obstacleCell.type==='wall' ? ' bf-wall' : ' bf-obstacle';
       if(isGate) cellCls += ' bf-gate';
+      if(moatCell) cellCls += battle.siegeLayout.moatHasStakes ? ' bf-moat-staked' : ' bf-moat';
       if(!stack && !obstacleCell && battle.reachable && battle.reachable.has(terrainKey(x,y))) cellCls += ' bf-reachable';
       let inner = '';
       if(obstacleCell) inner = `<span class="bf-obstacle-ico">${obstacleCell.icon||'🪨'}</span>`;
       else if(isGate && !stack) inner = `<span class="bf-gate-ico">🚪</span>`;
+      else if(moatCell && !stack) inner = `<span class="bf-moat-ico">${battle.siegeLayout.moatHasStakes ? '🔱' : '〰️'}</span>`;
       if(stack){
         let extra = '';
         if(stack.id===battle.selectedId) extra += ' bf-selected';
@@ -2121,7 +2208,22 @@ function startNewRound(){
   battle.magicUsedThisRound = false;
   battle.phase = 'player';
   logBattle(`— Раунд ${battle.round} —`);
+  applyMoatHazard();
   renderBattleField();
+}
+function applyMoatHazard(){
+  if(battle.over || !battle.siegeLayout || !battle.siegeLayout.moatHasStakes) return;
+  const moat = battle.siegeLayout.moatCells;
+  let anyHit = false;
+  battle.stacks.filter(s=>s.alive).forEach(s=>{
+    if(moat.some(m=>m.x===s.x && m.y===s.y)){
+      const dmg = 3 + Math.floor(Math.random()*3);
+      applyStackDamage(s, dmg);
+      logBattle(`🔱 Колья во рву ранят ${s.icon} ${s.name}: −${dmg} HP.`);
+      anyHit = true;
+    }
+  });
+  if(anyHit) checkBattleEnd();
 }
 
 /* ---- Spells ---- */
