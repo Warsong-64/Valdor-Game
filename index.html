@@ -822,6 +822,11 @@ function importSaveFromFile(evt){
 function initSaveSystem(){
   if(isTelegramEnv()){
     try{ TG.ready(); TG.expand(); }catch(e){}
+	alert(
+  "Telegram: " + !!TG +
+  "\ninitData: " + TG.initData.length +
+  "\nCloudStorage: " + !!TG.CloudStorage
+);
     TG.CloudStorage.getItem(SAVE_KEY, (err, value)=>{
       if(!err && value) savedGameSnapshot = value;
       updateMainMenuState();
