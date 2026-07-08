@@ -90,6 +90,7 @@
   /* ---------- VILLAGE ---------- */
   .village-layout{ display:grid; grid-template-columns:1.3fr 1fr; gap:14px; }
   @media(max-width:760px){ .village-layout{ grid-template-columns:1fr; } }
+  .village-layout.single-col{ display:block; }
   .panel{ background:var(--parchment); border:3px solid var(--parchment-dark); border-radius:12px; padding:10px; box-shadow:0 3px 8px var(--shadow); margin-bottom:12px;}
   .panel h3{ margin:2px 0 8px; font-size:1.05em; color:var(--ink-soft); border-bottom:2px dashed var(--parchment-dark); padding-bottom:6px;}
   .map-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
@@ -104,6 +105,11 @@
   .tile button:disabled{ background:#9a8b7a; cursor:not-allowed; }
 
   .hero-card{ display:flex; gap:10px; align-items:center; }
+  .hero-army-label{ font-family:'IM Fell English SC',serif; font-size:.95em; color:var(--ink-soft); margin-top:10px; padding-top:8px; border-top:2px dashed var(--parchment-dark); }
+  .hero-army-mini{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .hero-army-mini-item{ display:flex; flex-direction:column; align-items:center; gap:1px; background:#f4ecd4; border:2px solid #c7ae7d; border-radius:8px; padding:4px 7px; min-width:36px; }
+  .hero-army-mini-item .ico{ font-size:1.3em; }
+  .hero-army-mini-item b{ font-size:.8em; }
   .hero-emoji{ font-size:3em; }
   .xpbar{ background:#d8c69a; border-radius:6px; height:8px; overflow:hidden; margin-top:4px;}
   .xpbar div{ background:var(--royal); height:100%; }
@@ -121,7 +127,7 @@
   /* ---------- TROOP OVERVIEW GRID (6 tiers at a glance) ---------- */
   .troop-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
   @media(min-width:480px){ .troop-grid{ grid-template-columns:repeat(6,1fr); } }
-  .troop-cell{ background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .troop-cell{ background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; }
   .troop-cell.locked{ opacity:.5; }
   .troop-cell-ico{ font-size:1.4em; }
   .troop-cell-name{ font-size:.68em; color:var(--ink-soft); font-weight:700; }
@@ -133,6 +139,28 @@
   .tab-switch{ display:flex; gap:6px; margin-bottom:8px; }
   .tab-btn{ flex:1; background:#d8c69a; color:var(--ink); padding:7px 8px; border-radius:8px; font-weight:700; font-size:.82em; }
   .tab-btn.active{ background:var(--royal); color:#fff; }
+
+  /* ---------- RECRUIT MODAL SLIDER ---------- */
+  #recruit-slider{ accent-color: var(--royal); height:22px; }
+  #recruit-slider:disabled{ opacity:.4; }
+  .edict-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  @media(max-width:420px){ .edict-grid{ grid-template-columns:1fr; } }
+  .edict-card{
+    background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:8px; text-align:left;
+    min-height:76px; box-shadow:0 2px 0 #b39c6d; color:var(--ink);
+  }
+  .edict-card.active{ border-color:var(--royal); box-shadow:0 0 0 2px var(--royal) inset, 0 2px 0 #b39c6d; background:#f2e8cf; }
+  .edict-card.pending{ border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset, 0 2px 0 #b39c6d; }
+  .edict-card.locked{ opacity:.55; cursor:not-allowed; }
+  .edict-card b{ display:block; font-size:.84em; margin-bottom:2px; }
+  .edict-card small{ display:block; color:var(--ink-soft); line-height:1.25; font-size:.72em; }
+  .edict-meta{ display:flex; justify-content:space-between; gap:6px; margin-top:6px; font-size:.7em; font-weight:800; color:var(--ink-soft); }
+  .vassal-banner{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .vassal-btn{ flex:1 1 100px; background:#d8c69a; color:var(--ink); border-radius:8px; padding:7px 8px; font-size:.78em; font-weight:800; }
+  .vassal-btn.active{ background:var(--royal); color:#fff; }
+  .vassal-btn.locked{ opacity:.6; }
+  .vassal-card{ background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:9px; }
+  .vassal-card .stat-row{ font-size:.82em; }
 
   /* ---------- MARKET (buy on top, sell below — stacked to avoid horizontal scrolling on mobile) ---------- */
   .market-card{ border:2px solid var(--parchment-dark); border-radius:10px; padding:8px; margin-bottom:10px; background:#f4ecd4; }
@@ -172,6 +200,7 @@
   .bf-stack{ position:relative; width:80%; height:80%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.25em; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,.4); }
   .bf-stack.bf-player{ background:#2e5fae; border:2px solid #163a73; }
   .bf-stack.bf-enemy{ background:#a13d2c; border:2px solid #6b2318; }
+  .bf-stack.bf-blinded{ filter:grayscale(1) brightness(.78); box-shadow:0 0 0 2px #d8d8d8 inset; }
   .bf-stack.bf-selected{ outline:3px solid #f0c419; }
   .bf-stack.bf-attackable{ outline:3px solid #ff5252; animation:bf-pulse 1s infinite; }
   .bf-stack.bf-magic-target{ outline:3px solid #b98af0; animation:bf-pulse 1s infinite; }
@@ -193,6 +222,8 @@
   .bf-cell.bf-moat .bf-moat-ico, .bf-cell.bf-moat-staked .bf-moat-ico{ font-size:1.1em; opacity:.9; }
   .fx-hit{ animation:fx-hit .4s ease; }
   .fx-strike{ animation:fx-strike .3s ease; }
+  .fx-blind{ animation:fx-hit .55s ease; }
+  .fx-meteor{ animation:fx-strike .7s ease; }
   @keyframes fx-hit{ 0%{ transform:translateX(0);} 20%{ transform:translateX(-4px); filter:brightness(1.5) drop-shadow(0 0 6px #ff3b3b);} 40%{ transform:translateX(4px);} 60%{ transform:translateX(-3px);} 80%{ transform:translateX(2px);} 100%{ transform:translateX(0); filter:brightness(1);} }
   @keyframes fx-strike{ 0%{ transform:scale(1);} 50%{ transform:scale(1.22);} 100%{ transform:scale(1);} }
 
@@ -218,6 +249,7 @@
   .spell-card b{ display:block; font-size:.85em; margin:2px 0; }
   .spell-card span{ font-size:.78em; color:var(--royal); font-weight:800; }
   .spell-card small{ display:block; font-size:.68em; color:var(--ink-soft); margin-top:2px; line-height:1.25; }
+  .spell-mana-header{ flex-basis:100%; font-weight:800; font-size:.85em; color:var(--ink-soft); background:#e9dcb9; border:2px dashed var(--parchment-dark); border-radius:8px; padding:4px 8px; margin-bottom:2px; }
 
   .fx-fireball{ animation:fx-fire .6s ease; }
   .fx-chain{ animation:fx-chain .6s ease; }
@@ -231,6 +263,10 @@
   .loot-row{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:12px 0 4px; }
   .loot-chip{ background:#f0dcc0; border:2px solid var(--parchment-dark); border-radius:20px; padding:4px 12px; font-weight:800; font-size:.9em; }
   .loot-chip.loot-bad{ background:#e8c9be; border-color:#c99c8c; color:var(--danger); }
+  .battle-stats{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .loss-row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:center; }
+  .loss-icon-chip{ background:#2c1f14; color:#f1e0b0; padding:2px 8px; border-radius:10px; font-weight:700; font-size:.85em; }
+  .loss-icon-chip.loss-none{ background:#e9dcb9; color:var(--ink-soft); font-weight:600; font-style:italic; }
 
   /* ---------- MARKET ---------- */
   .market-note{ font-size:.78em; color:var(--ink-soft); margin:0 0 6px; }
@@ -249,7 +285,17 @@
   .wtile:hover:not(.t-mountain):not(.t-water){ filter:brightness(1.12); }
   .camp-badge{ position:absolute; bottom:1px; right:1px; font-size:.5em; background:#2c1f14; color:#f1e0b0; padding:0 3px; border-radius:5px; line-height:1.4; }
   .wtile-guarded{ box-shadow: inset 0 0 0 3px #e21b1b, 0 0 10px rgba(226,27,27,.75); animation: guard-pulse 1.8s infinite; }
+  .wtile.wtile-fort{ background:#8d8577; }
+  .wtile-fort-captured{ box-shadow: inset 0 0 0 3px var(--gold), 0 0 8px rgba(184,135,31,.6); }
+  .wtile-rival{ box-shadow: inset 0 0 0 3px #6a2323, 0 0 12px rgba(106,35,35,.9); animation: rival-pulse 1.4s infinite; }
+  .wtile-reachable{ box-shadow: inset 0 0 0 3px rgba(143,208,122,.95); filter:brightness(1.12); }
+  .wtile-hero-selected{ box-shadow: inset 0 0 0 3px #f0c419, 0 0 12px rgba(240,196,25,.85); filter:brightness(1.15); }
+  .wtile-unexplored{ background:#1b140d !important; box-shadow:none !important; cursor:pointer; }
+  .wtile-unexplored:hover{ filter:brightness(1.25); }
+  .wtile-explored-dim{ filter: grayscale(.55) brightness(.65); }
+  .wtile-explored-dim:hover{ filter: grayscale(.3) brightness(.9); }
   @keyframes guard-pulse{ 0%,100%{ box-shadow: inset 0 0 0 3px #e21b1b, 0 0 6px rgba(226,27,27,.6);} 50%{ box-shadow: inset 0 0 0 3px #ff5252, 0 0 14px rgba(226,27,27,.9);} }
+  @keyframes rival-pulse{ 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.22);} }
   .hero-token{ position:absolute; font-size:1.7em; transform:translate(-50%,-65%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:6; filter:drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
   .party-token{ position:absolute; display:flex; gap:1px; font-size:.68em; transform:translate(-50%, 20%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:5; }
   .party-token span{ background:rgba(44,31,20,.75); color:#f1e0b0; border-radius:5px; padding:0 3px; }
@@ -323,22 +369,43 @@
   </div>
   <div id="siege-banner"></div>
 
-  <div class="village-layout">
-    <div>
+  <div class="village-layout single-col">
+    <div class="tab-switch" id="village-top-tabs" style="margin-bottom:10px;">
+      <button class="tab-btn" id="tab-btn-panel-village" onclick="setVillageTopTab('village')">🗺️ Поселение и отряды</button>
+      <button class="tab-btn" id="tab-btn-panel-hero" onclick="setVillageTopTab('hero')">🧙 Герой и указы</button>
+    </div>
+    <div id="village-col-left">
       <div class="panel">
-        <h3>🗺️ Поселение</h3>
-        <div class="map-grid" id="map-grid"></div>
-      </div>
-      <div class="panel">
-        <h3>🛡️ Отряды: сводка</h3>
-        <div class="troop-grid" id="troop-grid"></div>
+        <h3>🗺️ Поселение и отряды</h3>
+        <div class="tab-switch">
+          <button class="tab-btn" id="tab-btn-buildings" onclick="setVillageMainTab('buildings')">🏘️ Поселение</button>
+          <button class="tab-btn" id="tab-btn-troops" onclick="setVillageMainTab('troops')">🛡️ Отряды</button>
+          <button class="tab-btn" id="tab-btn-vassals" onclick="setVillageMainTab('vassals')">🏳️ Вассалы</button>
+        </div>
+        <div id="village-buildings-pane">
+          <div class="map-grid" id="map-grid"></div>
+        </div>
+        <div id="village-troops-pane">
+          <div class="troop-grid" id="troop-grid"></div>
+          <div class="tab-switch" style="margin-top:10px;">
+            <button class="tab-btn" id="tab-btn-garrison" onclick="setGarrisonTab('garrison')">🏰 Гарнизон</button>
+            <button class="tab-btn" id="tab-btn-army" onclick="setGarrisonTab('army')">⚔️ В походе</button>
+          </div>
+          <p class="market-note" id="garrison-tab-hint"></p>
+          <div id="garrison-list"></div>
+          <div id="army-list"></div>
+        </div>
+        <div id="village-vassals-pane">
+          <div class="vassal-banner" id="vassal-tabs"></div>
+          <div id="vassal-panel"></div>
+        </div>
       </div>
       <div class="panel">
         <h3>📜 Хроника событий</h3>
         <div class="log-box" id="log-box"></div>
       </div>
     </div>
-    <div>
+    <div id="village-col-right">
       <div class="panel">
         <h3>🧙 Герой</h3>
         <div class="hero-card">
@@ -353,18 +420,12 @@
             <div class="stat-row"><span>💠 Мана</span><span id="hero-mana"></span></div>
           </div>
         </div>
+        <div class="hero-army-label">🛡️ Отряд героя</div>
+        <div class="hero-army-mini" id="hero-army-mini"></div>
       </div>
       <div class="panel">
-        <h3>🏰 Отряды (найм идёт в гарнизон)</h3>
-        <div class="tab-switch">
-          <button class="tab-btn" id="tab-btn-garrison" onclick="setGarrisonTab('garrison')">🏰 Гарнизон</button>
-          <button class="tab-btn" id="tab-btn-army" onclick="setGarrisonTab('army')">⚔️ В походе</button>
-        </div>
-        <p class="market-note" id="garrison-tab-hint"></p>
-        <div id="garrison-list"></div>
-        <div id="army-list"></div>
-      </div>
-    </div>
+        <h3>📜 Указ поселения</h3>
+        <div class="edict-grid" id="edict-grid"></div>
       </div>
     </div>
   </div>
@@ -382,14 +443,14 @@
     </div>
   </div>
   <div class="panel">
-    <p class="worldmap-hint">Кликни левой кнопкой мыши по клетке — герой со свитой поскачет туда. Наступишь на вражеский лагерь — начнётся бой.</p>
+    <p class="worldmap-hint">Клик по клетке без выбранного героя — показать описание. Клик по герою — выбрать его, затем клик по клетке — отряд поскачет туда (наступишь на лагерь/форт/дракона — начнётся бой).</p>
     <p class="worldmap-msg" id="worldmap-msg"></p>
     <div class="worldmap-wrap">
       <div class="worldmap-grid" id="worldmap-grid"></div>
       <div class="hero-token" id="hero-token">🤺</div>
       <div class="party-token" id="party-token"></div>
     </div>
-    <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;💀🧔🧝 Вражеские лагеря (цифра — размер отряда)</div>
+    <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 Вассалы&nbsp; • &nbsp;Клик по клетке — описание объекта</div>
   </div>
 </div>
 
@@ -443,6 +504,27 @@
     <div style="text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
       <button class="close-btn" id="confirm-yes-btn" onclick="handleConfirmModal(true)">Да</button>
       <button class="close-btn" id="confirm-no-btn" style="background:var(--ink-soft);" onclick="handleConfirmModal(false)">Нет</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-recruit">
+  <div class="modal">
+    <div style="text-align:center;">
+      <div style="font-size:2.2em;" id="recruit-icon">⚔️</div>
+      <h2 id="recruit-title" style="margin:4px 0;"></h2>
+      <p class="market-note" id="recruit-flavor"></p>
+    </div>
+    <p class="market-note" id="recruit-status"></p>
+    <div style="display:flex; align-items:center; gap:10px; margin:12px 0 6px;">
+      <button class="recruit-btn" id="recruit-all-btn" style="background:var(--royal); white-space:nowrap;" onclick="setRecruitMax()">Нанять всех</button>
+      <input type="range" id="recruit-slider" min="1" max="1" value="1" style="flex:1;" oninput="updateRecruitPreview()">
+      <b id="recruit-qty-label" style="min-width:2em; text-align:right;">1</b>
+    </div>
+    <p class="market-note" id="recruit-cost-preview"></p>
+    <div style="text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
+      <button class="close-btn" id="recruit-confirm-btn" onclick="confirmRecruitFromModal()">Нанять</button>
+      <button class="close-btn" style="background:var(--ink-soft);" onclick="closeModal('modal-recruit')">Закрыть</button>
     </div>
   </div>
 </div>
@@ -520,18 +602,60 @@ const UNIT_DATA = {
 function unitInfo(raceId, tier){ return (UNIT_DATA[raceId]||UNIT_DATA.humans)[tier-1]; }
 const RANGED_FULL_RANGE = 3; // full damage within this many cells; half damage beyond
 
+// Flavor blurb shown in the recruit popup — one per race per tier, same cheeky tone as the rest of the game.
+const UNIT_FLAVOR = {
+  humans: [
+    'Ополченец с вилами — отличное решение для ближнего боя, а вот со стратегическим мышлением у него пока не задалось.',
+    'Копейщик держит строй и колет издалека... ну, почти издалека. Выглядит внушительно в любом случае.',
+    'Лучник бьёт по врагу с безопасного расстояния — благородное ремесло для тех, кто не любит рукопашную.',
+    'Рыцарь в тяжёлых латах — надёжный щит поселения, хоть и не самый скорый на подъём по утрам.',
+    'Паладин сочетает клинок и веру — враги боятся, союзники вдохновляются, конюх не успевает чистить доспехи.',
+    'Королевский гвардеец — вершина людской воинской школы. Дорого, эффектно, надёжно.',
+  ],
+  elves: [
+    'Лесной разведчик бесшумен, быстр и слегка высокомерен — типичный эльф на минималках.',
+    'Стрелок эльфов почти никогда не промахивается. «Почти» тут ключевое слово.',
+    'Друид зовёт на помощь силу леса — деревья не жалуются, а вот противники очень даже.',
+    'Всадник на олене выглядит мирно, пока не разгонится в атаку — тогда уже не до умиления.',
+    'Мастер клинка — грация и смерть в одном движении, чему завидуют даже коллеги-эльфы.',
+    'Архимаг рощи повелевает древней магией леса — с таким лучше дружить, а не воевать.',
+  ],
+  dwarves: [
+    'Щитоносец — стена из стали и упрямства, которую не сдвинет даже осадный таран.',
+    'Метатель топоров бьёт издалека, экономя силы для застолья после боя.',
+    'Молотобоец крушит броню и мораль врага одним ударом. Ну, почти одним.',
+    'Арбалетчик — гномья инженерия в деле: бьёт метко и с хорошим КПД.',
+    'Рунный страж защищён древними рунами — крепче не только доспех, но и характер.',
+    'Повелитель кузни — легенда среди гномов, ходячая наковальня с боевым духом.',
+  ],
+  undead: [
+    'Скелет не ест, не спит и не жалуется на погоду — идеальный солдат с точки зрения логистики.',
+    'Зомби неспешный, но живучий — почти в буквальном смысле неживучий, но всё равно живучий.',
+    'Костяной лучник стреляет издалека, экономя то немногое, что от него осталось.',
+    'Призрак проходит сквозь страх противника — в самом буквальном смысле, он же бестелесный.',
+    'Костяной рыцарь — доспех без хозяина, но с боевым опытом прежней жизни.',
+    'Личность-лич — вершина некромантского искусства. С таким в строю смерть — не помеха карьере.',
+  ],
+};
+function unitFlavor(raceId, tier){
+  const arr = UNIT_FLAVOR[raceId] || UNIT_FLAVOR.humans;
+  return arr[tier-1] || 'Надёжный боец, готовый выступить в поход.';
+}
+
 /* ---- Global (overworld) map ---- */
-// . grass  f forest  m mountain  w water  H home/castle  1/2/3 enemy camps
+// . grass  f forest  m mountain  w water  H home/castle  1/2/3 enemy camps  F capturable forts
 // NOTE: bigger than a single settlement's turf on purpose — this is the seed of the
 // eventual shared world map (other players' castles/armies will live here later).
 const WORLD_TEMPLATE = [
-  "....m..f...",
-  ".H....f..1.",
-  "...m.f.....",
-  "f.....m..f.",
-  ".w..m.....f",
-  "..2.....3..",
-  "f..f.m.....",
+  "....m..f....",
+  ".H....f..1..",
+  "...m.f......",
+  "f.....m..f..",
+  ".w..m.....f.",
+  "..2.....3...",
+  "f..f.m......",
+  "..F....m..F.",
+  "....w..F....",
 ];
 const WORLD_COLS = WORLD_TEMPLATE[0].length;
 const WORLD_ROWS = WORLD_TEMPLATE.length;
@@ -542,12 +666,17 @@ const CAMP_FLAVOR_NAMES = {
   dwarves: ['Лагерь гномов-контрабандистов', 'Гномья застава', 'Старательский лагерь'],
   undead:  ['Логово нежити', 'Забытое кладбище', 'Курган мертвецов'],
 };
-const DRAGON_TIER = 6;
+const DRAGON_TIER = 7;
 const DRAGON_NAMES = [
   {label:'Логово дракона «Огнехвост»', icon:'🐉'},
   {label:'Логово дракона «Ледокрыл»',  icon:'🐲'},
   {label:'Логово дракона «Пепелище»',  icon:'🐉'},
   {label:'Логово дракона «Штормокрыл»', icon:'🐲'},
+];
+const FORT_DEFS = [
+  {id:'wood', name:'Лесной форт', icon:'🪵', resource:'wood', income:6, x:null, y:null},
+  {id:'stone', name:'Каменный форт', icon:'⛏️', resource:'stone', income:6, x:null, y:null},
+  {id:'crystal', name:'Кристальный форт', icon:'💎', resource:'crystal', income:2, x:null, y:null},
 ];
 function shuffleArray(arr){
   for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
@@ -555,6 +684,29 @@ function shuffleArray(arr){
 }
 function tileDistance(a, b){ return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y)); } // chebyshev, matches grid movement
 function unitPowerValue(tier){ return tier*tier*4; } // rough "how much budget one of these costs"
+
+function findFortPositions(template){
+  const out = [];
+  for(let y=0;y<template.length;y++){
+    for(let x=0;x<template[y].length;x++){
+      if(template[y][x]==='F') out.push({x,y});
+    }
+  }
+  return out;
+}
+function rollForts(){
+  const spots = findFortPositions(WORLD_TEMPLATE);
+  return FORT_DEFS.map((def,i)=>{
+    const spot = spots[i] || {x:0,y:0};
+    const tier = i===2 ? 4 : 3;
+    const count = i===2 ? 4 : 5;
+    return {
+      id:def.id, name:def.name, icon:def.icon, resource:def.resource, income:def.income,
+      x:spot.x, y:spot.y, captured:false, watchtower:0, garrison:0,
+      def:{race:'humans', armyTiers:[{tier:1,count:count+2},{tier:2,count},{tier, count:Math.max(2, Math.floor(count/2))}]},
+    };
+  });
+}
 
 // Camp positions are fixed (the '1'/'2'/'3' markers on WORLD_TEMPLATE), but their race and
 // army composition are rolled fresh at game start and every time the camp respawns. Difficulty
@@ -589,7 +741,8 @@ function rollCampContent(x, y){
 function rollDragonLairs(resourcePickups){
   const home = findCharPos(WORLD_TEMPLATE, 'H');
   const campSpots = findAllCharPositions(WORLD_TEMPLATE);
-  const occupied = new Set([home.x+','+home.y, ...campSpots.map(c=>c.x+','+c.y), ...resourcePickups.map(p=>p.x+','+p.y)]);
+  const fortSpots = findFortPositions(WORLD_TEMPLATE);
+  const occupied = new Set([home.x+','+home.y, ...campSpots.map(c=>c.x+','+c.y), ...fortSpots.map(f=>f.x+','+f.y), ...resourcePickups.map(p=>p.x+','+p.y)]);
   const candidates = [];
   for(let y=0;y<WORLD_ROWS;y++){
     for(let x=0;x<WORLD_COLS;x++){
@@ -614,7 +767,7 @@ function rollDragonLairs(resourcePickups){
   }
   return lairs;
 }
-const RESOURCE_PICKUP_COUNT = 10;
+const RESOURCE_PICKUP_COUNT = 7;
 
 /* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
 const CONFIG = {
@@ -626,8 +779,9 @@ const CONFIG = {
     buyMarkup: 1.4, // buying costs current rate × this markup (merchant's cut)
   },
   WAREHOUSE: {
-    baseCap: 300,   // storage cap per resource (wood/stone/crystal) at warehouse level 1
-    perLevel: 150,  // extra cap per warehouse level above 1
+    baseCap: 150,        // storage cap per resource (wood/stone/crystal) at warehouse level 1 — tight on purpose, to push players to build it up
+    perLevel: 120,       // cap added going from level 1→2
+    perLevelGrowth: 30,  // each subsequent level adds 30 more than the previous jump (150 → 270 → 420 → 600 → 810)
   },
   BARRACKS: {
     // barracks level required to unlock recruiting each higher tier (tiers 1-3 are always open)
@@ -636,6 +790,14 @@ const CONFIG = {
   },
   WALLS: {
     garrisonDefPerLevel: 3, // extra defense granted to garrisoned troops per walls level (siege groundwork)
+  },
+  EDICTS: {
+    productionBoost: 0.15,
+    drillXp: 8,
+    defenseSiegeMult: 0.65,
+    defenseGarrisonDef: 2,
+    scoutMoveBonus: 2,
+    cooldownDays: 7,
   },
   SIEGE: {
     minDay: 6,             // no raids before this day — gives the player time to build a garrison
@@ -655,8 +817,19 @@ const CONFIG = {
   },
   DRAGON: {
     minLairs: 1, maxLairs: 3,          // lair count itself is rerolled weekly
-    baseCount: 1, countPerDistance: 0.35, maxCount: 5,
+    baseCount: 2, countPerDistance: 0.45, maxCount: 7,
     lootGoldPerDragon: 70, lootBonusPerDragon: 25,
+  },
+  RIVAL: {
+    minDay: 9,
+    baseChance: 0.045,
+    minSpacingDays: 10,
+    movePoints: 2,
+    maxPowerRatio: 0.9,
+    stepDelayMs: 420, // pause between animated steps of the rival's move, so it visibly walks like another player rather than teleporting
+  },
+  FOG_OF_WAR: {
+    visionRadius: 2, // tiles revealed around the hero and around any captured vassal fort (Chebyshev distance)
   },
 };
 
@@ -673,6 +846,18 @@ const LOOT_JOKES = {
   stone:['Булыжник увесистый — герой сразу поверил в его ценность.','Обычный камень. Но тяжёлый и полезный.'],
   crystal:['Кристалл гудит и слегка вибрирует. Наверное, это нормально.','Маги Башни будут рады такому трофею.'],
 };
+const EDICTS = [
+  {id:'balanced', icon:'⚖️', name:'Ровный ход', cost:20, unlock:'balanced',
+    desc:'Без бонусов и штрафов. Дешёвый откат к нейтральной политике, но совет всё равно уходит на недельный перерыв.'},
+  {id:'economy', icon:'🏗️', name:'Большая стройка', cost:60, unlock:'economy',
+    desc:'+15% к добыче зданий. Приказ вступит в силу только со следующего дня.'},
+  {id:'drill', icon:'🎯', name:'Военные учения', cost:80, unlock:'drill',
+    desc:'+8 опыта герою каждый ход. Открывается после первого повышения уровня.'},
+  {id:'defense', icon:'🛡️', name:'Караульная служба', cost:70, unlock:'defense',
+    desc:'-35% к шансу набега и +2 защиты гарнизону. Открывается после тревожной разведки.'},
+  {id:'scout', icon:'🗺️', name:'Дальняя разведка', cost:100, unlock:'scout',
+    desc:'+2 очка хода на карте мира. Открывается после первой находки на карте.'},
+];
 
 /* ===================== STATE ===================== */
 let state = null;
@@ -686,6 +871,7 @@ function newGame(raceId, modeId){
   }));
   const resourcePickups = generateResourcePickups(WORLD_TEMPLATE, homePos);
   const dragonLairs = rollDragonLairs(resourcePickups);
+  const forts = rollForts();
   return {
     race, mode: modeId, day: 1,
     res: {gold:150, wood:100, stone:100, crystal:20},
@@ -715,13 +901,24 @@ function newGame(raceId, modeId){
     leaderboard: seedLeaderboard(raceId),
     worldMap: WORLD_TEMPLATE.slice(),
     heroPos: homePos,
+    worldHeroSelected: false,
     movePoints: 5,
     maxMovePoints: 5,
+    edict: 'balanced',
+    nextEdict: 'balanced',
+    edictCooldownUntil: 1,
+    edictUnlocks: {balanced:true, economy:true, drill:false, defense:false, scout:false},
     moveAnimating: false,
     camps,
+    forts,
+    selectedVassal: 'wood',
+    rivalHero: null,
+    rivalRaidCount: 0,
+    nextRivalRaidDay: CONFIG.RIVAL.minDay,
     dragonLairs,
     resourcePickups,
     marketRates: Object.assign({}, CONFIG.MARKET.baseRates),
+    exploredTiles: [], // fog of war: "x,y" keys ever seen; refreshed/grown each render by refreshFogOfWar()
   };
 }
 
@@ -737,7 +934,7 @@ function generateResourcePickups(template, home){
   const types = ['gold','wood','stone','crystal'];
   return spots.slice(0,RESOURCE_PICKUP_COUNT).map((s,i)=>({
     id:'res'+i, x:s.x, y:s.y, type: types[Math.floor(Math.random()*types.length)],
-    amount: 15+Math.floor(Math.random()*35), collected:false,
+    amount: 8+Math.floor(Math.random()*18), collected:false,
   }));
 }
 
@@ -835,6 +1032,37 @@ function loadGame(snapshotJson){
     const parsed = JSON.parse(snapshotJson);
     if(!parsed || !parsed.race || !parsed.res) return false;
     state = parsed;
+    const mapMismatch = !state.worldMap || state.worldMap.length!==WORLD_ROWS || state.worldMap.some(row=>row.length!==WORLD_COLS);
+    if(mapMismatch){
+      const homePos = findCharPos(WORLD_TEMPLATE, 'H');
+      state.worldMap = WORLD_TEMPLATE.slice();
+      state.heroPos = homePos;
+      state.camps = findAllCharPositions(WORLD_TEMPLATE).map(c=>({id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y)}));
+      state.resourcePickups = generateResourcePickups(WORLD_TEMPLATE, homePos);
+      state.dragonLairs = rollDragonLairs(state.resourcePickups);
+      state.forts = rollForts();
+      state.exploredTiles = [];
+    }
+    state.exploredTiles = Array.isArray(state.exploredTiles) ? state.exploredTiles : [];
+    state.edict = state.edict || 'balanced';
+    state.nextEdict = state.nextEdict || state.edict || 'balanced';
+    state.edictCooldownUntil = state.edictCooldownUntil || 1;
+    state.edictUnlocks = Object.assign({balanced:true, economy:true, drill:false, defense:false, scout:false}, state.edictUnlocks || {});
+    state.worldHeroSelected = !!state.worldHeroSelected;
+    state.forts = Array.isArray(state.forts) ? state.forts : rollForts();
+    state.rivalHero = state.rivalHero || null;
+    state.rivalRaidCount = state.rivalRaidCount || 0;
+    state.nextRivalRaidDay = state.nextRivalRaidDay || CONFIG.RIVAL.minDay;
+    state.forts.forEach(f=>{
+      f.watchtower = f.watchtower || 0;
+      f.garrison = f.garrison || watchtowerTotalGarrison(f.watchtower);
+    });
+    state.selectedVassal = state.selectedVassal || 'wood';
+    if(state.hero && state.hero.level>=2) state.edictUnlocks.drill = true;
+    if(state.day >= CONFIG.SIEGE.minDay - 1) state.edictUnlocks.defense = true;
+    if((state.resourcePickups||[]).some(p=>p.collected)) state.edictUnlocks.scout = true;
+    state.maxMovePoints = currentMaxMovePoints();
+    state.movePoints = Math.min(state.movePoints ?? state.maxMovePoints, state.maxMovePoints);
     garrisonTab = 'garrison';
     return true;
   }catch(e){ console.error('Load failed:', e); return false; }
@@ -928,12 +1156,12 @@ function renderVillage(){
     const isUnbuilt = b.level===0;
     const upgradeCost = buildingUpgradeCost(b);
     const canAfford = (!isUnbuilt && b.level>=5) ? false : affordable(upgradeCost);
-    const lvlLine = isUnbuilt ? 'Не построено' : (b.produces? 'Ур. '+b.level+' • +'+Math.round(b.base*b.level*raceMod(b.produces)) : 'Ур. '+b.level);
+    const lvlLine = isUnbuilt ? 'Не построено' : (b.produces? 'Ур. '+b.level+' • +'+Math.round(b.base*b.level*raceMod(b.produces)*productionMultiplier()) : 'Ур. '+b.level);
     const upgradeBtn = (!isUnbuilt && b.level>=5)
       ? '<span style="font-size:.7em;color:#6b5236;">MAX</span>'
-      : `<button ${canAfford?'':'disabled'} onclick="upgradeBuilding('${b.key}')">${isUnbuilt?'🔨 Построить':'⬆'} ${Object.entries(upgradeCost).map(([k,v])=>v+iconOf(k)).join(' ')}</button>`;
-    const marketBtn = (b.key==='market' && !isUnbuilt) ? `<button style="background:var(--royal);" onclick="openMarket()">🛒 Открыть рынок</button>` : '';
-    return `<div class="tile" oncontextmenu="showBuildingInfo(event,'${b.key}')" title="ПКМ — что это здание даёт">
+      : `<button ${canAfford?'':'disabled'} onclick="event.stopPropagation();upgradeBuilding('${b.key}')">${isUnbuilt?'🔨 Построить':'⬆'} ${Object.entries(upgradeCost).map(([k,v])=>v+iconOf(k)).join(' ')}</button>`;
+    const marketBtn = (b.key==='market' && !isUnbuilt) ? `<button style="background:var(--royal);" onclick="event.stopPropagation();openMarket()">🛒 Открыть рынок</button>` : '';
+    return `<div class="tile" onclick="showBuildingInfo(event,'${b.key}')" oncontextmenu="showBuildingInfo(event,'${b.key}')" title="Тап — что это здание даёт">
       <div class="ico">${b.ico}</div>
       <b>${b.name}</b>
       <div class="lvl">${lvlLine}</div>
@@ -951,15 +1179,158 @@ function renderVillage(){
   document.getElementById('hero-def').textContent = hero.def;
   document.getElementById('hero-sp').textContent = hero.sp;
   document.getElementById('hero-mana').textContent = `${hero.mana}/${getMaxMana()}`;
+  renderHeroArmyMini();
 
+  renderEdicts();
+  renderVassals();
   renderTroopOverview();
   renderGarrison();
   renderMarchingArmy();
   renderGarrisonTabs();
+  renderVillageMainTabs();
+  renderVillageTopTabs();
 
   const lb = document.getElementById('log-box');
   lb.innerHTML = state.log.slice(-25).reverse().map(l=>`<p class="${l.type}">${l.text}</p>`).join('');
   renderMarket();
+}
+
+function activeEdictId(){ return state.edict || 'balanced'; }
+function activeEdict(){ return EDICTS.find(e=>e.id===activeEdictId()) || EDICTS[0]; }
+function pendingEdictId(){ return state.nextEdict || activeEdictId(); }
+function currentMaxMovePoints(){ return 5 + (activeEdictId()==='scout' ? CONFIG.EDICTS.scoutMoveBonus : 0); }
+function productionMultiplier(){ return activeEdictId()==='economy' ? 1 + CONFIG.EDICTS.productionBoost : 1; }
+function siegeChanceMultiplier(){ return activeEdictId()==='defense' ? CONFIG.EDICTS.defenseSiegeMult : 1; }
+function edictGarrisonDefBonus(){ return activeEdictId()==='defense' ? CONFIG.EDICTS.defenseGarrisonDef : 0; }
+function edictCooldownLeft(){ return Math.max(0, (state.edictCooldownUntil || 1) - state.day); }
+function isEdictUnlocked(e){ return !!(state.edictUnlocks && state.edictUnlocks[e.unlock || e.id]); }
+function edictUnlockHint(e){
+  if(e.id==='drill') return 'Нужен герой 2 уровня';
+  if(e.id==='defense') return 'Нужно предупреждение о набегах';
+  if(e.id==='scout') return 'Нужна первая находка на карте';
+  return 'Пока недоступно';
+}
+function renderEdicts(){
+  const el = document.getElementById('edict-grid');
+  if(!el) return;
+  el.innerHTML = EDICTS.map(e=>{
+    const active = e.id===activeEdictId();
+    const pending = e.id===pendingEdictId() && !active;
+    const unlocked = isEdictUnlocked(e);
+    const canPay = state.res.crystal >= e.cost || pending || active;
+    const cooldownLeft = edictCooldownLeft();
+    const onCooldown = cooldownLeft>0 && !pending && !active;
+    const disabled = !unlocked || !canPay || pending || active || onCooldown;
+    let status = active ? 'Действует сегодня' : (pending ? 'С завтрашнего дня' : 'Можно назначить');
+    if(!unlocked) status = edictUnlockHint(e);
+    else if(!canPay) status = 'Не хватает кристаллов';
+    else if(onCooldown) status = `Совет занят: ${cooldownLeft} дн.`;
+    return `
+    <button class="edict-card ${active?'active':''} ${pending?'pending':''} ${(!unlocked || !canPay)?'locked':''}" ${disabled?'disabled':''} onclick="scheduleEdict('${e.id}')">
+      <b>${e.icon} ${e.name}</b>
+      <small>${e.desc}</small>
+      <span class="edict-meta"><span>${status}</span><span>${e.cost>0 ? e.cost+'💎' : '0💎'}</span></span>
+    </button>`}).join('');
+}
+function scheduleEdict(id){
+  const e = EDICTS.find(x=>x.id===id);
+  if(!e || !isEdictUnlocked(e) || id===pendingEdictId()) return;
+  if(edictCooldownLeft()>0) return;
+  if(state.res.crystal < e.cost) return;
+  state.res.crystal -= e.cost;
+  state.nextEdict = id;
+  state.edictCooldownUntil = state.day + CONFIG.EDICTS.cooldownDays;
+  addLog(`📜 Указ «${e.name}» оплачен и вступит в силу со следующего дня. Следующая смена указа будет доступна с ${state.edictCooldownUntil}-го дня.`, 'event');
+  renderVillage();
+}
+function unlockEdict(id, reason){
+  state.edictUnlocks = Object.assign({balanced:true, economy:true, drill:false, defense:false, scout:false}, state.edictUnlocks || {});
+  if(state.edictUnlocks[id]) return;
+  const e = EDICTS.find(x=>x.id===id);
+  if(!e) return;
+  state.edictUnlocks[id] = true;
+  addLog(`📜 Открыт новый указ: «${e.name}». ${reason||''}`, 'event');
+}
+
+function selectedVassal(){ return (state.forts||[]).find(f=>f.id===state.selectedVassal) || (state.forts||[])[0]; }
+function setSelectedVassal(id){
+  state.selectedVassal = id;
+  renderVassals();
+}
+const WATCHTOWER_STAGES = {
+  1: [{tier:1,count:3},{tier:2,count:2}],
+  2: [{tier:1,count:5},{tier:2,count:3},{tier:3,count:1}],
+  3: [{tier:1,count:7},{tier:2,count:3},{tier:3,count:2}],
+};
+function watchtowerRoster(stage){ return WATCHTOWER_STAGES[Math.max(0, Math.min(3, stage||0))] || []; }
+function watchtowerTotalGarrison(stage){ return watchtowerRoster(stage).reduce((s,u)=>s+u.count,0); }
+function watchtowerEffectiveRoster(fort){
+  let remaining = Math.min(fort.garrison ?? watchtowerTotalGarrison(fort.watchtower), watchtowerTotalGarrison(fort.watchtower));
+  return watchtowerRoster(fort.watchtower).map(u=>{
+    const count = Math.min(u.count, Math.max(0, remaining));
+    remaining -= count;
+    return {tier:u.tier, count};
+  }).filter(u=>u.count>0);
+}
+function watchtowerTroopText(stage){
+  const roster = watchtowerRoster(stage);
+  return roster.length ? roster.map(u=>`${u.count} ур.${u.tier}`).join(', ') : 'нет';
+}
+function watchtowerCost(fort){
+  const next = (fort.watchtower || 0) + 1;
+  if(next>3) return null;
+  return [
+    {gold:60, wood:25, stone:25},
+    {gold:90, wood:35, stone:45},
+    {gold:130, wood:55, stone:70, crystal:2},
+  ][next-1];
+}
+function buildVassalWatchtower(id){
+  const fort = (state.forts||[]).find(f=>f.id===id);
+  if(!fort || !fort.captured || fort.watchtower>=3) return;
+  const cost = watchtowerCost(fort);
+  if(!cost || !affordable(cost)) return;
+  pay(cost);
+  fort.watchtower = (fort.watchtower || 0) + 1;
+  fort.garrison = watchtowerTotalGarrison(fort.watchtower);
+  addLog(`🏳️ В вассальном владении «${fort.name}» сторожка улучшена до ${fort.watchtower} этапа. Местный гарнизон: ${watchtowerTroopText(fort.watchtower)}.`, 'event');
+  renderVillage();
+}
+function showWatchtowerInfo(evt, id){
+  if(evt) evt.preventDefault();
+  const fort = (state.forts||[]).find(f=>f.id===id) || selectedVassal();
+  const stage = fort ? (fort.watchtower || 0) : 0;
+  const current = stage>0 ? `${stage} этап: ${watchtowerTroopText(stage)}` : 'сторожка ещё не построена';
+  showEventModal2({
+    icon:'🏗️',
+    title:`Сторожка${fort ? `: ${fort.name}` : ''}`,
+    text:`Сторожка укрепляет вассальное владение и присылает защитников в городской гарнизон, если на поселение напали. 1 этап: 3 первого уровня, 2 второго. 2 этап: 5 первого, 3 второго, 1 третьего. 3 этап: 7 первого, 3 второго, 2 третьего. Сейчас: ${current}.`,
+    buttonLabel:'Понятно',
+  });
+}
+function renderVassals(){
+  const tabs = document.getElementById('vassal-tabs');
+  const panel = document.getElementById('vassal-panel');
+  if(!tabs || !panel) return;
+  const forts = state.forts || [];
+  if(!forts.length){ tabs.innerHTML=''; panel.innerHTML='<p class="market-note">Форты ещё не разведаны.</p>'; return; }
+  if(!state.selectedVassal || !forts.some(f=>f.id===state.selectedVassal)) state.selectedVassal = forts[0].id;
+  tabs.innerHTML = forts.map(f=>`
+    <button class="vassal-btn ${f.id===state.selectedVassal?'active':''} ${f.captured?'':'locked'}" onclick="setSelectedVassal('${f.id}')">
+      ${f.captured?'🚩':'🏰'} ${f.name}
+    </button>`).join('');
+  const f = selectedVassal();
+  const cost = watchtowerCost(f);
+  const costText = cost ? Object.entries(cost).map(([k,v])=>v+iconOf(k)).join(' ') : 'максимум';
+  const canBuild = f.captured && f.watchtower<3 && cost && affordable(cost);
+  panel.innerHTML = `<div class="vassal-card" onclick="showWatchtowerInfo(event,'${f.id}')" oncontextmenu="showWatchtowerInfo(event,'${f.id}')" title="Тап — описание сторожки">
+    <b>${f.icon} ${f.name}</b>
+    <div class="stat-row"><span>Статус</span><span>${f.captured?'ваш вассал':'не захвачен'}</span></div>
+    <div class="stat-row"><span>Доход</span><span>${f.captured?`+${f.income}${iconOf(f.resource)} / ход`:'после захвата'}</span></div>
+    <div class="stat-row"><span>Сторожка</span><span>${f.watchtower>0?`${f.watchtower}/3 этап`:'нет'}</span></div>
+    <div class="stat-row"><span>Гарнизон</span><span>${watchtowerEffectiveRoster(f).map(u=>`${u.count} ур.${u.tier}`).join(', ') || 'нет'}</span></div>
+    <button class="recruit-btn" ${canBuild?'':'disabled'} onclick="event.stopPropagation();buildVassalWatchtower('${f.id}')" style="margin-top:8px;">🏗️ ${f.watchtower>0?'Улучшить сторожку':'Сторожка'}: ${costText}</button>
+  </div>`;
 }
 
 function iconOf(k){ return {gold:'💰',wood:'🌲',stone:'🪨',crystal:'💎'}[k]; }
@@ -992,7 +1363,11 @@ const BUILDING_INFO = {
   mine: (b)=> `Даёт золото каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('gold'))} за ход. Основа казны: без золота не нанять бойцов и не отстроиться.`,
   quarry: (b)=> `Даёт камень каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('stone'))} за ход. Нужен для построек и снаряжения тяжёлых отрядов.`,
   crystalcave: (b)=> `Даёт кристаллы каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('crystal'))} за ход. Редкий ресурс для найма старших отрядов и рыночных сделок.`,
-  tower: (b)=> `Усиливает магию героя — сейчас +${(b.level-1)*4} к максимуму маны (итого ${getMaxMana()}). Чем выше уровень, тем дольше герой колдует в походе, не забегая домой отдыхать.`,
+  tower: (b)=> {
+    const nextUnlock = SPELLS.filter(sp=>sp.unlockLevel>b.level).sort((a,c)=>a.unlockLevel-c.unlockLevel)[0];
+    const nextNote = nextUnlock ? ` На ${nextUnlock.unlockLevel} уровне откроется заклинание «${nextUnlock.name}» ${nextUnlock.icon}.` : ' Все заклинания уже открыты.';
+    return `Усиливает магию героя — сейчас +${(b.level-1)*4} к максимуму маны (итого ${getMaxMana()}) и +${mageTowerSpellBonusPct()}% к силе всех заклинаний. Чем выше уровень, тем дольше герой колдует в походе и тем больнее бьют его чары.${nextNote}`;
+  },
   barracks: (b)=> {
     const lines = [4,5,6].map(t=>{
       const need = CONFIG.BARRACKS.unlockLevel[t];
@@ -1015,7 +1390,7 @@ const BUILDING_INFO = {
   market: (b)=> b.level===0 ? `Ещё не построен. Постройте рынок, чтобы открыть покупку и продажу ресурсов по плавающему курсу.` : `Открывает окно торговли: продажа излишков дерева, камня и кристаллов за золото, и обратная покупка при нужде. Курс каждый день немного гуляет — следите за трендом (📈/📉) перед крупной сделкой.`,
 };
 function showBuildingInfo(evt, key){
-  evt.preventDefault();
+  if(evt) evt.preventDefault();
   const b = state.buildings.find(x=>x.key===key);
   const text = (BUILDING_INFO[key] || (()=>'Пока просто красивое здание.'))(b);
   const titleSuffix = b.level===0 ? '— не построено' : `— уровень ${b.level}`;
@@ -1027,12 +1402,16 @@ function townHallLevel(){ const b = state.buildings.find(x=>x.key==='townhall');
 function mageTowerLevel(){ const b = state.buildings.find(x=>x.key==='tower'); return b ? b.level : 1; }
 function unitCostMultiplier(){ return Math.max(0.7, 1 - 0.04*(townHallLevel()-1)); }
 function unitCapPerTier(tier){
-  const base = 8 + 4*(townHallLevel()-1);
+  const base = (tier===1 ? 14 : 8) + 4*(townHallLevel()-1);
   const barracksBonus = (tier>=4) ? CONFIG.BARRACKS.capPerLevel*(barracksLevel()-1) : 0;
   return base + barracksBonus;
 }
 function townStatBonus(){ return Math.floor((townHallLevel()-1)/2); }
 function getMaxMana(){ return state.hero.maxManaBase + (mageTowerLevel()-1)*4; }
+// Mage tower spell-power bonus: +3% at level 1, +5% at level 2, +7% at 3, ...(+2% per level thereafter).
+function mageTowerSpellBonusPct(){ return 2*mageTowerLevel()+1; }
+function spellPowerMult(){ return 1 + mageTowerSpellBonusPct()/100; }
+function spellUnlockedByTower(sp){ return mageTowerLevel() >= (sp.unlockLevel||1); }
 
 function barracksLevel(){ const b = state.buildings.find(x=>x.key==='barracks'); return b ? b.level : 1; }
 function isTierUnlocked(tier){
@@ -1043,7 +1422,10 @@ function isTierUnlocked(tier){
 function warehouseLevel(){ const b = state.buildings.find(x=>x.key==='warehouse'); return b ? b.level : 1; }
 function storageCap(type){
   if(type==='gold') return Infinity; // gold is kept in the treasury and never overflows
-  return CONFIG.WAREHOUSE.baseCap + CONFIG.WAREHOUSE.perLevel*(warehouseLevel()-1);
+  const lvl = warehouseLevel();
+  let cap = CONFIG.WAREHOUSE.baseCap;
+  for(let i=2;i<=lvl;i++){ cap += CONFIG.WAREHOUSE.perLevel + (i-2)*CONFIG.WAREHOUSE.perLevelGrowth; }
+  return cap;
 }
 // Adds `amount` of `type` to state.res, clamped to the warehouse cap. Returns the actual amount added
 // (may be less than requested if the warehouse is full) so callers can warn about overflow if they care.
@@ -1057,7 +1439,14 @@ function addRes(type, amount){
 }
 
 function wallsLevel(){ const b = state.buildings.find(x=>x.key==='walls'); return b ? b.level : 1; }
-function garrisonDefBonus(){ return CONFIG.WALLS.garrisonDefPerLevel*(wallsLevel()-1); }
+function garrisonDefBonus(){ return CONFIG.WALLS.garrisonDefPerLevel*(wallsLevel()-1) + edictGarrisonDefBonus(); }
+function watchtowerSupportTroops(){
+  const totals = new Map();
+  (state.forts||[]).filter(f=>f.captured && f.watchtower>0).forEach(f=>{
+    watchtowerEffectiveRoster(f).forEach(u=> totals.set(u.tier, (totals.get(u.tier)||0) + u.count));
+  });
+  return [...totals.entries()].map(([tier,count])=>({tier, count}));
+}
 
 /* ---- Siege raids: an enemy force occasionally attacks the settlement itself.
    The garrison (not the marching army) defends, boosted by the walls. An empty
@@ -1070,7 +1459,7 @@ const SIEGE_RAID_FLAVOR = [
 function maybeTriggerSiege(){
   const cfg = CONFIG.SIEGE;
   if(state.day < cfg.minDay) return false;
-  const chance = Math.min(cfg.maxChance, cfg.baseChance + cfg.chancePerExtraDay*(state.day-cfg.minDay));
+  const chance = Math.min(cfg.maxChance, cfg.baseChance + cfg.chancePerExtraDay*(state.day-cfg.minDay)) * siegeChanceMultiplier();
   if(Math.random() >= chance) return false;
 
   const otherRaces = RACES.filter(r=>r.id!==state.race.id);
@@ -1126,16 +1515,24 @@ function plural(n, one, few, many){
 function unitCost(tier){
   const mult = unitCostMultiplier();
   return {
-    gold: Math.round(10*tier*tier*mult), wood: Math.round(4*tier*mult), stone: Math.round(4*tier*mult),
+    gold: Math.round((tier===1 ? 7 : 10*tier*tier)*mult),
+    wood: Math.round((tier===1 ? 2 : 4*tier)*mult),
+    stone: Math.round((tier===1 ? 2 : 4*tier)*mult),
     crystal: tier>=5 ? Math.round(3*(tier-4)*mult) : 0,
   };
 }
-function raceUnitAtk(tier, raceObj){ return 3*tier + Math.round(3*tier*((raceObj&&raceObj.atkBonus)||0)); }
-function raceUnitDef(tier, raceObj){ return 2*tier + Math.round(2*tier*((raceObj&&raceObj.defBonus)||0)); }
+function raceUnitAtk(tier, raceObj){
+  const base = tier===1 ? 2 : 3*tier;
+  return base + Math.round(base*((raceObj&&raceObj.atkBonus)||0));
+}
+function raceUnitDef(tier, raceObj){
+  const base = tier===1 ? 1 : 2*tier;
+  return base + Math.round(base*((raceObj&&raceObj.defBonus)||0));
+}
 function unitAtk(tier){ return raceUnitAtk(tier, state.race) + townStatBonus(); }
 function unitDef(tier){ return raceUnitDef(tier, state.race) + townStatBonus(); }
 function unitDefGarrison(tier){ return unitDef(tier) + garrisonDefBonus(); } // walls only protect troops standing in garrison
-function unitHp(tier){ return 10*tier; }
+function unitHp(tier){ return tier===1 ? 7 : 10*tier; }
 function resName(type){ return {gold:'золота', wood:'дерева', stone:'камня', crystal:'кристаллов'}[type]; }
 
 function totalOwned(tier){
@@ -1144,15 +1541,112 @@ function totalOwned(tier){
   return g+a;
 }
 
-function recruit(tier){
+function maxAffordableQty(unitC){
+  let max = Infinity;
+  Object.entries(unitC).forEach(([k,v])=>{
+    if(v<=0) return;
+    max = Math.min(max, Math.floor((state.res[k]||0)/v));
+  });
+  return max===Infinity ? 999 : max;
+}
+
+// qty defaults to 1 so existing single-click "Нанять" buttons elsewhere keep working unchanged.
+// Returns how many were actually hired (may be less than requested if capped by barracks limit or gold).
+function recruit(tier, qty){
+  qty = Math.max(1, Math.floor(qty||1));
   const u = state.garrison.find(x=>x.tier===tier);
-  const cost = unitCost(tier);
-  if(!isTierUnlocked(tier)) return;
-  if(totalOwned(tier) >= unitCapPerTier(tier)) return;
-  if(!affordable(cost)) return;
-  pay(cost); u.count++;
-  addLog(`В гарнизон встал ещё один ${unitInfo(state.race.id,tier).name.toLowerCase()}. Кузница не спит.`, 'event');
+  if(!isTierUnlocked(tier)) return 0;
+  const roomLeft = Math.max(0, unitCapPerTier(tier) - totalOwned(tier));
+  const unitC = unitCost(tier);
+  const actualQty = Math.min(qty, roomLeft, maxAffordableQty(unitC));
+  if(actualQty<=0) return 0;
+  const totalCost = {};
+  Object.entries(unitC).forEach(([k,v])=>{ if(v>0) totalCost[k] = v*actualQty; });
+  pay(totalCost);
+  u.count += actualQty;
+  const name = unitInfo(state.race.id,tier).name.toLowerCase();
+  addLog(actualQty===1 ? `В гарнизон встал ещё один ${name}. Кузница не спит.` : `В гарнизон встало ${actualQty} новых бойцов (${name}). Кузница не спит.`, 'event');
   renderVillage();
+  return actualQty;
+}
+
+// Recruit popup opened by tapping a cell in the 6-tier overview: a slider lets you pick how many to
+// hire (plus a "hire all" shortcut) and the popup stays open after hiring so you can keep adjusting
+// or hire again, instead of closing after every single purchase.
+let recruitModalTier = null;
+function showRecruitInfo(tier){
+  const info = unitInfo(state.race.id, tier);
+  const flavor = unitFlavor(state.race.id, tier);
+  const titleText = `Ур.${tier} ${info.name}${info.ranged?' 🏹':''}`;
+  recruitModalTier = tier;
+  document.getElementById('recruit-icon').textContent = info.icon;
+  document.getElementById('recruit-title').textContent = titleText;
+  document.getElementById('recruit-flavor').textContent = flavor;
+  if(!isTierUnlocked(tier)){
+    document.getElementById('recruit-status').textContent = `Пока недоступен: нужны казармы ${CONFIG.BARRACKS.unlockLevel[tier]} уровня.`;
+    setRecruitControlsDisabled(true);
+    openModal('modal-recruit');
+    return;
+  }
+  refreshRecruitModal(true);
+  openModal('modal-recruit');
+}
+function setRecruitControlsDisabled(disabled){
+  document.getElementById('recruit-slider').disabled = disabled;
+  document.getElementById('recruit-all-btn').disabled = disabled;
+  document.getElementById('recruit-confirm-btn').disabled = disabled;
+  if(disabled){
+    const slider = document.getElementById('recruit-slider');
+    slider.min=1; slider.max=1; slider.value=1;
+    document.getElementById('recruit-qty-label').textContent='0';
+    document.getElementById('recruit-cost-preview').textContent='';
+  }
+}
+// resetToMax: jump the slider to the new max (used when the popup first opens); otherwise the
+// current slider position is preserved (just clamped) so repeated hires don't reset your choice.
+function refreshRecruitModal(resetToMax){
+  const tier = recruitModalTier;
+  if(tier==null) return;
+  const cost = unitCost(tier);
+  const cap = unitCapPerTier(tier);
+  const owned = totalOwned(tier);
+  const roomLeft = Math.max(0, cap-owned);
+  const maxQty = Math.max(0, Math.min(roomLeft, maxAffordableQty(cost)));
+  const costText = Object.entries(cost).filter(([k,v])=>v>0).map(([k,v])=>v+iconOf(k)).join(' ');
+  document.getElementById('recruit-status').textContent =
+    `В строю: ${owned}/${cap} • можно нанять сейчас: ${maxQty} • цена за штуку: ${costText}`;
+  if(maxQty<=0){
+    setRecruitControlsDisabled(true);
+    return;
+  }
+  const slider = document.getElementById('recruit-slider');
+  slider.disabled=false;
+  document.getElementById('recruit-all-btn').disabled=false;
+  document.getElementById('recruit-confirm-btn').disabled=false;
+  slider.min=1; slider.max=maxQty;
+  const prev = Number(slider.value)||1;
+  slider.value = resetToMax ? maxQty : Math.min(prev, maxQty);
+  updateRecruitPreview();
+}
+function updateRecruitPreview(){
+  const tier = recruitModalTier;
+  const slider = document.getElementById('recruit-slider');
+  const qty = Number(slider.value)||1;
+  document.getElementById('recruit-qty-label').textContent = qty;
+  const cost = unitCost(tier);
+  const total = Object.entries(cost).filter(([k,v])=>v>0).map(([k,v])=>(v*qty)+iconOf(k)).join(' ');
+  document.getElementById('recruit-cost-preview').textContent = `Итого за ${qty}: ${total}`;
+}
+function setRecruitMax(){
+  const slider = document.getElementById('recruit-slider');
+  slider.value = slider.max;
+  updateRecruitPreview();
+}
+function confirmRecruitFromModal(){
+  const tier = recruitModalTier;
+  const qty = Number(document.getElementById('recruit-slider').value)||1;
+  const hired = recruit(tier, qty);
+  if(hired>0) refreshRecruitModal(false); // popup stays open with updated numbers, not closed
 }
 
 function deployToField(tier){
@@ -1215,6 +1709,21 @@ function renderMarchingArmy(){
   }).join('');
 }
 
+// Compact "who's marching with the hero right now" grid shown right under the hero card.
+function renderHeroArmyMini(){
+  const el = document.getElementById('hero-army-mini');
+  if(!el) return;
+  const units = state.army.filter(u=>u.count>0);
+  if(!units.length){ el.innerHTML = '<p class="market-note" style="margin:0;">Отряд пуст — герой странствует один.</p>'; return; }
+  el.innerHTML = units.map(u=>{
+    const info = unitInfo(state.race.id, u.tier);
+    return `<div class="hero-army-mini-item" title="Ур.${u.tier} ${info.name}${info.ranged?' 🏹':''}">
+      <span class="ico">${info.icon}</span>
+      <b>${u.count}</b>
+    </div>`;
+  }).join('');
+}
+
 /* ---- Compact 6-cell overview of all tiers (garrison vs marching counts at a glance) ---- */
 function renderTroopOverview(){
   const tg = document.getElementById('troop-grid');
@@ -1224,7 +1733,7 @@ function renderTroopOverview(){
     const g = state.garrison.find(x=>x.tier===tier).count;
     const a = state.army.find(x=>x.tier===tier).count;
     const locked = !isTierUnlocked(tier);
-    return `<div class="troop-cell ${locked?'locked':''}" title="Ур.${tier} ${info.name}${locked?' (закрыто, нужны казармы)':''}">
+    return `<div class="troop-cell ${locked?'locked':''}" onclick="showRecruitInfo(${tier})" title="Ур.${tier} ${info.name}${locked?' (закрыто, нужны казармы)':' — тап, чтобы нанять'}">
       <div class="troop-cell-ico">${locked?'🔒':info.icon}</div>
       <div class="troop-cell-name">Ур.${tier}</div>
       <div class="troop-cell-counts"><span class="tc-garrison">🏰${g}</span><span class="tc-army">⚔️${a}</span></div>
@@ -1232,7 +1741,47 @@ function renderTroopOverview(){
   }).join('');
 }
 
-/* ---- Garrison / marching-army share one panel; a tab switch shows one list at a time to save space ---- */
+/* ---- Top-level switch: whole "village & troops" block vs "hero & edicts" block, to save space (esp. on mobile) ---- */
+let villageTopTab = 'village';
+function setVillageTopTab(tab){
+  villageTopTab = tab;
+  renderVillageTopTabs();
+}
+function renderVillageTopTabs(){
+  const vBtn = document.getElementById('tab-btn-panel-village');
+  const hBtn = document.getElementById('tab-btn-panel-hero');
+  const leftCol = document.getElementById('village-col-left');
+  const rightCol = document.getElementById('village-col-right');
+  if(!vBtn || !hBtn || !leftCol || !rightCol) return;
+  const onVillage = villageTopTab !== 'hero';
+  vBtn.classList.toggle('active', onVillage);
+  hBtn.classList.toggle('active', !onVillage);
+  leftCol.style.display = onVillage ? '' : 'none';
+  rightCol.style.display = onVillage ? 'none' : '';
+}
+
+/* ---- Buildings / troops / vassals share one panel; a tab switch shows one pane at a time to save space ---- */
+let villageMainTab = 'buildings';
+function setVillageMainTab(tab){
+  villageMainTab = tab;
+  renderVillageMainTabs();
+}
+function renderVillageMainTabs(){
+  const bBtn = document.getElementById('tab-btn-buildings');
+  const tBtn = document.getElementById('tab-btn-troops');
+  const vBtn = document.getElementById('tab-btn-vassals');
+  const bPane = document.getElementById('village-buildings-pane');
+  const tPane = document.getElementById('village-troops-pane');
+  const vPane = document.getElementById('village-vassals-pane');
+  if(!bBtn || !tBtn || !vBtn || !bPane || !tPane || !vPane) return;
+  bBtn.classList.toggle('active', villageMainTab==='buildings');
+  tBtn.classList.toggle('active', villageMainTab==='troops');
+  vBtn.classList.toggle('active', villageMainTab==='vassals');
+  bPane.style.display = villageMainTab==='buildings' ? '' : 'none';
+  tPane.style.display = villageMainTab==='troops' ? '' : 'none';
+  vPane.style.display = villageMainTab==='vassals' ? '' : 'none';
+}
+
 let garrisonTab = 'garrison'; // UI-only, not part of save state
 function setGarrisonTab(tab){
   garrisonTab = tab;
@@ -1363,11 +1912,17 @@ function endTurn(){
   const overflowed = new Set();
   s.buildings.forEach(b=>{
     if(b.produces){
-      const amt = Math.round(b.base*b.level*raceMod(b.produces));
+      const amt = Math.round(b.base*b.level*raceMod(b.produces)*productionMultiplier());
       const added = addRes(b.produces, amt);
       if(added < amt) overflowed.add(b.produces);
     }
   });
+  (s.forts||[]).filter(f=>f.captured).forEach(f=>{
+    const added = addRes(f.resource, f.income);
+    if(added < f.income) overflowed.add(f.resource);
+  });
+  const vassalIncome = (s.forts||[]).filter(f=>f.captured).map(f=>`+${f.income}${iconOf(f.resource)} ${f.name}`);
+  if(vassalIncome.length) addLog(`🏳️ Вассалы прислали подати: ${vassalIncome.join(', ')}.`, 'event');
   if(overflowed.size){
     addLog(`📦 Склад переполнен: излишки ${[...overflowed].map(iconOf).join('')} пропали втуне. Стоит достроить склад.`, 'event');
   }
@@ -1377,6 +1932,7 @@ function endTurn(){
   let warnedThisTurn = false;
   if(s.day === CONFIG.SIEGE.minDay - 1){
     warnedThisTurn = true;
+    unlockEdict('defense', 'Разведчики предупредили о будущих набегах.');
     showEventModal2({
       icon:'🚨', title:'Скоро начнутся набеги!',
       text:`Разведчики доносят: начиная с ${CONFIG.SIEGE.minDay}-го дня враги могут напасть прямо на поселение. Проверьте гарнизон и стены заранее, чтобы не остаться без защиты.`,
@@ -1386,6 +1942,22 @@ function endTurn(){
 
   // siege raid check takes priority; if one fires, skip the ordinary flavor event this turn
   const sieged = !warnedThisTurn && maybeTriggerSiege();
+
+  if(warnedThisTurn || sieged){
+    finishEndTurn(wasInVillage, warnedThisTurn, sieged);
+    return;
+  }
+
+  // Rival's move resolves async so its animated steps (see animateRivalMove) can actually play out
+  // on screen before the rest of turn resolution continues — mirrors the previous early-return.
+  processRivalRaid(rivalActed=>{
+    if(rivalActed) return;
+    finishEndTurn(wasInVillage, warnedThisTurn, sieged);
+  });
+}
+
+function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
+  const s = state;
   if(!warnedThisTurn && !sieged && Math.random() < 0.55){
     let ev = EVENTS[Math.floor(Math.random()*EVENTS.length)];
     if(ev.bad && s.race.immuneBadEvents){
@@ -1407,7 +1979,7 @@ function endTurn(){
     });
     s.dragonLairs = rollDragonLairs(s.resourcePickups); // position and strength reroll every week, win or lose
     s.resourcePickups.forEach(p=>{
-      if(p.collected){ p.collected=false; p.amount = 15+Math.floor(Math.random()*35); }
+      if(p.collected){ p.collected=false; p.amount = 8+Math.floor(Math.random()*18); }
     });
     addLog('📯 Пополнение резервов! В гарнизон встало свежее подкрепление (неделя прошла).', 'event');
     if(respawned>0) addLog(`👹 Монстры осмелели и вернулись в ${respawned} логово(а) — уже под новым флагом, неделя всё лечит, даже нежити.`, 'event');
@@ -1416,7 +1988,9 @@ function endTurn(){
   }
 
   // hero passive xp trickle + level ups
-  s.hero.xp += 5;
+  const edictXp = activeEdictId()==='drill' ? CONFIG.EDICTS.drillXp : 0;
+  s.hero.xp += 5 + edictXp;
+  if(edictXp>0) addLog(`🎯 Учения дали герою +${edictXp} опыта.`, 'event');
   tryLevelUp();
 
   // mana: full instant refill if resting in the castle, otherwise gradual regen on the road
@@ -1429,6 +2003,13 @@ function endTurn(){
   // rival leaderboard growth
   s.leaderboard.forEach(r=> r.score += Math.floor(Math.random()*18));
 
+  const nextEdict = EDICTS.find(e=>e.id===pendingEdictId()) ? pendingEdictId() : 'balanced';
+  if(nextEdict !== activeEdictId()){
+    s.edict = nextEdict;
+    addLog(`📜 Указ «${activeEdict().name}» вступил в силу.`, 'event');
+  }
+  s.nextEdict = s.edict;
+  s.maxMovePoints = currentMaxMovePoints();
   s.movePoints = s.maxMovePoints;
 
   if(document.getElementById('screen-worldmap').classList.contains('active')){
@@ -1446,6 +2027,7 @@ function tryLevelUp(){
     h.atk += 1; h.def += 1; h.sp += 1; h.maxManaBase += 2; h.mana = Math.min(getMaxMana(), h.mana+2);
     h.xpNeeded = Math.round(h.xpNeeded * 1.12);
     addLog(`⭐ Герой достиг ${h.level} уровня! Статы подросли, эго — тоже.`, 'event');
+    if(h.level>=2) unlockEdict('drill', 'Герой доказал, что способен пережить серьёзные учения.');
   }
 }
 
@@ -1532,6 +2114,122 @@ function terrainIcon(ch){
   return '';
 }
 
+// Builds a {icon,title,text} description for whatever occupies (x,y) — object first,
+// falling back to plain terrain flavor. Used by the "click to inspect" popup on the world map.
+function describeWorldTile(x,y){
+  const key = x+','+y;
+  if(!(state.exploredTiles||[]).includes(key)){
+    return {icon:'🌫️', title:'Неизведанные земли',
+      text:'Здесь ещё не бывал ни герой, ни вассальный дозор. Подойдите ближе (в радиусе 2 клеток), чтобы рассеять туман войны.'};
+  }
+  const visible = computeVisibleTiles();
+  const ch = state.worldMap[y][x];
+  const rival = (visible.has(key) && state.rivalHero && state.rivalHero.x===x && state.rivalHero.y===y) ? state.rivalHero : null;
+  const camp = state.camps.find(c=>c.x===x && c.y===y && !c.defeated);
+  const fort = (state.forts||[]).find(f=>f.x===x && f.y===y);
+  const dragon = state.dragonLairs.find(d=>d.x===x && d.y===y && !d.defeated);
+  const pickup = state.resourcePickups.find(p=>p.x===x && p.y===y && !p.collected);
+
+  if(rival){
+    const raceObj = RACES.find(r=>r.id===rival.raceId) || RACES[0];
+    const size = rival.army.reduce((s,u)=>s+u.count,0);
+    const stolenBits = Object.entries(rival.stolen||{}).filter(([,v])=>v>0).map(([k,v])=>`${v}${iconOf(k)}`).join(' ') || 'пока ничего';
+    return {icon: rival.icon, title: rival.name,
+      text: `Вражеский герой расы «${raceObj.name}» ${raceObj.emoji} рыщет по округе с отрядом из ${size} бойцов. Награблено: ${stolenBits}. Перехватите его, чтобы вернуть украденное.`};
+  }
+  if(camp){
+    const raceObj = RACES.find(r=>r.id===camp.def.race) || RACES[0];
+    const size = camp.def.armyTiers.reduce((s,t)=>s+t.count,0);
+    return {icon: raceObj.emoji, title: camp.def.label,
+      text: `Вражеский лагерь расы «${raceObj.name}» ${raceObj.emoji}. Гарнизон: ${size} ${plural(size,'боец','бойца','бойцов')}. Наступите на клетку, чтобы завязать бой.`};
+  }
+  if(fort){
+    const size = fort.def.armyTiers.reduce((s,t)=>s+t.count,0);
+    if(fort.captured){
+      const wt = fort.watchtower||0;
+      return {icon:'🚩', title: `${fort.name} (вассал)`,
+        text: `Захваченный форт приносит +${fort.income}${iconOf(fort.resource)} каждый ход. Сторожка: ${wt>0?`${wt} этап, гарнизон ${fort.garrison||0} бойцов`:'не построена — вассал беззащитен от рейдов'}.`};
+    }
+    return {icon: fort.icon, title: fort.name,
+      text: `Укреплённый форт со стенами и воротами. Гарнизон: ${size} ${plural(size,'боец','бойца','бойцов')}. После захвата станет вассалом и будет давать +${fort.income}${iconOf(fort.resource)} каждый ход.`};
+  }
+  if(dragon){
+    const n = dragon.count;
+    return {icon: dragon.def.icon, title: dragon.def.label,
+      text: `${n} ${plural(n,'дракон','дракона','драконов')} ${DRAGON_TIER} уровня охраняют логово. Победа принесёт богатую добычу, но бой будет тяжёлым.`};
+  }
+  if(pickup){
+    return {icon: iconOf(pickup.type), title: 'Находка на дороге',
+      text: `Здесь лежит примерно ${pickup.amount} ${resName(pickup.type)}. Забрать можно бесплатно — если, конечно, это не засада.`};
+  }
+  if(ch==='H'){
+    return {icon:'🏰', title:'Родной замок', text:'Ваше поселение. Наступите на клетку, чтобы вернуться и управлять городом.'};
+  }
+  if(ch==='m') return {icon:'⛰️', title:'Горы', text:'Непроходимая местность — обойдите стороной.'};
+  if(ch==='w') return {icon:'🌊', title:'Вода', text:'Непроходимая местность — обойдите стороной.'};
+  if(ch==='f') return {icon:'🌲', title:'Лес', text:'Проходимая местность без построек. Иногда в лесах прячутся находки или засады.'};
+  return {icon:'🌾', title:'Пустошь', text:'Обычная проходимая клетка — ничего примечательного.'};
+}
+
+function showTileInfoModal(x,y){
+  const d = describeWorldTile(x,y);
+  showEventModal2({icon:d.icon, title:d.title, text:d.text, buttonLabel:'Понятно'});
+}
+
+function reachableWorldTiles(){
+  const out = new Set();
+  if(!state.worldHeroSelected || state.movePoints<=0) return out;
+  const key = (x,y)=>x+','+y;
+  const visited = new Set([key(state.heroPos.x,state.heroPos.y)]);
+  const queue = [{x:state.heroPos.x, y:state.heroPos.y, dist:0}];
+  const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+  while(queue.length){
+    const cur = queue.shift();
+    if(cur.dist>0) out.add(key(cur.x,cur.y));
+    if(cur.dist>=state.movePoints) continue;
+    for(const [dx,dy] of dirs){
+      const nx=cur.x+dx, ny=cur.y+dy;
+      const k = key(nx,ny);
+      if(nx<0||ny<0||ny>=WORLD_ROWS||nx>=WORLD_COLS || visited.has(k)) continue;
+      if(!isPassableChar(state.worldMap[ny][nx])) continue;
+      visited.add(k);
+      queue.push({x:nx, y:ny, dist:cur.dist+1});
+    }
+  }
+  return out;
+}
+
+/* ---- Fog of war: hero and captured vassal forts each light up a small radius; everything seen
+   stays "explored" (dimly remembered) forever after, only the live radius is fully bright. ---- */
+function fogVisionSources(){
+  const sources = [state.heroPos];
+  (state.forts||[]).filter(f=>f.captured).forEach(f=> sources.push({x:f.x, y:f.y}));
+  return sources;
+}
+function computeVisibleTiles(){
+  const visible = new Set();
+  const r = CONFIG.FOG_OF_WAR.visionRadius;
+  fogVisionSources().forEach(pos=>{
+    for(let dy=-r; dy<=r; dy++){
+      for(let dx=-r; dx<=r; dx++){
+        const x = pos.x+dx, y = pos.y+dy;
+        if(x<0 || y<0 || x>=WORLD_COLS || y>=WORLD_ROWS) continue;
+        visible.add(x+','+y);
+      }
+    }
+  });
+  return visible;
+}
+// Grows the persistent "ever seen" memory with whatever's visible right now, saves it back onto
+// state (so it survives saves/reloads), and returns both sets for this render pass to use.
+function refreshFogOfWar(){
+  const visible = computeVisibleTiles();
+  const explored = new Set(state.exploredTiles || []);
+  visible.forEach(k=>explored.add(k));
+  state.exploredTiles = Array.from(explored);
+  return {visible, explored};
+}
+
 function renderWorldMap(){
   saveGame();
   updateWorldTopbar();
@@ -1540,19 +2238,38 @@ function renderWorldMap(){
   const grid = document.getElementById('worldmap-grid');
   grid.style.gridTemplateColumns = `repeat(${WORLD_COLS},1fr)`;
   grid.style.gridTemplateRows = `repeat(${WORLD_ROWS},1fr)`;
+  const reachable = reachableWorldTiles();
+  const {visible, explored} = refreshFogOfWar();
   let html = '';
   for(let y=0;y<WORLD_ROWS;y++){
     for(let x=0;x<WORLD_COLS;x++){
+      const key = x+','+y;
+      if(!explored.has(key)){
+        // Never-seen tile: no terrain, no camps/loot/rival leaked — just fog, still clickable to walk into.
+        html += `<div class="wtile wtile-unexplored" onclick="handleWorldClick(${x},${y})">🌫️</div>`;
+        continue;
+      }
       const ch = state.worldMap[y][x];
+      const rival = (visible.has(key) && state.rivalHero && state.rivalHero.x===x && state.rivalHero.y===y) ? state.rivalHero : null;
       const camp = state.camps.find(c=>c.x===x && c.y===y && !c.defeated);
       const dragon = state.dragonLairs.find(d=>d.x===x && d.y===y && !d.defeated);
+      const fort = (state.forts||[]).find(f=>f.x===x && f.y===y);
       let inner = terrainIcon(ch);
       let badge = '';
       let extraClass = '';
-      if(camp){
+      if(rival){
+        inner = rival.icon;
+        badge = `<span class="camp-badge">${Math.max(1, Math.round(rivalPower(rival)/10))}</span>`;
+        extraClass = ' wtile-rival';
+      } else if(camp){
         inner = RACES.find(r=>r.id===camp.def.race).emoji;
         const size = camp.def.armyTiers.reduce((s,t)=>s+t.count,0);
         badge = `<span class="camp-badge">${size}</span>`;
+      } else if(fort){
+        inner = fort.captured ? '🚩' : fort.icon;
+        const size = fort.def.armyTiers.reduce((s,t)=>s+t.count,0);
+        badge = `<span class="camp-badge">${fort.captured?iconOf(fort.resource):size}</span>`;
+        extraClass = fort.captured ? ' wtile-fort wtile-fort-captured' : ' wtile-fort wtile-guarded';
       } else if(dragon){
         inner = dragon.def.icon;
         badge = `<span class="camp-badge">${dragon.count}</span>`;
@@ -1564,6 +2281,10 @@ function renderWorldMap(){
           badge = `<span class="camp-badge">${pickup.amount}</span>`;
         }
       }
+      const isHeroTile = state.heroPos.x===x && state.heroPos.y===y;
+      if(isHeroTile && state.worldHeroSelected) extraClass += ' wtile-hero-selected';
+      else if(reachable.has(key)) extraClass += ' wtile-reachable';
+      if(!visible.has(key)) extraClass += ' wtile-explored-dim';
       html += `<div class="wtile ${terrainClass(ch)}${extraClass}" onclick="handleWorldClick(${x},${y})">${inner}${badge}</div>`;
     }
   }
@@ -1629,20 +2350,235 @@ function bfsPath(start, target){
   return null;
 }
 
+function stackListPower(list){
+  return (list||[]).reduce((sum,u)=>sum + (u.count||0)*unitPowerValue(u.tier||1), 0);
+}
+function playerTotalPower(){
+  return stackListPower(state.army) + stackListPower(state.garrison) + state.hero.level*12 + state.hero.atk + state.hero.def;
+}
+function rivalPower(rival){ return stackListPower(rival ? rival.army : []); }
+function makeRivalArmy(raceObj){
+  const maxBudget = Math.max(12, Math.floor(playerTotalPower()*CONFIG.RIVAL.maxPowerRatio));
+  let budget = Math.min(maxBudget, 45 + (state.rivalRaidCount||0)*28 + state.day*3);
+  const tiers = budget>160 ? [1,2,3,4] : [1,2,3];
+  const army = [];
+  while(budget >= unitPowerValue(1) && army.length < 24){
+    const affordable = tiers.filter(t=>unitPowerValue(t) <= budget);
+    const tier = affordable[Math.floor(Math.random()*affordable.length)] || 1;
+    const stack = army.find(u=>u.tier===tier);
+    if(stack) stack.count++;
+    else army.push({tier, count:1, raceObj});
+    budget -= unitPowerValue(tier);
+  }
+  return army.length ? army : [{tier:1, count:2, raceObj}];
+}
+function findRivalSpawn(){
+  const spots = [];
+  for(let y=0;y<WORLD_ROWS;y++){
+    for(let x=0;x<WORLD_COLS;x++){
+      const edge = x===0 || y===0 || x===WORLD_COLS-1 || y===WORLD_ROWS-1;
+      if(edge && isPassableChar(state.worldMap[y][x])) spots.push({x,y});
+    }
+  }
+  spots.sort((a,b)=>tileDistance(b,state.heroPos)-tileDistance(a,state.heroPos));
+  return spots[0] || findCharPos(state.worldMap, 'H');
+}
+function maybeSpawnRivalHero(){
+  if(state.rivalHero || state.day < CONFIG.RIVAL.minDay || state.day < (state.nextRivalRaidDay||CONFIG.RIVAL.minDay)) return false;
+  if(Math.random() >= CONFIG.RIVAL.baseChance) return false;
+  const raceObj = RACES.filter(r=>r.id!==state.race.id)[Math.floor(Math.random()*Math.max(1,RACES.length-1))] || RACES[0];
+  const spawn = findRivalSpawn();
+  state.rivalRaidCount = (state.rivalRaidCount||0) + 1;
+  state.rivalHero = {
+    id:'rival'+state.day+'_'+Math.random().toString(36).slice(2,6),
+    name:['Вольный капитан','Чёрный наместник','Пограничный претендент'][Math.floor(Math.random()*3)],
+    raceId: raceObj.id,
+    icon:'⚔️',
+    x:spawn.x, y:spawn.y,
+    army: makeRivalArmy(raceObj),
+    stolen:{gold:0,wood:0,stone:0,crystal:0},
+  };
+  state.nextRivalRaidDay = state.day + CONFIG.RIVAL.minSpacingDays;
+  addLog(`⚔️ В владениях замечен ИИ-герой: ${state.rivalHero.name}. Его отряд пришёл грабить земли, но по силе не превосходит суммарное войско игрока.`, 'combat');
+  return true;
+}
+function rivalTargets(){
+  const targets = [];
+  if(state.heroPos) targets.push({type:'hero', x:state.heroPos.x, y:state.heroPos.y, weight:0});
+  (state.forts||[]).filter(f=>f.captured).forEach(f=>targets.push({type:'fort', id:f.id, x:f.x, y:f.y, weight:1}));
+  (state.resourcePickups||[]).filter(p=>!p.collected).forEach(p=>targets.push({type:'resource', id:p.id, x:p.x, y:p.y, weight:2}));
+  (state.camps||[]).filter(c=>!c.defeated).forEach(c=>targets.push({type:'camp', id:c.id, x:c.x, y:c.y, weight:3}));
+  (state.dragonLairs||[]).filter(d=>!d.defeated).forEach(d=>targets.push({type:'dragon', id:d.id, x:d.x, y:d.y, weight:4}));
+  return targets;
+}
+function chooseRivalTarget(rival){
+  return rivalTargets()
+    .map(t=>Object.assign({dist:tileDistance(rival,t)}, t))
+    .sort((a,b)=>(a.dist+a.weight)-(b.dist+b.weight))[0] || null;
+}
+// Instant resolution (no animation) — used when the player isn't currently looking at the world
+// map, so there's nothing to visibly animate anyway.
+function moveRivalHero(){
+  const rival = state.rivalHero;
+  if(!rival) return false;
+  let target = chooseRivalTarget(rival);
+  for(let step=0; step<CONFIG.RIVAL.movePoints && target; step++){
+    const path = bfsPath({x:rival.x,y:rival.y}, target);
+    if(!path || path.length===0) break;
+    const next = path[0];
+    rival.x = next.x; rival.y = next.y;
+    if(rival.x===state.heroPos.x && rival.y===state.heroPos.y){ triggerRivalEncounter(); return true; }
+    target = chooseRivalTarget(rival);
+  }
+  return resolveRivalTile();
+}
+
+// Animated version — plays the rival's move out one tile at a time (mirroring how the player's own
+// animatePath looks), so it visibly reads as another actor taking their turn instead of teleporting
+// straight to the destination. Calls back with the same true/false "did a battle/raid trigger" result.
+function animateRivalMove(callback){
+  const rival = state.rivalHero;
+  if(!rival){ callback(false); return; }
+  state.moveAnimating = true;
+  let target = chooseRivalTarget(rival);
+  let stepsLeft = CONFIG.RIVAL.movePoints;
+  function finish(result){ state.moveAnimating = false; callback(result); }
+  function step(){
+    if(stepsLeft<=0 || !target){ finish(resolveRivalTile()); return; }
+    const path = bfsPath({x:rival.x,y:rival.y}, target);
+    if(!path || path.length===0){ finish(resolveRivalTile()); return; }
+    const next = path[0];
+    rival.x = next.x; rival.y = next.y;
+    stepsLeft--;
+    renderWorldMap();
+    flashWorldMsg(`⚔️ ${rival.name} действует на карте — следите за его манёврами...`);
+    if(rival.x===state.heroPos.x && rival.y===state.heroPos.y){
+      state.moveAnimating = false;
+      triggerRivalEncounter();
+      callback(true);
+      return;
+    }
+    target = chooseRivalTarget(rival);
+    setTimeout(step, CONFIG.RIVAL.stepDelayMs);
+  }
+  step();
+}
+
+// Entry point used by endTurn(). Spawns the rival if due, then resolves its move — animated when the
+// player is on the world map to actually see it, instant otherwise. Always calls back(actedFlag).
+function processRivalRaid(callback){
+  if(!state.rivalHero) maybeSpawnRivalHero();
+  if(!state.rivalHero){ callback(false); return; }
+  const onMap = document.getElementById('screen-worldmap').classList.contains('active');
+  if(onMap) animateRivalMove(callback);
+  else callback(moveRivalHero());
+}
+function addRivalLoot(type, amount){
+  if(!state.rivalHero || amount<=0) return 0;
+  const taken = Math.min(amount, Math.floor(state.res[type]||0));
+  state.res[type] = Math.max(0, (state.res[type]||0)-taken);
+  state.rivalHero.stolen[type] = (state.rivalHero.stolen[type]||0) + taken;
+  return taken;
+}
+function damageRivalArmy(budget){
+  const rival = state.rivalHero;
+  if(!rival || budget<=0) return 0;
+  let lost = 0;
+  const army = rival.army.slice().sort((a,b)=>b.tier-a.tier);
+  for(const stack of army){
+    while(stack.count>0 && budget >= unitPowerValue(stack.tier)*0.6){
+      stack.count--;
+      lost++;
+      budget -= unitPowerValue(stack.tier);
+    }
+  }
+  rival.army = rival.army.filter(u=>u.count>0);
+  if(!rival.army.length){
+    addLog(`⚔️ ${rival.name} потерял весь отряд в чужих владениях и больше не угрожает землям.`, 'combat');
+    state.rivalHero = null;
+  }
+  return lost;
+}
+function startVassalRaidBattle(fort){
+  const rival = state.rivalHero;
+  if(!rival || !fort) return false;
+  const defenders = watchtowerEffectiveRoster(fort);
+  if(!defenders.length){
+    const taken = addRivalLoot(fort.resource, Math.max(fort.income*4, 8));
+    addLog(`⚔️ ${rival.name} без боя разграбил «${fort.name}»: −${taken}${iconOf(fort.resource)}. Сторожка пуста.`, 'combat');
+    return false;
+  }
+  const raceObj = RACES.find(r=>r.id===rival.raceId) || RACES[0];
+  const defs = rival.army.map(u=>({tier:u.tier, count:u.count, raceObj}));
+  startTacticalBattle(defs, {
+    source:'vassalRaid',
+    fortId:fort.id,
+    defenderTroops:defenders,
+    introText:`${rival.name} штурмует владение «${fort.name}». Защищается только местная сторожка и форт, городская армия не успевает вмешаться.`,
+  });
+  return true;
+}
+function resolveRivalTile(){
+  const rival = state.rivalHero;
+  if(!rival) return false;
+  const fort = (state.forts||[]).find(f=>f.captured && f.x===rival.x && f.y===rival.y);
+  if(fort){
+    return startVassalRaidBattle(fort);
+  }
+  const pickup = (state.resourcePickups||[]).find(p=>!p.collected && p.x===rival.x && p.y===rival.y);
+  if(pickup){
+    pickup.collected = true;
+    rival.stolen[pickup.type] = (rival.stolen[pickup.type]||0) + pickup.amount;
+    addLog(`⚔️ ${rival.name} забрал находку на дороге: ${pickup.amount}${iconOf(pickup.type)}.`, 'combat');
+    return false;
+  }
+  const camp = (state.camps||[]).find(c=>!c.defeated && c.x===rival.x && c.y===rival.y);
+  if(camp){
+    camp.defeated = true;
+    rival.stolen.gold += 20;
+    const lost = damageRivalArmy(stackListPower(camp.def.armyTiers)*0.35);
+    addLog(`⚔️ ${rival.name} зачистил логово монстров раньше вас и унёс добычу.${lost?` Потери ИИ: ${lost} бойц.`:''}`, 'combat');
+    return false;
+  }
+  const dragon = (state.dragonLairs||[]).find(d=>!d.defeated && d.x===rival.x && d.y===rival.y);
+  if(dragon && rivalPower(rival) >= dragon.count*unitPowerValue(DRAGON_TIER)*0.6){
+    dragon.defeated = true;
+    Object.entries(dragon.def.loot).forEach(([k,v])=>{ rival.stolen[k] = (rival.stolen[k]||0) + v; });
+    const lost = damageRivalArmy(dragon.count*unitPowerValue(DRAGON_TIER)*0.45);
+    addLog(`⚔️ ${rival.name} разграбил драконье логово. Трофеи теперь у него.${lost?` Драконы забрали с собой ${lost} бойц. ИИ.`:''}`, 'combat');
+  }
+  return false;
+}
+function triggerRivalEncounter(){
+  const rival = state.rivalHero;
+  if(!rival) return;
+  const raceObj = RACES.find(r=>r.id===rival.raceId) || RACES[0];
+  const defs = rival.army.map(u=>({tier:u.tier, count:u.count, raceObj}));
+  startTacticalBattle(defs, {source:'rival', introText:`${rival.name} перехватывает героя на карте. Пора выбить украденное обратно. ${raceObj.emoji}`});
+}
+
 function handleWorldClick(x,y){
   if(state.moveAnimating) return;
+  if(state.heroPos.x===x && state.heroPos.y===y){
+    state.worldHeroSelected = !state.worldHeroSelected;
+    renderWorldMap();
+    flashWorldMsg(state.worldHeroSelected ? 'Герой выбран. Подсвечены клетки, куда он может дойти.' : '');
+    return;
+  }
+  if(!state.worldHeroSelected){ showTileInfoModal(x,y); return; }
   const ch = state.worldMap[y][x];
   if(!isPassableChar(ch)){ flashWorldMsg('Туда не пройти — местность непроходима.'); return; }
   const path = bfsPath(state.heroPos, {x,y});
   if(path===null){ flashWorldMsg('Путь не найден.'); return; }
   if(path.length===0) return;
-  const limited = path.slice(0, state.movePoints);
-  if(limited.length===0){ flashWorldMsg('Очки хода закончились — заверши ход.'); return; }
-  animatePath(limited);
+  if(path.length > state.movePoints){ flashWorldMsg('Слишком далеко для текущего запаса хода. Выберите подсвеченную клетку.'); return; }
+  animatePath(path);
 }
 
 function animatePath(path){
   state.moveAnimating = true;
+  state.worldHeroSelected = false;
+  renderWorldMap();
   let i = 0;
   function step(){
     if(i >= path.length){ state.moveAnimating = false; return; }
@@ -1653,8 +2589,12 @@ function animatePath(path){
     updateWorldTopbar();
     i++;
     const ch = state.worldMap[p.y][p.x];
+    const rival = state.rivalHero && state.rivalHero.x===p.x && state.rivalHero.y===p.y ? state.rivalHero : null;
+    if(rival){ state.moveAnimating = false; renderWorldMap(); setTimeout(()=>triggerRivalEncounter(), 350); return; }
     const camp = state.camps.find(c=>c.x===p.x && c.y===p.y && !c.defeated);
     if(camp){ state.moveAnimating = false; setTimeout(()=>triggerCampBattle(camp.id), 350); return; }
+    const fort = (state.forts||[]).find(f=>f.x===p.x && f.y===p.y && !f.captured);
+    if(fort){ state.moveAnimating = false; renderWorldMap(); setTimeout(()=>triggerFortEncounter(fort.id), 350); return; }
     const dragon = state.dragonLairs.find(d=>d.x===p.x && d.y===p.y && !d.defeated);
     if(dragon){ state.moveAnimating = false; renderWorldMap(); setTimeout(()=>triggerDragonEncounter(dragon.id), 350); return; }
     const pickup = state.resourcePickups.find(r=>r.x===p.x && r.y===p.y && !r.collected);
@@ -1688,8 +2628,27 @@ function triggerDragonEncounter(lairId){
   });
 }
 function startDragonBattle(lair){
-  const defs = [{tier:DRAGON_TIER, count:lair.count, name:'Дракон', icon:lair.def.icon}];
+  const defs = [{tier:DRAGON_TIER, count:lair.count, name:'Дракон', icon:lair.def.icon, atk:38, def:26, unitHp:90}];
   startTacticalBattle(defs, {source:'dragon', lairId:lair.id, introText:`${lair.def.label} пробуждается! ${lair.def.icon}`});
+}
+
+function triggerFortEncounter(fortId){
+  const fort = (state.forts||[]).find(f=>f.id===fortId);
+  if(!fort || fort.captured) return;
+  const total = fort.def.armyTiers.reduce((s,t)=>s+t.count,0);
+  showConfirmModal({
+    icon: fort.icon,
+    title: fort.name,
+    text: `Перед вами укреплённый форт. Внутри гарнизон: ${total} бойцов, стены и ворота. После захвата форт станет вассалом и будет приносить ${fort.income}${iconOf(fort.resource)} каждый ход. Начать осаду?`,
+    yesLabel:'Да, штурмовать!', noLabel:'Нет, отойти',
+    onYes: ()=> startFortBattle(fort),
+    onNo: ()=>{ addLog(`Отряд отступил от стен «${fort.name}», решив подготовиться лучше.`, 'event'); },
+  });
+}
+function startFortBattle(fort){
+  const raceObj = RACES.find(r=>r.id===fort.def.race) || RACES[0];
+  const defs = fort.def.armyTiers.map(t=>({tier:t.tier, count:t.count, raceObj}));
+  startTacticalBattle(defs, {source:'fort', fortId:fort.id, introText:`Осада: ${fort.name}. Гарнизон закрывает ворота и готовится держать стены.`});
 }
 
 function continueAfterBattle(){
@@ -1699,7 +2658,7 @@ function continueAfterBattle(){
     if(target==='screen-worldmap') renderWorldMap(); else renderVillage();
     return;
   }
-  if(battle && (battle.meta.source==='camp' || battle.meta.source==='ambush' || battle.meta.source==='dragon')){
+  if(battle && (battle.meta.source==='camp' || battle.meta.source==='ambush' || battle.meta.source==='dragon' || battle.meta.source==='fort' || battle.meta.source==='rival' || battle.meta.source==='vassalRaid')){
     const playerAlive = battle.stacks.some(s=>s.side==='player' && s.alive);
     if(!playerAlive){ showScreen('screen-village'); renderVillage(); }
     else { showScreen('screen-worldmap'); renderWorldMap(); }
@@ -1710,6 +2669,7 @@ function continueAfterBattle(){
 
 function triggerResourceEvent(pickup){
   pickup.collected = true;
+  unlockEdict('scout', 'Первая находка на карте убедила совет вложиться в разведку.');
   renderWorldMap();
   const isAmbush = Math.random() < 0.35;
   if(isAmbush){
@@ -1745,14 +2705,17 @@ function buildStack(id, side, tier, count, opts){
   const info = raceObj ? unitInfo(raceObj.id, tier) : null;
   const name = opts.name || (info ? info.name : `Тварь ур.${tier}`);
   const icon = opts.icon || (info ? info.icon : '👹');
-  const hpEach = unitHp(tier);
+  const hpEach = opts.unitHp || unitHp(tier);
   const bonus = side==='player' ? townStatBonus() : 0;
   const wallBonus = opts.wallBonus || 0; // only set for garrison defenders in a siege
+  const stackAtk = opts.atk ?? (raceUnitAtk(tier, raceObj) + bonus);
+  const stackDef = opts.def ?? (raceUnitDef(tier, raceObj) + bonus + wallBonus);
   return {
     id, side, tier, name, icon, count, originalCount: count,
     raceId: raceObj ? raceObj.id : null,
+    temporary: !!opts.temporary,
     unitHpVal: hpEach, hp: count*hpEach,
-    atk: raceUnitAtk(tier, raceObj) + bonus, def: raceUnitDef(tier, raceObj) + bonus + wallBonus,
+    atk: stackAtk, def: stackDef,
     speed: 3 + Math.floor(tier/3),
     ranged: info ? info.ranged : false,
     x:0, y:0, acted:false, alive:true, fx:null,
@@ -1808,20 +2771,27 @@ function makeTowerStack(id, x, y){
 function startTacticalBattle(enemyDefs, meta){
   const cols = 8, rows = 6;
   const isSiege = meta.source==='siege';
-  const sourceTroops = isSiege ? state.garrison : state.army;
-  const wallBonus = isSiege ? garrisonDefBonus() : 0;
+  const isVassalRaid = meta.source==='vassalRaid';
+  const usesSiegeLayout = meta.source==='siege' || meta.source==='fort' || isVassalRaid;
+  const sourceTroops = isSiege ? state.garrison : (isVassalRaid ? (meta.defenderTroops || []) : state.army);
+  const wallBonus = (isSiege || isVassalRaid) ? garrisonDefBonus() : 0;
   const playerStacks = sourceTroops.filter(u=>u.count>0).map(u=> buildStack('p'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus}));
+  if(isSiege){
+    watchtowerSupportTroops().filter(u=>u.count>0).forEach(u=>{
+      playerStacks.push(buildStack('w'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus, temporary:true, name:`Сторожка ур.${u.tier}`}));
+    });
+  }
   if(playerStacks.length===0) playerStacks.push(buildStack('p1','player',1,1,{raceObj: state.race, wallBonus}));
   assignPositions(playerStacks, 0, rows);
 
-  const enemyStacks = enemyDefs.map((e,i)=> buildStack('e'+i, 'enemy', e.tier, e.count, {raceObj:e.raceObj, name:e.name, icon:e.icon}));
+  const enemyStacks = enemyDefs.map((e,i)=> buildStack('e'+i, 'enemy', e.tier, e.count, {raceObj:e.raceObj, name:e.name, icon:e.icon, atk:e.atk, def:e.def, unitHp:e.unitHp}));
   assignPositions(enemyStacks, cols-1, rows);
 
   let obstacles, siegeLayout = null;
-  if(isSiege){
+  if(usesSiegeLayout){
     siegeLayout = generateSiegeLayout(cols, rows);
     obstacles = siegeLayout.wallCells;
-    siegeLayout.towerRows.forEach((ty,i)=> playerStacks.push(makeTowerStack('tower'+i, siegeLayout.wallX, ty)));
+    if(isSiege) siegeLayout.towerRows.forEach((ty,i)=> playerStacks.push(makeTowerStack('tower'+i, siegeLayout.wallX, ty)));
   } else {
     const occupied = new Set([...playerStacks, ...enemyStacks].map(s=>s.x+','+s.y));
     obstacles = generateObstacles(cols, rows, 4+Math.floor(Math.random()*2)).filter(o=>!occupied.has(o.x+','+o.y));
@@ -1896,6 +2866,7 @@ function renderBattleField(){
           if(isValidTarget) extra += ' bf-magic-target';
         } else if(battle.attackableIds && battle.attackableIds.has(stack.id)) extra += ' bf-attackable';
         if(stack.acted) extra += ' bf-acted-mark';
+        if(stack.blindTurns>0) extra += ' bf-blinded';
         if(stack.fx) extra += ' fx-'+stack.fx;
         const rangedMark = stack.ranged ? '<span class="bf-ranged-mark">🏹</span>' : '';
         const maxHp = stack.originalCount * stack.unitHpVal;
@@ -2052,6 +3023,11 @@ function runEnemyPhase(){
 }
 
 function aiActStack(e){
+  if(e.blindTurns>0){
+    logBattle(`${e.icon} ${e.name} ослеплён и пропускает ход, пытаясь героически смотреть не туда.`);
+    e.blindTurns--;
+    return;
+  }
   const targets = battle.stacks.filter(s=>s.side==='player' && s.alive);
   if(targets.length===0) return;
   targets.sort((a,b)=> manhattan(e,a)-manhattan(e,b));
@@ -2228,17 +3204,26 @@ function applyMoatHazard(){
 
 /* ---- Spells ---- */
 const SPELLS = [
-  {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:12, dmgMax:20,
-    desc:'Самое дешёвое заклинание. Урон случаен в заданном диапазоне.'},
-  {id:'chain', name:'Цепная молния', icon:'⚡', cost:12, type:'chain', dmgMin:16, dmgMax:26,
-    desc:'Бьёт полным уроном по цели, затем перескакивает на ближайшего к ней врага с половинным уроном.'},
-  {id:'heal', name:'Исцеление', icon:'💚', cost:8, type:'heal', healMin:18, healMax:30,
-    desc:'Возвращает бойцов своего отряда в строй.'},
+  {id:'bolt', name:'Молния', icon:'⚡', cost:3, type:'damage', dmgMin:6, dmgMax:11, unlockLevel:1,
+    desc:'Дешёвый разряд для экономных магов: урона мало, зато волосы врага встают по стойке смирно.'},
+  {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:12, dmgMax:20, unlockLevel:1,
+    desc:'Классика полевой дипломатии: если переговоры не удались, значит шар был недостаточно огненным.'},
+  {id:'chain', name:'Цепная молния', icon:'⚡', cost:12, type:'chain', dmgMin:16, dmgMax:26, unlockLevel:1,
+    desc:'Бьёт цель и перескакивает дальше. Маг уверяет, что это наука, а не плохая проводка.'},
+  {id:'heal', name:'Исцеление', icon:'💚', cost:8, type:'heal', healMin:18, healMax:30, unlockLevel:2,
+    desc:'Возвращает бойцов в строй. Побочные эффекты: благодарность, подозрение и лёгкий запах трав.'},
+  {id:'blind', name:'Слепота', icon:'🌫️', cost:5, type:'blind', unlockLevel:3,
+    desc:'Противник сереет и два своих хода вспоминает, где оставил глаза. Очень неловкое заклинание.'},
+  {id:'meteor', name:'Метеоритный дождь', icon:'☄️', cost:20, type:'meteor', dmgMin:26, dmgMax:42, unlockLevel:5,
+    desc:'Самый сильный удар по области. Своих тоже может зацепить половиной урона: не стойте под небом.'},
 ];
 const SPELL_JOKES = {
+  bolt: ['Молния вышла маленькая, но с характером.', 'Грома было больше, чем урона, зато все проснулись.'],
   fireball: ['Дёшево и сердито — как и обещал рекламный свиток.', 'Пламя недорогое, а вопли — бесплатные.'],
+  blind: ['Враг внезапно понял, что тактика без зрения сложнее.', 'Слепота: когда туман войны становится персональным.'],
   chain: ['Молния скачет по врагам, как студент по экзаменам — без разбора и с треском.', 'Второй отряд получил "подарок" по акции: два по цене одного.'],
   heal: ['Лекарь-герой не имеет диплома, но раны затягиваются на глазах.', 'Бойцы бодро отряхиваются — видимо, магия работает как энергетик.'],
+  meteor: ['Камни с неба прибыли без предупреждения и без чувства меры.', 'Маг посмотрел вверх и решил: погода сегодня наступательная.'],
 };
 
 function toggleMagic(){
@@ -2254,18 +3239,22 @@ function renderMagicPanel(){
   if(!el) return;
   if(!battle || !battle.spellMenuOpen){ el.style.display='none'; el.innerHTML=''; return; }
   el.style.display='flex';
-  el.innerHTML = SPELLS.map(sp=>{
-    const disabled = state.hero.mana < sp.cost;
+  const manaHeader = `<div class="spell-mana-header">💠 Мана героя: ${state.hero.mana}/${getMaxMana()} • 🔮 Сила заклинаний +${mageTowerSpellBonusPct()}%</div>`;
+  el.innerHTML = manaHeader + SPELLS.map(sp=>{
+    const locked = !spellUnlockedByTower(sp);
+    const disabled = locked || state.hero.mana < sp.cost;
+    const desc = locked ? `Требуется башня мага ур. ${sp.unlockLevel}.` : sp.desc;
     return `<div class="spell-card ${disabled?'disabled':''}" onclick="${disabled?'':`chooseSpell('${sp.id}')`}">
-      <div class="spell-ico">${sp.icon}</div>
+      <div class="spell-ico">${locked?'🔒':sp.icon}</div>
       <b>${sp.name}</b>
       <span>${sp.cost}💠 маны</span>
-      <small>${sp.desc}</small>
+      <small>${desc}</small>
     </div>`;
   }).join('') + `<button class="mini-btn" onclick="cancelMagic()" style="align-self:center;">✖ Отмена</button>`;
 }
 function chooseSpell(id){
   const sp = SPELLS.find(s=>s.id===id);
+  if(!spellUnlockedByTower(sp)){ flashBattleMsg(`Заклинание требует башню мага ${sp.unlockLevel} уровня.`); return; }
   if(state.hero.mana < sp.cost){ flashBattleMsg('Не хватает маны для этого заклинания.'); return; }
   battle.selectedSpell = sp;
   battle.magicMode = true;
@@ -2280,7 +3269,7 @@ function cancelMagic(){
   renderBattleField();
   updateBattleTopbar();
 }
-function spellJoke(id){ const jk = SPELL_JOKES[id]; return jk[Math.floor(Math.random()*jk.length)]; }
+function spellJoke(id){ const jk = SPELL_JOKES[id] || ['Магия сработала. Все делают вид, что так и планировалось.']; return jk[Math.floor(Math.random()*jk.length)]; }
 function playFx(stack, fxName){
   stack.fx = fxName;
   renderBattleField();
@@ -2292,12 +3281,16 @@ function castSpellOn(sp, target){
   battle.magicMode = false;
   battle.selectedSpell = null;
   if(sp.type==='damage'){
-    const dmg = Math.round(sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3);
+    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3) * spellPowerMult());
     applyStackDamage(target, dmg);
     logBattle(`${sp.icon} ${sp.name} обрушивается на ${target.icon} ${target.name}: ${dmg} урона! ${spellJoke(sp.id)}`);
-    playFx(target, 'fireball');
+    playFx(target, sp.id==='bolt' ? 'chain' : 'fireball');
+  } else if(sp.type==='blind'){
+    target.blindTurns = Math.max(target.blindTurns || 0, 2);
+    logBattle(`${sp.icon} ${sp.name} накрывает ${target.icon} ${target.name}: отряд ослеплён на 2 хода. ${spellJoke(sp.id)}`);
+    playFx(target, 'blind');
   } else if(sp.type==='chain'){
-    const dmg = Math.round(sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3);
+    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3) * spellPowerMult());
     applyStackDamage(target, dmg);
     logBattle(`${sp.icon} ${sp.name} бьёт в ${target.icon} ${target.name}: ${dmg} урона!`);
     playFx(target, 'chain');
@@ -2310,8 +3303,19 @@ function castSpellOn(sp, target){
       logBattle(`⚡ Молния перескакивает на ближайшего ${secondary.icon} ${secondary.name}: ${dmg2} урона (половина). ${spellJoke(sp.id)}`);
       setTimeout(()=>{ if(!battle.over) playFx(secondary,'chain'); }, 200);
     }
+  } else if(sp.type==='meteor'){
+    const center = {x:target.x, y:target.y};
+    const base = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.8) * spellPowerMult());
+    const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, center)<=1);
+    victims.forEach(v=>{
+      const dmg = v.side==='player' ? Math.max(1, Math.round(base/2)) : base;
+      applyStackDamage(v, dmg);
+      logBattle(`${sp.icon} ${sp.name}: ${v.icon} ${v.name} получает ${dmg} урона${v.side==='player'?' (своих задело половиной)':''}.`);
+      playFx(v, 'meteor');
+    });
+    logBattle(`${spellJoke(sp.id)} Область удара: клетка цели и соседние клетки.`);
   } else if(sp.type==='heal'){
-    const heal = Math.round(sp.healMin + Math.random()*(sp.healMax-sp.healMin) + state.hero.sp*1.5);
+    const heal = Math.round((sp.healMin + Math.random()*(sp.healMax-sp.healMin) + state.hero.sp*1.5) * spellPowerMult());
     const maxHp = target.originalCount * target.unitHpVal;
     target.hp = Math.min(maxHp, target.hp + heal);
     target.count = Math.max(target.count, Math.ceil(target.hp/target.unitHpVal));
@@ -2347,13 +3351,31 @@ function goToBattle(){
   startTacticalBattle(defs, {source:'quick', introText:`Разведчики заметили армию расы «${enemyRaceObj.name}» на границе владений. ${enemyRaceObj.emoji}`});
 }
 
+function syncRivalArmyFromBattle(){
+  if(!state.rivalHero) return;
+  const byTier = new Map();
+  battle.stacks.filter(s=>s.side==='enemy' && !s.isStructure && s.alive).forEach(s=>{
+    byTier.set(s.tier, (byTier.get(s.tier)||0) + s.count);
+  });
+  state.rivalHero.army = [...byTier.entries()].map(([tier,count])=>({tier,count}));
+}
+
 function finishTacticalBattle(result){
   const isSiege = battle.meta.source==='siege';
-  const syncTarget = isSiege ? state.garrison : state.army;
-  battle.stacks.filter(s=>s.side==='player' && !s.isStructure).forEach(s=>{
-    const u = syncTarget.find(a=>a.tier===s.tier);
-    if(u) u.count = s.count;
-  });
+  const isVassalRaid = battle.meta.source==='vassalRaid';
+  if(isVassalRaid){
+    const fort = (state.forts||[]).find(f=>f.id===battle.meta.fortId);
+    if(fort){
+      fort.garrison = battle.stacks.filter(s=>s.side==='player' && !s.isStructure && s.alive).reduce((sum,s)=>sum+s.count,0);
+    }
+  } else {
+    const syncTarget = isSiege ? state.garrison : state.army;
+    battle.stacks.filter(s=>s.side==='player' && !s.isStructure && !s.temporary).forEach(s=>{
+      const u = syncTarget.find(a=>a.tier===s.tier);
+      if(u) u.count = s.count;
+    });
+  }
+  if(battle.meta.source==='rival' || isVassalRaid) syncRivalArmyFromBattle();
   if(isSiege){
     if(result==='win'){
       const loot = {gold: 15+state.day*2, wood:5, stone:5, crystal:0};
@@ -2381,13 +3403,45 @@ function finishTacticalBattle(result){
     }
     return;
   }
+  if(isVassalRaid){
+    const fort = (state.forts||[]).find(f=>f.id===battle.meta.fortId);
+    const fortName = fort ? fort.name : 'вассальное владение';
+    if(result==='win'){
+      const defeatedName = state.rivalHero ? state.rivalHero.name : 'ИИ-герой';
+      state.rivalHero = null;
+      logBattle(`<b>🛡️ ${fortName} удержан.</b> Сторожка отбила налёт и разбила отряд ${defeatedName}.`);
+      addLog(`Сторожка владения «${fortName}» отбила ИИ-героя.`, 'combat');
+      showBattleResult({emoji:'🛡️', title:'Вассал отбился!', subtitle:`${fortName} устоял. Налётчик разбит на подступах.`, lootHtml:'<span class="loot-chip">Владение сохранено</span>'});
+    } else if(result==='lose'){
+      const taken = fort ? addRivalLoot(fort.resource, Math.max(fort.income*5, 10)) : 0;
+      if(fort) fort.garrison = 0;
+      logBattle(`<b>💥 ${fortName} разграблен.</b> Сторожка подавлена, ИИ-герой уходит с добычей.`);
+      addLog(`ИИ-герой разграбил «${fortName}»: −${taken}${fort?iconOf(fort.resource):''}.`, 'combat');
+      showBattleResult({emoji:'💥', title:'Владение разграблено', subtitle:`Сторожка не удержала ${fortName}. Налётчик продолжает рейд.`, lootHtml: fort ? `<span class="loot-chip loot-bad">−${taken}${iconOf(fort.resource)}</span>` : ''});
+    } else {
+      logBattle(`<b>🤝 ${fortName} устоял наполовину.</b> Налётчик отступил, но сторожка потрёпана.`);
+      addLog(`Бой за «${fortName}» закончился ничьей.`, 'combat');
+      showBattleResult({emoji:'🤝', title:'Владение устояло', subtitle:'Обе стороны отступили с потерями.', lootHtml:'<span class="loot-chip">Без трофеев</span>'});
+    }
+    return;
+  }
   if(result==='win'){
-    const loot = battle.meta.loot ? Object.assign({gold:0,wood:0,stone:0,crystal:0}, battle.meta.loot)
-      : (battle.meta.source==='dragon' ? Object.assign({gold:0,wood:0,stone:0,crystal:0}, state.dragonLairs.find(d=>d.id===battle.meta.lairId).def.loot)
-      : {gold:30+state.day*3, wood:10, stone:10, crystal:2});
+    const fortMeta = battle.meta.source==='fort' ? (state.forts||[]).find(f=>f.id===battle.meta.fortId) : null;
+    let loot;
+    if(battle.meta.loot){
+      loot = Object.assign({gold:0,wood:0,stone:0,crystal:0}, battle.meta.loot);
+    } else if(fortMeta){
+      loot = Object.assign({gold:45,wood:0,stone:0,crystal:0}, {[fortMeta.resource]: fortMeta.resource==='crystal'?3:12});
+    } else if(battle.meta.source==='rival'){
+      loot = Object.assign({gold:20,wood:0,stone:0,crystal:0}, state.rivalHero ? state.rivalHero.stolen : {});
+    } else if(battle.meta.source==='dragon'){
+      loot = Object.assign({gold:0,wood:0,stone:0,crystal:0}, state.dragonLairs.find(d=>d.id===battle.meta.lairId).def.loot);
+    } else {
+      loot = {gold:30+state.day*3, wood:10, stone:10, crystal:2};
+    }
     let lootOverflowed = false;
     Object.entries(loot).forEach(([k,v])=>{ if(addRes(k,v) < v) lootOverflowed = true; });
-    const xp = battle.meta.source==='dragon' ? 120 : 35;
+    const xp = battle.meta.source==='dragon' ? 120 : (battle.meta.source==='fort' ? 60 : (battle.meta.source==='rival' ? 70 : 35));
     state.hero.xp += xp;
     tryLevelUp();
     const lootHtml = Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>`<span class="loot-chip">+${v}${iconOf(k)}</span>`).join('') + `<span class="loot-chip">+${xp}✨XP</span>`;
@@ -2403,6 +3457,19 @@ function finishTacticalBattle(result){
       if(lair){ lair.defeated = true; }
       subtitle = 'Логово повержено, охраняемые сокровища теперь ваши!';
       logBattle(subtitle);
+    } else if(battle.meta.source==='fort'){
+      const fort = (state.forts||[]).find(f=>f.id===battle.meta.fortId);
+      if(fort){
+        fort.captured = true;
+        state.selectedVassal = fort.id;
+        subtitle = `${fort.name} захвачен и принёс вассальную присягу. Теперь он даёт +${fort.income}${iconOf(fort.resource)} каждый ход.`;
+        logBattle(subtitle);
+      }
+    } else if(battle.meta.source==='rival'){
+      const defeatedName = state.rivalHero ? state.rivalHero.name : 'ИИ-герой';
+      state.rivalHero = null;
+      subtitle = `${defeatedName} разбит. Украденные ресурсы возвращены в казну, а земли снова в безопасности.`;
+      logBattle(subtitle);
     }
     addLog('Победа в тактическом бою! Отряд возвращается с добычей.', 'combat');
     showBattleResult({emoji:'🎉', title:'Победа!', subtitle, lootHtml});
@@ -2410,11 +3477,16 @@ function finishTacticalBattle(result){
     state.res.gold = Math.max(0, state.res.gold*0.9);
     logBattle('<b>💀 Поражение.</b> Уцелевшие бегут, растеряв часть казны по дороге.');
     let subtitle = 'Уцелевшие бегут, растеряв часть казны по дороге.';
-    if(battle.meta.source==='camp' || battle.meta.source==='ambush' || battle.meta.source==='dragon'){
+    if(battle.meta.source==='camp' || battle.meta.source==='ambush' || battle.meta.source==='dragon' || battle.meta.source==='fort' || battle.meta.source==='rival'){
       state.heroPos = findCharPos(state.worldMap, 'H');
       state.movePoints = 0;
       subtitle += ' Герой позорно улепётывает обратно в замок.';
       logBattle('Герой позорно улепётывает обратно в замок.');
+    }
+    if(battle.meta.source==='rival' && state.rivalHero){
+      const stolen = addRivalLoot('gold', Math.max(10, Math.round(state.res.gold*0.08)));
+      subtitle += ` Налётчик ушёл с поля и прихватил ещё ${stolen}${iconOf('gold')}.`;
+      addLog(`${state.rivalHero.name} отбился от героя и продолжает разорять владения.`, 'combat');
     }
     addLog('Отряд разбит в тактическом бою.', 'combat');
     showBattleResult({emoji:'💀', title:'Поражение...', subtitle, lootHtml:'<span class="loot-chip loot-bad">-10% 💰</span>'});
@@ -2425,11 +3497,35 @@ function finishTacticalBattle(result){
   }
 }
 
+function lossBreakdownHtml(side){
+  if(!battle || !battle.stacks) return '';
+  return battle.stacks
+    .filter(s=>s.side===side && !s.isStructure)
+    .map(s=>({icon:s.icon, name:s.name, lost: Math.max(0, (s.originalCount||0)-(s.count||0))}))
+    .filter(l=>l.lost>0)
+    .map(l=>`<span class="loss-icon-chip" title="${l.name}">${l.icon}×${l.lost}</span>`)
+    .join('');
+}
+function battleLossStatsHtml(){
+  if(!battle || !battle.stacks) return '';
+  const playerLost = battle.stacks
+    .filter(s=>s.side==='player' && !s.isStructure)
+    .reduce((sum,s)=>sum + Math.max(0, (s.originalCount||0) - (s.count||0)), 0);
+  const enemyLost = battle.stacks
+    .filter(s=>s.side==='enemy' && !s.isStructure)
+    .reduce((sum,s)=>sum + Math.max(0, (s.originalCount||0) - (s.count||0)), 0);
+  const playerBreakdown = lossBreakdownHtml('player') || '<span class="loss-icon-chip loss-none">без потерь</span>';
+  const enemyBreakdown = lossBreakdownHtml('enemy') || '<span class="loss-icon-chip loss-none">без потерь</span>';
+  return `<div class="battle-stats">
+    <div class="loss-row"><span class="loot-chip loot-bad">Потери игрока: ${playerLost}</span>${playerBreakdown}</div>
+    <div class="loss-row"><span class="loot-chip">Потери врага: ${enemyLost}</span>${enemyBreakdown}</div>
+  </div>`;
+}
 function showBattleResult(opts){
   document.getElementById('result-emoji').textContent = opts.emoji;
   document.getElementById('result-title').textContent = opts.title;
   document.getElementById('result-subtitle').textContent = opts.subtitle || '';
-  document.getElementById('result-loot').innerHTML = opts.lootHtml ? `<div class="loot-row">${opts.lootHtml}</div>` : '';
+  document.getElementById('result-loot').innerHTML = `${battleLossStatsHtml()}${opts.lootHtml ? `<div class="loot-row">${opts.lootHtml}</div>` : ''}`;
   openModal('modal-battle-result');
 }
 function closeBattleResultAndContinue(){
