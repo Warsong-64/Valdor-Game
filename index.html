@@ -294,6 +294,11 @@
   .wtile-unexplored:hover{ filter:brightness(1.25); }
   .wtile-explored-dim{ filter: grayscale(.55) brightness(.65); }
   .wtile-explored-dim:hover{ filter: grayscale(.3) brightness(.9); }
+  .wtile.wtile-road{
+    background-image: radial-gradient(circle, rgba(112,80,42,.75) 22%, transparent 23%);
+    background-size: 9px 9px;
+    background-position: center;
+  }
   @keyframes guard-pulse{ 0%,100%{ box-shadow: inset 0 0 0 3px #e21b1b, 0 0 6px rgba(226,27,27,.6);} 50%{ box-shadow: inset 0 0 0 3px #ff5252, 0 0 14px rgba(226,27,27,.9);} }
   @keyframes rival-pulse{ 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.22);} }
   .hero-token{ position:absolute; font-size:1.7em; transform:translate(-50%,-65%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:6; filter:drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
@@ -1001,28 +1006,88 @@ function returnToMainMenu(){
    - Inside Telegram (opened via the bot as a Mini App): progress is persisted through Telegram's
      own CloudStorage, keyed to the player's Telegram account. Survives closing the app entirely
      and follows the player across devices — this is the "real" save for the Telegram build.
+     CloudStorage caps each key at 4096 bytes, and this game's save easily grows past that (forts,
+     camps, dragon lairs, fog-of-war memory, log...), so the save is split across multiple keys
+     (chunks) plus one small manifest key recording how many chunks there are.
    - As a plain web page (e.g. opened directly, outside Telegram): no browser storage API works in
      this environment, so we keep an in-memory snapshot for "Продолжить" within the current tab,
      plus manual "Сохранить в файл" / "Загрузить из файла" for persistence across sessions.
 --------------------------------------------------------------------------------------------- */
 const TG = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 function isTelegramEnv(){ return !!(TG && TG.initData); } // initData is only populated when actually running inside Telegram
+function hasCloudStorage(){ return !!(TG && TG.CloudStorage && typeof TG.CloudStorage.setItem==='function'); }
 
-const SAVE_KEY = 'valdor_save_v1';
+const SAVE_KEY = 'valdor_save_v2';      // chunked format; bumped from v1 (single-key) to avoid mis-parsing old saves
+const SAVE_LEGACY_KEY = 'valdor_save_v1'; // read-once fallback so anyone who saved under the old format doesn't lose progress
+const SAVE_CHUNK_SIZE = 3500;           // bytes per chunk, safely under Telegram's 4096-byte-per-key cap
 let savedGameSnapshot = null;
 let lastCloudSaveAt = 0;
 const CLOUD_SAVE_MIN_INTERVAL = 4000; // avoid spamming CloudStorage.setItem on every single re-render
+
+function cloudSaveChunked(json, callback){
+  const chunks = [];
+  for(let i=0;i<json.length;i+=SAVE_CHUNK_SIZE) chunks.push(json.slice(i, i+SAVE_CHUNK_SIZE));
+  const meta = JSON.stringify({n: chunks.length});
+  const keys = [SAVE_KEY+'_meta', ...chunks.map((_,i)=>SAVE_KEY+'_c'+i)];
+  const values = [meta, ...chunks];
+  let idx = 0;
+  function writeNext(){
+    if(idx>=keys.length){ cleanupStaleChunks(chunks.length, callback); return; }
+    TG.CloudStorage.setItem(keys[idx], values[idx], (err)=>{
+      if(err){ callback(err); return; }
+      idx++; writeNext();
+    });
+  }
+  writeNext();
+}
+// Best-effort: if a previous save had more chunks than this one (e.g. the log-length cap just
+// trimmed things down), remove a small buffer of now-stale keys beyond the new count. Errors here
+// are ignored — leftover keys are harmless clutter, never read back once past meta.n.
+function cleanupStaleChunks(newCount, callback){
+  if(!TG.CloudStorage.removeItems){ callback(null); return; }
+  const staleKeys = [];
+  for(let i=newCount; i<newCount+5; i++) staleKeys.push(SAVE_KEY+'_c'+i);
+  TG.CloudStorage.removeItems(staleKeys, ()=>callback(null));
+}
+function cloudLoadChunked(callback){
+  TG.CloudStorage.getItem(SAVE_KEY+'_meta', (err, metaStr)=>{
+    if(err || !metaStr){ callback(null); return; }
+    let meta;
+    try{ meta = JSON.parse(metaStr); }catch(e){ callback(null); return; }
+    if(!meta || !meta.n){ callback(null); return; }
+    const keys = Array.from({length:meta.n}, (_,i)=>SAVE_KEY+'_c'+i);
+    if(typeof TG.CloudStorage.getItems === 'function'){
+      TG.CloudStorage.getItems(keys, (err2, result)=>{
+        if(err2 || !result){ callback(null); return; }
+        callback(keys.map(k=>result[k]||'').join(''));
+      });
+    } else {
+      // Older client without batch getItems — read chunks one at a time instead.
+      const parts = new Array(keys.length).fill('');
+      let done = 0, failed = false;
+      keys.forEach((k,i)=>{
+        TG.CloudStorage.getItem(k, (e3, v)=>{
+          if(failed) return;
+          if(e3){ failed = true; callback(null); return; }
+          parts[i] = v||'';
+          done++;
+          if(done===keys.length) callback(parts.join(''));
+        });
+      });
+    }
+  });
+}
 
 function saveGame(){
   if(!state) return;
   let json;
   try{ json = JSON.stringify(state); } catch(e){ console.error('Save failed:', e); return; }
   savedGameSnapshot = json;
-  if(isTelegramEnv()){
+  if(isTelegramEnv() && hasCloudStorage()){
     const now = Date.now();
     if(now - lastCloudSaveAt < CLOUD_SAVE_MIN_INTERVAL) return; // debounced; will catch up on the next call
     lastCloudSaveAt = now;
-    TG.CloudStorage.setItem(SAVE_KEY, json, (err)=>{ if(err) console.error('Telegram CloudStorage save error:', err); });
+    cloudSaveChunked(json, (err)=>{ if(err) console.error('Telegram CloudStorage save error:', err); });
   }
 }
 function forceSaveNow(){ lastCloudSaveAt = 0; saveGame(); } // bypasses the debounce, used before leaving to the menu
@@ -1081,11 +1146,14 @@ function updateMainMenuState(){
   const fileRow = document.getElementById('menu-file-save-row');
   if(!btn) return;
   const hasSave = !!savedGameSnapshot;
+  const cloudActive = isTelegramEnv() && hasCloudStorage();
   btn.disabled = !hasSave;
-  if(fileRow) fileRow.style.display = isTelegramEnv() ? 'none' : ''; // file save/load is irrelevant inside Telegram
-  if(note) note.textContent = isTelegramEnv()
+  if(fileRow) fileRow.style.display = cloudActive ? 'none' : ''; // file save/load is only needed as a fallback
+  if(note) note.textContent = cloudActive
     ? (hasSave ? '☁️ Сохранение синхронизировано через Telegram.' : 'Сохранений в облаке Telegram пока нет — начните новую игру.')
-    : (hasSave ? '' : 'Автосохранение работает только в пределах текущей вкладки браузера. Для сохранения между сессиями используйте «Сохранить в файл».');
+    : isTelegramEnv()
+      ? 'Облачное хранилище Telegram недоступно в этой версии клиента — используйте «Сохранить в файл».'
+      : (hasSave ? '' : 'Автосохранение работает только в пределах текущей вкладки браузера. Для сохранения между сессиями используйте «Сохранить в файл».');
 }
 function exportSaveToFile(){
   saveGame();
@@ -1122,11 +1190,19 @@ function importSaveFromFile(evt){
 /* Pulls any existing Telegram CloudStorage save on startup so "Продолжить" is correctly enabled
    before the player does anything. No-op (and instant) outside Telegram. */
 function initSaveSystem(){
-  if(isTelegramEnv()){
+  if(isTelegramEnv() && hasCloudStorage()){
     try{ TG.ready(); TG.expand(); }catch(e){}
-    TG.CloudStorage.getItem(SAVE_KEY, (err, value)=>{
-      if(!err && value) savedGameSnapshot = value;
-      updateMainMenuState();
+    cloudLoadChunked(json=>{
+      if(json){ savedGameSnapshot = json; updateMainMenuState(); return; }
+      // Nothing under the new chunked key yet — check the old single-key format once, and if found,
+      // immediately re-save it in the new chunked format so we don't keep falling back to it.
+      TG.CloudStorage.getItem(SAVE_LEGACY_KEY, (err, legacyJson)=>{
+        if(!err && legacyJson){
+          savedGameSnapshot = legacyJson;
+          cloudSaveChunked(legacyJson, ()=>{});
+        }
+        updateMainMenuState();
+      });
     });
   } else {
     updateMainMenuState();
@@ -1887,7 +1963,10 @@ function renderMarket(){
   }).join('');
 }
 
-function addLog(text, type='event'){ state.log.push({text,type}); }
+function addLog(text, type='event'){
+  state.log.push({text,type});
+  if(state.log.length>80) state.log.splice(0, state.log.length-80); // keep the persisted log bounded — matters for save size, not just display
+}
 
 /* ===================== TURN / EVENTS ===================== */
 const EVENTS = [
@@ -2199,6 +2278,23 @@ function reachableWorldTiles(){
   return out;
 }
 
+// A subtle Heroes III-style hint: the worn path from the castle to each fort. It's still ordinary
+// terrain underneath, so fog of war applies exactly like anything else — you only see the trail
+// where you've already explored, and following it nudges you toward ground you haven't scouted yet.
+function computeRoadTiles(){
+  const home = findCharPos(state.worldMap, 'H');
+  const road = new Set();
+  (state.forts||[]).forEach(f=>{
+    const path = bfsPath(home, {x:f.x, y:f.y});
+    if(!path) return;
+    path.forEach(p=>{
+      if(p.x===f.x && p.y===f.y) return; // leave the fort's own tile showing just its icon, no overlay
+      road.add(p.x+','+p.y);
+    });
+  });
+  return road;
+}
+
 /* ---- Fog of war: hero and captured vassal forts each light up a small radius; everything seen
    stays "explored" (dimly remembered) forever after, only the live radius is fully bright. ---- */
 function fogVisionSources(){
@@ -2240,6 +2336,7 @@ function renderWorldMap(){
   grid.style.gridTemplateRows = `repeat(${WORLD_ROWS},1fr)`;
   const reachable = reachableWorldTiles();
   const {visible, explored} = refreshFogOfWar();
+  const roads = computeRoadTiles();
   let html = '';
   for(let y=0;y<WORLD_ROWS;y++){
     for(let x=0;x<WORLD_COLS;x++){
@@ -2285,6 +2382,7 @@ function renderWorldMap(){
       if(isHeroTile && state.worldHeroSelected) extraClass += ' wtile-hero-selected';
       else if(reachable.has(key)) extraClass += ' wtile-reachable';
       if(!visible.has(key)) extraClass += ' wtile-explored-dim';
+      if(roads.has(key) && !camp && !dragon && !fort && !rival) extraClass += ' wtile-road';
       html += `<div class="wtile ${terrainClass(ch)}${extraClass}" onclick="handleWorldClick(${x},${y})">${inner}${badge}</div>`;
     }
   }
@@ -2585,18 +2683,20 @@ function animatePath(path){
     const p = path[i];
     state.heroPos = {x:p.x, y:p.y};
     state.movePoints--;
-    updateHeroTokenPosition();
-    updateWorldTopbar();
+    // Full re-render on every step: this is what makes fog of war reveal tile-by-tile as the hero
+    // walks. Safe for smoothness too — #hero-token/#party-token are separate DOM nodes outside the
+    // rebuilt grid, so their CSS position transition (see updateHeroTokenPosition) keeps gliding.
+    renderWorldMap();
     i++;
     const ch = state.worldMap[p.y][p.x];
     const rival = state.rivalHero && state.rivalHero.x===p.x && state.rivalHero.y===p.y ? state.rivalHero : null;
-    if(rival){ state.moveAnimating = false; renderWorldMap(); setTimeout(()=>triggerRivalEncounter(), 350); return; }
+    if(rival){ state.moveAnimating = false; setTimeout(()=>triggerRivalEncounter(), 350); return; }
     const camp = state.camps.find(c=>c.x===p.x && c.y===p.y && !c.defeated);
     if(camp){ state.moveAnimating = false; setTimeout(()=>triggerCampBattle(camp.id), 350); return; }
     const fort = (state.forts||[]).find(f=>f.x===p.x && f.y===p.y && !f.captured);
-    if(fort){ state.moveAnimating = false; renderWorldMap(); setTimeout(()=>triggerFortEncounter(fort.id), 350); return; }
+    if(fort){ state.moveAnimating = false; setTimeout(()=>triggerFortEncounter(fort.id), 350); return; }
     const dragon = state.dragonLairs.find(d=>d.x===p.x && d.y===p.y && !d.defeated);
-    if(dragon){ state.moveAnimating = false; renderWorldMap(); setTimeout(()=>triggerDragonEncounter(dragon.id), 350); return; }
+    if(dragon){ state.moveAnimating = false; setTimeout(()=>triggerDragonEncounter(dragon.id), 350); return; }
     const pickup = state.resourcePickups.find(r=>r.x===p.x && r.y===p.y && !r.collected);
     if(pickup){ state.moveAnimating = false; setTimeout(()=>triggerResourceEvent(pickup), 350); return; }
     if(ch==='H'){ state.moveAnimating = false; setTimeout(()=>{ showScreen('screen-village'); renderVillage(); }, 350); return; }
@@ -3092,7 +3192,7 @@ const UNIT_JOKES = {
     6: ['Повелитель кузни бьёт молотом, будто кует врага заново — не очень удачно для врага.', 'Наковальня плачет от зависти, глядя на этот удар.'],
   },
   undead: {
-    1: ['Скелет спотыкается о собственную ногу, но упорно наступает.', 'Кости скелета дребезжат при каждом взмахе — а как иначе.'],
+    1: ['Скелет спотыкается о собственные ноги, но упорно наступает.', 'Кости скелета дребезжат при каждом взмахе — а как иначе.'],
     2: ['Зомби бьёт медленно, но верно, и совершенно не торопится.', 'Зомби что-то невнятно стонет — видимо, боевой клич.'],
     3: ['Костяная стрела летит с сухим скрипом, но метко.', 'Костяной лучник целится пустыми глазницами — и почему-то не мажет.'],
     4: ['Призрак проходит сквозь строй и бьёт с неожиданной стороны.', 'Призрачный вой заставляет вздрогнуть даже видавших виды бойцов.'],
@@ -3103,7 +3203,7 @@ const UNIT_JOKES = {
 // wild ambush critters (no race) get their own flavor instead of falling back to a random race's joke
 const CREATURE_JOKES = {
   'Скелет-старик': ['Скелет-старик замахивается с кряхтением — годы (точнее, века) берут своё.', 'Старые кости скрипят, но целятся на удивление точно.'],
-  'Стая волков': ['Волки нападают слаженной стаей — видна многолетняя практика.', 'Волчий вой сливается с рычанием — жутко и по делу.'],
+  'Стая волков': ['Волки нападают слаженной стаей — тоесть гасят толпой.', 'Волчий вой сливается с рычанием — ауф.'],
   'Каменный голем': ['Голем бьёт медленно, но противник ощущает это всем телом.', 'Каменный кулак впечатывается в землю рядом с целью — почти попал.'],
   'Кристальный дух': ['Кристальный дух бьёт волной ледяного света.', 'Дух звенит, будто разбитое стекло, прямо перед ударом.'],
 };
@@ -3209,21 +3309,21 @@ const SPELLS = [
   {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:12, dmgMax:20, unlockLevel:1,
     desc:'Классика полевой дипломатии: если переговоры не удались, значит шар был недостаточно огненным.'},
   {id:'chain', name:'Цепная молния', icon:'⚡', cost:12, type:'chain', dmgMin:16, dmgMax:26, unlockLevel:1,
-    desc:'Бьёт цель и перескакивает дальше. Маг уверяет, что это наука, а не плохая проводка.'},
+    desc:'Бьёт цель и перескакивает дальше. Колдун уверяет, что это магия, а не плохая проводка.'},
   {id:'heal', name:'Исцеление', icon:'💚', cost:8, type:'heal', healMin:18, healMax:30, unlockLevel:2,
     desc:'Возвращает бойцов в строй. Побочные эффекты: благодарность, подозрение и лёгкий запах трав.'},
   {id:'blind', name:'Слепота', icon:'🌫️', cost:5, type:'blind', unlockLevel:3,
-    desc:'Противник сереет и два своих хода вспоминает, где оставил глаза. Очень неловкое заклинание.'},
+    desc:'Противник садится и два своих хода вспоминает, где оставил глаза. Очень неловкое заклинание.'},
   {id:'meteor', name:'Метеоритный дождь', icon:'☄️', cost:20, type:'meteor', dmgMin:26, dmgMax:42, unlockLevel:5,
-    desc:'Самый сильный удар по области. Своих тоже может зацепить половиной урона: не стойте под небом.'},
+    desc:'Самый сильный удар по области. Своих тоже может зацепить половиной урона: надеюсь вы не злили мага.'},
 ];
 const SPELL_JOKES = {
   bolt: ['Молния вышла маленькая, но с характером.', 'Грома было больше, чем урона, зато все проснулись.'],
   fireball: ['Дёшево и сердито — как и обещал рекламный свиток.', 'Пламя недорогое, а вопли — бесплатные.'],
-  blind: ['Враг внезапно понял, что тактика без зрения сложнее.', 'Слепота: когда туман войны становится персональным.'],
+  blind: ['Враг внезапно понял, что без зрения сложнее.', 'Слепота: когда туман войны становится персональным.'],
   chain: ['Молния скачет по врагам, как студент по экзаменам — без разбора и с треском.', 'Второй отряд получил "подарок" по акции: два по цене одного.'],
-  heal: ['Лекарь-герой не имеет диплома, но раны затягиваются на глазах.', 'Бойцы бодро отряхиваются — видимо, магия работает как энергетик.'],
-  meteor: ['Камни с неба прибыли без предупреждения и без чувства меры.', 'Маг посмотрел вверх и решил: погода сегодня наступательная.'],
+  heal: ['Лекарь-герой не имеет диплома, но раны затягиваются на глазах.', 'Бойцы бодро отряхиваются — кажется, сработало.'],
+  meteor: ['Камни с неба разрешения не спрашивают.', 'Маг посмотрел вверх и решил: погода сегодня просто огнище.'],
 };
 
 function toggleMagic(){
