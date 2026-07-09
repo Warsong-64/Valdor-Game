@@ -53,6 +53,9 @@
   }
   .pick-card:hover{ transform:translateY(-2px); }
   .pick-card.selected{ border-color:var(--royal); box-shadow:0 0 0 3px var(--royal) inset, 0 3px 0 #b39c6d; background:#f2e8cf;}
+  .pick-card.disabled{ opacity:.55; filter:grayscale(.35); cursor:not-allowed; }
+  .pick-card.disabled:hover{ transform:none; }
+  .pick-card .locked{ display:inline-block; margin-top:6px; color:#7d4d33; font-weight:800; font-size:.76em; text-transform:uppercase; letter-spacing:.04em; }
   .pick-card .emoji{ font-size:2.4em; }
   .pick-card b{ display:block; margin:4px 0 2px; font-size:1.05em;}
   .pick-card small{ display:block; color:var(--ink-soft); line-height:1.3; font-size:.8em;}
@@ -73,6 +76,16 @@
   .menu-link-row{ display:flex; gap:16px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
   .menu-link-btn{ background:none; border:none; color:var(--ink-soft); text-decoration:underline; font-size:.85em; font-style:italic; padding:4px; cursor:pointer; }
   #menu-save-note{ min-height:1.2em; }
+  .save-slots-list{ display:flex; flex-direction:column; gap:8px; max-width:460px; margin:16px auto 0; }
+  .save-slot-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--parchment); border:2px solid var(--parchment-dark); border-radius:10px; padding:8px 12px;
+  }
+  .save-slot-info{ display:flex; flex-direction:column; text-align:left; font-size:.85em; }
+  .save-slot-info b{ font-size:1.05em; }
+  .save-slot-info span{ color:var(--ink-soft); font-size:.85em; }
+  .save-slot-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .save-slot-actions button{ padding:6px 8px; border-radius:6px; font-size:.85em; background:#7c5c2e; color:#fff2d1; }
 
   /* ---------- TOPBAR ---------- */
   .topbar{
@@ -274,8 +287,35 @@
   /* ---------- WORLD MAP ---------- */
   .worldmap-hint{ font-size:.82em; color:var(--ink-soft); margin:0 0 8px; }
   .worldmap-msg{ min-height:1.4em; font-size:.85em; color:var(--danger); font-weight:700; margin-bottom:6px; }
-  .worldmap-wrap{ position:relative; width:100%; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px var(--shadow) inset; }
+  .worldmap-wrap{ position:relative; width:100%; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px var(--shadow) inset; touch-action:none; cursor:grab; user-select:none; }
+  .worldmap-wrap.dragging{ cursor:grabbing; }
+  .worldmap-wrap.dragging .hero-token,
+  .worldmap-wrap.dragging .party-token,
+  .worldmap-wrap.camera-snap .hero-token,
+  .worldmap-wrap.camera-snap .party-token{ transition:none !important; }
   .worldmap-grid{ display:grid; width:100%; height:100%; gap:2px; background:#4a6b3a; }
+  .worldmap-nav{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:8px 0; }
+  .worldmap-nav .mini-btn{ min-width:38px; }
+  .minimap-wrap{ max-width:360px; margin:10px auto 0; }
+  .minimap-grid{ display:grid; gap:1px; padding:4px; border:2px solid var(--parchment-dark); border-radius:8px; background:#2c1f14; box-shadow:0 2px 6px var(--shadow) inset; }
+  .minimap-cell{ position:relative; aspect-ratio:1; min-width:4px; border-radius:2px; background:#1b140d; cursor:pointer; }
+  .minimap-cell.seen{ background:#6b8f4e; }
+  .minimap-cell.visible{ background:#bcd98f; }
+  .minimap-cell.water{ background:#557f92; }
+  .minimap-cell.mountain{ background:#827769; }
+  .minimap-cell.home{ background:#e8cf8a; }
+  .minimap-cell.fort{ box-shadow:inset 0 0 0 2px #d0b04f; }
+  .minimap-cell.hero::after{ content:""; position:absolute; inset:22%; border-radius:50%; background:#2e5fae; box-shadow:0 0 0 1px #fff; }
+  .minimap-cell.viewport{ outline:2px solid #f0c419; z-index:1; }
+  .minimap-caption{ margin-top:4px; color:var(--ink-soft); font-size:.72em; text-align:center; }
+  .world-intel{ margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .world-intel-block{ background:rgba(255,248,224,.62); border:1px solid var(--parchment-dark); border-radius:8px; padding:8px; min-height:62px; }
+  .world-intel-title{ font-family:'IM Fell English SC',serif; color:var(--ink); font-size:.9em; margin-bottom:4px; }
+  .world-intel-list{ display:flex; flex-direction:column; gap:3px; font-size:.78em; color:var(--ink-soft); }
+  .world-intel-row{ display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+  .world-intel-row b{ color:var(--ink); font-weight:800; }
+  .world-intel-empty{ color:var(--ink-soft); opacity:.75; font-size:.78em; }
+  @media (max-width:640px){ .world-intel{ grid-template-columns:1fr; } }
   .wtile{ position:relative; display:flex; align-items:center; justify-content:center; font-size:1.3em; user-select:none; }
   .wtile.t-grass{ background:#bcd98f; cursor:pointer; }
   .wtile.t-forest{ background:#6b8f4e; cursor:pointer; }
@@ -290,7 +330,7 @@
   .wtile-rival{ box-shadow: inset 0 0 0 3px #6a2323, 0 0 12px rgba(106,35,35,.9); animation: rival-pulse 1.4s infinite; }
   .wtile-reachable{ box-shadow: inset 0 0 0 3px rgba(143,208,122,.95); filter:brightness(1.12); }
   .wtile-hero-selected{ box-shadow: inset 0 0 0 3px #f0c419, 0 0 12px rgba(240,196,25,.85); filter:brightness(1.15); }
-  .wtile-unexplored{ background:#1b140d !important; box-shadow:none !important; cursor:pointer; }
+  .wtile-unexplored{ background:#1b140d !important; box-shadow:none !important; cursor:pointer; color:#c9b37a; font-weight:900; }
   .wtile-unexplored:hover{ filter:brightness(1.25); }
   .wtile-explored-dim{ filter: grayscale(.55) brightness(.65); }
   .wtile-explored-dim:hover{ filter: grayscale(.3) brightness(.9); }
@@ -329,10 +369,12 @@
   <div class="menu-btn-col">
     <button class="big-btn" onclick="openRaceSelect()">🆕 Новая игра</button>
     <button class="big-btn" id="continue-btn" onclick="continueGame()" disabled>▶️ Продолжить</button>
+    <button class="big-btn" id="load-slots-btn" onclick="toggleSaveSlots()" disabled>📚 Загрузить</button>
     <button class="big-btn" disabled title="Пока недоступно">⚙️ Настройки</button>
     <button class="big-btn" disabled title="Пока недоступно">🛒 Магазин</button>
   </div>
   <div class="disclaimer" id="menu-save-note"></div>
+  <div class="save-slots-list" id="save-slots-panel" style="display:none;"></div>
   <div class="menu-link-row" id="menu-file-save-row">
     <button class="menu-link-btn" onclick="exportSaveToFile()">💾 Сохранить в файл</button>
     <label class="menu-link-btn" style="display:inline-block;">
@@ -352,7 +394,10 @@
   <div class="section-title">Выбери расу</div>
   <div class="race-grid" id="race-grid"></div>
 
-  <button class="big-btn" onclick="startGame()">Начать правление 👑</button>
+  <div class="section-title">Режим игры</div>
+  <div class="mode-grid" id="mode-grid"></div>
+
+  <button class="big-btn" onclick="startGame()">Начать игру 👑</button>
   <div class="disclaimer">В этом прототипе бой всегда идёт против ИИ-соперника — живых оппонентов подвезут в следующей сборке.</div>
   <div class="menu-link-row">
     <button class="menu-link-btn" onclick="showScreen('screen-mainmenu')">← Назад в меню</button>
@@ -450,11 +495,24 @@
   <div class="panel">
     <p class="worldmap-hint">Клик по клетке без выбранного героя — показать описание. Клик по герою — выбрать его, затем клик по клетке — отряд поскачет туда (наступишь на лагерь/форт/дракона — начнётся бой).</p>
     <p class="worldmap-msg" id="worldmap-msg"></p>
+    <div class="worldmap-nav">
+      <button class="mini-btn" onclick="panWorldCamera(0,-1)">↑</button>
+      <button class="mini-btn" onclick="panWorldCamera(-1,0)">←</button>
+      <button class="mini-btn" onclick="centerWorldCameraOnHero()">К герою</button>
+      <button class="mini-btn" onclick="centerWorldCameraOnCastle()">К замку</button>
+      <button class="mini-btn" onclick="panWorldCamera(1,0)">→</button>
+      <button class="mini-btn" onclick="panWorldCamera(0,1)">↓</button>
+    </div>
     <div class="worldmap-wrap">
       <div class="worldmap-grid" id="worldmap-grid"></div>
       <div class="hero-token" id="hero-token">🤺</div>
       <div class="party-token" id="party-token"></div>
     </div>
+    <div class="minimap-wrap">
+      <div class="minimap-grid" id="world-minimap"></div>
+      <div class="minimap-caption">Миникарта: нажмите на область, чтобы сдвинуть обзор</div>
+    </div>
+    <div class="world-intel" id="world-intel"></div>
     <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 Вассалы&nbsp; • &nbsp;Клик по клетке — описание объекта</div>
   </div>
 </div>
@@ -563,9 +621,10 @@ const RACES = [
   {id:'undead', name:'Нежить', emoji:'🧟', bonus:'Иммунитет к мору и неурожаю (есть-то не надо), +10% к атаке.', mod:{gold:1,wood:1,stone:1,crystal:1}, heroEmoji:'💀', atkBonus:0.1, immuneBadEvents:true},
 ];
 const MODES = [
-  {id:'1x1', name:'1 на 1', desc:'Дуэль правителей'},
-  {id:'2x2', name:'2 на 2', desc:'Битва союзов'},
-  {id:'1x2', name:'1 на 2', desc:'Против двоих сразу — для смелых'},
+  {id:'sandbox', name:'Песочница', emoji:'🏰', desc:'Текущий режим: поселение, экономика, походы, осады и развитие.'},
+  {id:'quick_battle', name:'Быстрый бой', emoji:'⚔️', desc:'Случайное сражение полными армиями: полевая битва или осада города.'},
+  {id:'ai_skirmish', name:'Схватка с ИИ', emoji:'🤖', desc:'Будущий режим против компьютерного правителя.', disabled:true},
+  {id:'campaign', name:'Кампания', emoji:'📜', desc:'Сюжетные главы и цепочки миссий появятся позже.', disabled:true},
 ];
 // Single source of truth per unit: name, icon and whether it fights at range.
 // Ranged = archers, throwers (axes/spears), crossbowmen, and spellcasting "mage" units.
@@ -652,19 +711,28 @@ function unitFlavor(raceId, tier){
 // NOTE: bigger than a single settlement's turf on purpose — this is the seed of the
 // eventual shared world map (other players' castles/armies will live here later).
 const WORLD_TEMPLATE = [
-  "....m..f....",
-  ".H....f..1..",
-  "...m.f......",
-  "f.....m..f..",
-  ".w..m.....f.",
-  "..2.....3...",
-  "f..f.m......",
-  "..F....m..F.",
-  "....w..F....",
+  "....m..f....m..f....w..",
+  ".H....f..1....f.....w..",
+  "...m.f......w.....m....",
+  "f.....m..f..w..2.....f.",
+  ".w..m.....f....m....f..",
+  "..f.....F....w.....m...",
+  "f..f.m......f....3.....",
+  "..m....w..f....m....f..",
+  "....w..F....f.....w....",
+  "f.....m.....w..f....4..",
+  "...f....m......w..f....",
+  ".5....f....m.....F.....",
+  "....m.....w....f....m..",
+  "..f....w.....6....m....",
+  "m.....f....m.....w..f..",
+  "...w....f.....m.....f..",
+  "f....m.....w....f.....m",
+  "...f.....m....w....f...",
 ];
 const WORLD_COLS = WORLD_TEMPLATE[0].length;
 const WORLD_ROWS = WORLD_TEMPLATE.length;
-const CAMP_MARKER_CHARS = ['1','2','3']; // world-map positions are fixed; WHO occupies them is rolled at runtime
+const CAMP_MARKER_CHARS = ['1','2','3','4','5','6']; // world-map positions are fixed; WHO occupies them is rolled at runtime
 const CAMP_FLAVOR_NAMES = {
   humans:  ['Лагерь дезертиров', 'Бандитский острог', 'Стоянка наёмников'],
   elves:   ['Эльфийский дозор', 'Лесная застава', 'Стоянка стражей рощи'],
@@ -756,11 +824,14 @@ function rollDragonLairs(resourcePickups){
     }
   }
   shuffleArray(candidates);
+  candidates.sort((a,b)=>tileDistance(b,home)-tileDistance(a,home));
   const cfg = CONFIG.DRAGON;
-  const lairCount = Math.min(candidates.length, cfg.minLairs + Math.floor(Math.random()*(cfg.maxLairs-cfg.minLairs+1)));
+  const farCandidates = candidates.filter(c=>tileDistance(c,home)>=7);
+  const lairSpots = farCandidates.length >= cfg.minLairs ? farCandidates : candidates;
+  const lairCount = Math.min(lairSpots.length, cfg.minLairs + Math.floor(Math.random()*(cfg.maxLairs-cfg.minLairs+1)));
   const lairs = [];
   for(let i=0;i<lairCount;i++){
-    const {x,y} = candidates[i];
+    const {x,y} = lairSpots[i];
     const dist = tileDistance({x,y}, home);
     const jitter = 0.8 + Math.random()*0.4;
     const count = Math.min(cfg.maxCount, Math.max(1, Math.round((cfg.baseCount + dist*cfg.countPerDistance)*jitter)));
@@ -772,7 +843,7 @@ function rollDragonLairs(resourcePickups){
   }
   return lairs;
 }
-const RESOURCE_PICKUP_COUNT = 7;
+const RESOURCE_PICKUP_COUNT = 14;
 
 /* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
 const CONFIG = {
@@ -927,6 +998,22 @@ function newGame(raceId, modeId){
   };
 }
 
+function rollResourcePickup(home, spot, index){
+  const dist = tileDistance(home, spot);
+  const far = dist >= 10;
+  const mid = dist >= 6;
+  const pool = far
+    ? ['gold','gold','crystal','crystal','stone','wood']
+    : mid
+      ? ['gold','gold','wood','stone','stone','crystal']
+      : ['wood','wood','stone','stone','gold'];
+  const type = pool[Math.floor(Math.random()*pool.length)];
+  const typeBonus = type==='crystal' ? 4 : type==='gold' ? 6 : 0;
+  const distanceBonus = Math.floor(dist * (far ? 1.8 : mid ? 1.1 : 0.55));
+  const amount = 8 + typeBonus + distanceBonus + Math.floor(Math.random()*(far ? 18 : mid ? 14 : 10));
+  return {id:'res'+index, x:spot.x, y:spot.y, type, amount, collected:false};
+}
+
 function generateResourcePickups(template, home){
   const spots = [];
   for(let y=0;y<template.length;y++){
@@ -936,11 +1023,24 @@ function generateResourcePickups(template, home){
     }
   }
   for(let i=spots.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [spots[i],spots[j]]=[spots[j],spots[i]]; }
-  const types = ['gold','wood','stone','crystal'];
-  return spots.slice(0,RESOURCE_PICKUP_COUNT).map((s,i)=>({
-    id:'res'+i, x:s.x, y:s.y, type: types[Math.floor(Math.random()*types.length)],
-    amount: 8+Math.floor(Math.random()*18), collected:false,
-  }));
+  const buckets = {
+    near: spots.filter(s=>tileDistance(home,s)<=5),
+    mid: spots.filter(s=>tileDistance(home,s)>5 && tileDistance(home,s)<=10),
+    far: spots.filter(s=>tileDistance(home,s)>10),
+  };
+  const plan = [
+    ...buckets.near.slice(0,5),
+    ...buckets.mid.slice(0,5),
+    ...buckets.far.slice(0,RESOURCE_PICKUP_COUNT-10),
+  ];
+  const used = new Set(plan.map(s=>s.x+','+s.y));
+  spots.forEach(s=>{
+    if(plan.length<RESOURCE_PICKUP_COUNT && !used.has(s.x+','+s.y)){
+      plan.push(s);
+      used.add(s.x+','+s.y);
+    }
+  });
+  return plan.slice(0,RESOURCE_PICKUP_COUNT).map((s,i)=>rollResourcePickup(home, s, i));
 }
 
 function findCharPos(template, ch){
@@ -968,19 +1068,32 @@ function seedLeaderboard(myRaceId){
 }
 
 /* ===================== NAV / MENU ===================== */
-let pickedRace = 'humans', pickedMode = '1x1'; // mode picker is hidden for now — only one mode exists
+let pickedRace = 'humans', pickedMode = 'sandbox';
 
 function renderMenu(){
   const rg = document.getElementById('race-grid');
-  if(!rg) return;
-  rg.innerHTML = RACES.map(r=>`
+  const mg = document.getElementById('mode-grid');
+  if(rg) rg.innerHTML = RACES.map(r=>`
     <div class="pick-card ${r.id===pickedRace?'selected':''}" onclick="pickRace('${r.id}')">
       <div class="emoji">${r.emoji}</div>
       <b>${r.name}</b>
       <small>${r.bonus}</small>
     </div>`).join('');
+  if(mg) mg.innerHTML = MODES.map(m=>`
+    <div class="pick-card ${m.id===pickedMode?'selected':''} ${m.disabled?'disabled':''}" onclick="pickMode('${m.id}')">
+      <div class="emoji">${m.emoji}</div>
+      <b>${m.name}</b>
+      <small>${m.desc}</small>
+      ${m.disabled?'<span class="locked">Недоступно</span>':''}
+    </div>`).join('');
 }
 function pickRace(id){ pickedRace=id; renderMenu(); }
+function pickMode(id){
+  const mode = MODES.find(m=>m.id===id);
+  if(!mode || mode.disabled) return;
+  pickedMode = id;
+  renderMenu();
+}
 
 function openRaceSelect(){
   renderMenu();
@@ -988,7 +1101,12 @@ function openRaceSelect(){
 }
 
 function startGame(){
+  if(pickedMode === 'quick_battle'){
+    startQuickBattleMode();
+    return;
+  }
   state = newGame(pickedRace, pickedMode);
+  createSaveSlotForCurrentGame();
   garrisonTab = 'garrison';
   addLog(`Правление народа «${state.race.name}» началось. Да прибудет с вами казна!`, 'event');
   showScreen('screen-village');
@@ -1019,20 +1137,82 @@ function hasCloudStorage(){ return !!(TG && TG.CloudStorage && typeof TG.CloudSt
 
 const SAVE_KEY = 'valdor_save_v2';      // chunked format; bumped from v1 (single-key) to avoid mis-parsing old saves
 const SAVE_LEGACY_KEY = 'valdor_save_v1'; // read-once fallback so anyone who saved under the old format doesn't lose progress
+const SAVE_INDEX_KEY = 'valdor_save_index_v3';
+const SAVE_SLOT_PREFIX = 'valdor_save_slot_';
 const SAVE_CHUNK_SIZE = 3500;           // bytes per chunk, safely under Telegram's 4096-byte-per-key cap
+const MAX_SAVE_SLOTS = 24;
 let savedGameSnapshot = null;
+let currentSaveSlotId = null;
+let saveSlots = [];
 let lastCloudSaveAt = 0;
 const CLOUD_SAVE_MIN_INTERVAL = 4000; // avoid spamming CloudStorage.setItem on every single re-render
 
-function cloudSaveChunked(json, callback){
+function makeSaveSlotId(){ return `s${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`; }
+function activeCloudKey(){ return currentSaveSlotId ? SAVE_SLOT_PREFIX+currentSaveSlotId : SAVE_KEY; }
+function getSaveTitle(parsed){
+  const race = parsed && parsed.race && parsed.race.name ? parsed.race.name : 'Сохранение';
+  const day = parsed && parsed.day ? `, день ${parsed.day}` : '';
+  return `${race}${day}`;
+}
+function getSaveMetaFromJson(json, slotId){
+  try{
+    const parsed = JSON.parse(json);
+    return {
+      id:slotId,
+      title:getSaveTitle(parsed),
+      raceName: parsed.race && parsed.race.name ? parsed.race.name : 'Фракция',
+      day: parsed.day || 1,
+      updatedAt: Date.now(),
+      chunks: Math.max(1, Math.ceil(json.length / SAVE_CHUNK_SIZE))
+    };
+  }catch(e){
+    return {id:slotId, title:'Сохранение', raceName:'Фракция', day:1, updatedAt:Date.now(), chunks:1};
+  }
+}
+function normalizeSaveIndex(raw){
+  if(!raw) return {activeSlotId:null, slots:[]};
+  try{
+    const parsed = JSON.parse(raw);
+    if(!parsed || !Array.isArray(parsed.slots)) return {activeSlotId:null, slots:[]};
+    parsed.slots = parsed.slots.filter(s=>s && s.id);
+    return parsed;
+  }catch(e){ return {activeSlotId:null, slots:[]}; }
+}
+function setSlotMeta(meta){
+  const existing = saveSlots.findIndex(s=>s.id===meta.id);
+  if(existing>=0) saveSlots[existing] = Object.assign({}, saveSlots[existing], meta);
+  else saveSlots.unshift(meta);
+  saveSlots.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  saveSlots = saveSlots.slice(0, MAX_SAVE_SLOTS);
+}
+function saveIndexToCloud(){
+  if(!(isTelegramEnv() && hasCloudStorage())) return;
+  TG.CloudStorage.setItem(SAVE_INDEX_KEY, JSON.stringify({activeSlotId:currentSaveSlotId, slots:saveSlots}), err=>{
+    if(err) console.error('Telegram CloudStorage index save error:', err);
+  });
+}
+function createSaveSlotForCurrentGame(){
+  if(!state) return;
+  currentSaveSlotId = makeSaveSlotId();
+  try{
+    const json = JSON.stringify(state);
+    savedGameSnapshot = json;
+    const meta = getSaveMetaFromJson(json, currentSaveSlotId);
+    if(!(isTelegramEnv() && hasCloudStorage())) meta.snapshot = json;
+    setSlotMeta(meta);
+  }catch(e){}
+}
+
+function cloudSaveChunked(json, callback, baseKey){
+  baseKey = baseKey || activeCloudKey();
   const chunks = [];
   for(let i=0;i<json.length;i+=SAVE_CHUNK_SIZE) chunks.push(json.slice(i, i+SAVE_CHUNK_SIZE));
   const meta = JSON.stringify({n: chunks.length});
-  const keys = [SAVE_KEY+'_meta', ...chunks.map((_,i)=>SAVE_KEY+'_c'+i)];
+  const keys = [baseKey+'_meta', ...chunks.map((_,i)=>baseKey+'_c'+i)];
   const values = [meta, ...chunks];
   let idx = 0;
   function writeNext(){
-    if(idx>=keys.length){ cleanupStaleChunks(chunks.length, callback); return; }
+    if(idx>=keys.length){ cleanupStaleChunks(chunks.length, callback, baseKey); return; }
     TG.CloudStorage.setItem(keys[idx], values[idx], (err)=>{
       if(err){ callback(err); return; }
       idx++; writeNext();
@@ -1043,19 +1223,21 @@ function cloudSaveChunked(json, callback){
 // Best-effort: if a previous save had more chunks than this one (e.g. the log-length cap just
 // trimmed things down), remove a small buffer of now-stale keys beyond the new count. Errors here
 // are ignored — leftover keys are harmless clutter, never read back once past meta.n.
-function cleanupStaleChunks(newCount, callback){
+function cleanupStaleChunks(newCount, callback, baseKey){
+  baseKey = baseKey || activeCloudKey();
   if(!TG.CloudStorage.removeItems){ callback(null); return; }
   const staleKeys = [];
-  for(let i=newCount; i<newCount+5; i++) staleKeys.push(SAVE_KEY+'_c'+i);
+  for(let i=newCount; i<newCount+5; i++) staleKeys.push(baseKey+'_c'+i);
   TG.CloudStorage.removeItems(staleKeys, ()=>callback(null));
 }
-function cloudLoadChunked(callback){
-  TG.CloudStorage.getItem(SAVE_KEY+'_meta', (err, metaStr)=>{
+function cloudLoadChunked(callback, baseKey){
+  baseKey = baseKey || activeCloudKey();
+  TG.CloudStorage.getItem(baseKey+'_meta', (err, metaStr)=>{
     if(err || !metaStr){ callback(null); return; }
     let meta;
     try{ meta = JSON.parse(metaStr); }catch(e){ callback(null); return; }
     if(!meta || !meta.n){ callback(null); return; }
-    const keys = Array.from({length:meta.n}, (_,i)=>SAVE_KEY+'_c'+i);
+    const keys = Array.from({length:meta.n}, (_,i)=>baseKey+'_c'+i);
     if(typeof TG.CloudStorage.getItems === 'function'){
       TG.CloudStorage.getItems(keys, (err2, result)=>{
         if(err2 || !result){ callback(null); return; }
@@ -1083,12 +1265,18 @@ function saveGame(){
   let json;
   try{ json = JSON.stringify(state); } catch(e){ console.error('Save failed:', e); return; }
   savedGameSnapshot = json;
+  if(!currentSaveSlotId) currentSaveSlotId = makeSaveSlotId();
+  const meta = getSaveMetaFromJson(json, currentSaveSlotId);
+  if(!(isTelegramEnv() && hasCloudStorage())) meta.snapshot = json;
+  setSlotMeta(meta);
   if(isTelegramEnv() && hasCloudStorage()){
     const now = Date.now();
     if(now - lastCloudSaveAt < CLOUD_SAVE_MIN_INTERVAL) return; // debounced; will catch up on the next call
     lastCloudSaveAt = now;
-    cloudSaveChunked(json, (err)=>{ if(err) console.error('Telegram CloudStorage save error:', err); });
+    cloudSaveChunked(json, (err)=>{ if(err) console.error('Telegram CloudStorage save error:', err); }, activeCloudKey());
+    saveIndexToCloud();
   }
+  updateMainMenuState();
 }
 function forceSaveNow(){ lastCloudSaveAt = 0; saveGame(); } // bypasses the debounce, used before leaving to the menu
 
@@ -1133,6 +1321,8 @@ function loadGame(snapshotJson){
   }catch(e){ console.error('Load failed:', e); return false; }
 }
 function continueGame(){
+  const slot = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0];
+  if(slot){ loadSaveSlot(slot.id); return; }
   if(!savedGameSnapshot) return;
   if(loadGame(savedGameSnapshot)){
     addLog('Правление продолжается — казна и войско там же, где вы их оставили.', 'event');
@@ -1140,20 +1330,98 @@ function continueGame(){
     renderVillage();
   }
 }
+function loadSlotSnapshot(slotId, cb){
+  const meta = saveSlots.find(s=>s.id===slotId);
+  if(!meta){ cb(null); return; }
+  if(isTelegramEnv() && hasCloudStorage()){
+    cloudLoadChunked(cb, SAVE_SLOT_PREFIX+slotId);
+  } else {
+    cb(meta.snapshot || (slotId===currentSaveSlotId ? savedGameSnapshot : null));
+  }
+}
+function loadSaveSlot(slotId){
+  loadSlotSnapshot(slotId, snapshot=>{
+    if(!snapshot) return;
+    if(loadGame(snapshot)){
+      currentSaveSlotId = slotId;
+      savedGameSnapshot = snapshot;
+      const meta = getSaveMetaFromJson(snapshot, slotId);
+      if(!(isTelegramEnv() && hasCloudStorage())) meta.snapshot = snapshot;
+      setSlotMeta(meta);
+      saveIndexToCloud();
+      updateMainMenuState();
+      addLog('Правление продолжается — казна и войско там же, где вы их оставили.', 'event');
+      showScreen('screen-village');
+      renderVillage();
+    }
+  });
+}
+function deleteSaveSlot(slotId){
+  const slot = saveSlots.find(s=>s.id===slotId);
+  if(!slot) return;
+  if(!confirm(`Удалить сохранение "${slot.title || 'Сохранение'}"?`)) return;
+  saveSlots = saveSlots.filter(s=>s.id!==slotId);
+  if(currentSaveSlotId===slotId){
+    currentSaveSlotId = saveSlots[0] ? saveSlots[0].id : null;
+    savedGameSnapshot = null;
+    state = null;
+  }
+  if(isTelegramEnv() && hasCloudStorage()){
+    const baseKey = SAVE_SLOT_PREFIX+slotId;
+    const keys = [baseKey+'_meta', ...Array.from({length:slot.chunks || 1}, (_,i)=>baseKey+'_c'+i)];
+    if(TG.CloudStorage.removeItems) TG.CloudStorage.removeItems(keys, ()=>{});
+    saveIndexToCloud();
+  }
+  renderSaveSlotsPanel();
+  updateMainMenuState();
+}
+function toggleSaveSlots(){
+  const panel = document.getElementById('save-slots-panel');
+  if(!panel) return;
+  panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  renderSaveSlotsPanel();
+}
+function renderSaveSlotsPanel(){
+  const panel = document.getElementById('save-slots-panel');
+  if(!panel) return;
+  if(!saveSlots.length){
+    panel.innerHTML = '<div class="disclaimer">Сохранений пока нет.</div>';
+    return;
+  }
+  panel.innerHTML = saveSlots.map(slot=>{
+    const date = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString('ru-RU') : '';
+    const active = slot.id===currentSaveSlotId ? ' · последнее' : '';
+    return `
+      <div class="save-slot-row">
+        <div class="save-slot-info">
+          <b>${slot.title || 'Сохранение'}</b>
+          <span>${slot.raceName || 'Фракция'} · день ${slot.day || 1}${active}</span>
+          <span>${date}</span>
+        </div>
+        <div class="save-slot-actions">
+          <button onclick="loadSaveSlot('${slot.id}')">Играть</button>
+          <button onclick="deleteSaveSlot('${slot.id}')">Удалить</button>
+        </div>
+      </div>`;
+  }).join('');
+}
 function updateMainMenuState(){
   const btn = document.getElementById('continue-btn');
+  const loadBtn = document.getElementById('load-slots-btn');
   const note = document.getElementById('menu-save-note');
   const fileRow = document.getElementById('menu-file-save-row');
   if(!btn) return;
-  const hasSave = !!savedGameSnapshot;
+  const hasSave = saveSlots.length>0 || !!savedGameSnapshot;
   const cloudActive = isTelegramEnv() && hasCloudStorage();
   btn.disabled = !hasSave;
+  if(loadBtn) loadBtn.disabled = !hasSave;
   if(fileRow) fileRow.style.display = cloudActive ? 'none' : ''; // file save/load is only needed as a fallback
   if(note) note.textContent = cloudActive
-    ? (hasSave ? '☁️ Сохранение синхронизировано через Telegram.' : 'Сохранений в облаке Telegram пока нет — начните новую игру.')
+    ? (hasSave ? `☁️ Сохранений в Telegram: ${saveSlots.length}. «Продолжить» откроет последнее.` : 'Сохранений в облаке Telegram пока нет — начните новую игру.')
     : isTelegramEnv()
       ? 'Облачное хранилище Telegram недоступно в этой версии клиента — используйте «Сохранить в файл».'
-      : (hasSave ? '' : 'Автосохранение работает только в пределах текущей вкладки браузера. Для сохранения между сессиями используйте «Сохранить в файл».');
+      : (hasSave ? `Сохранений в текущей вкладке: ${saveSlots.length}. Для переноса между сессиями используйте файл.` : 'Автосохранение работает только в пределах текущей вкладки браузера. Для сохранения между сессиями используйте «Сохранить в файл».');
+  renderSaveSlotsPanel();
 }
 function exportSaveToFile(){
   saveGame();
@@ -1174,7 +1442,11 @@ function importSaveFromFile(evt){
   const reader = new FileReader();
   reader.onload = ()=>{
     if(loadGame(reader.result)){
+      currentSaveSlotId = makeSaveSlotId();
       savedGameSnapshot = reader.result;
+      const meta = getSaveMetaFromJson(reader.result, currentSaveSlotId);
+      meta.snapshot = reader.result;
+      setSlotMeta(meta);
       updateMainMenuState();
       addLog('Сохранение загружено из файла.', 'event');
       showScreen('screen-village');
@@ -1192,16 +1464,40 @@ function importSaveFromFile(evt){
 function initSaveSystem(){
   if(isTelegramEnv() && hasCloudStorage()){
     try{ TG.ready(); TG.expand(); }catch(e){}
-    cloudLoadChunked(json=>{
-      if(json){ savedGameSnapshot = json; updateMainMenuState(); return; }
-      // Nothing under the new chunked key yet — check the old single-key format once, and if found,
-      // immediately re-save it in the new chunked format so we don't keep falling back to it.
-      TG.CloudStorage.getItem(SAVE_LEGACY_KEY, (err, legacyJson)=>{
-        if(!err && legacyJson){
-          savedGameSnapshot = legacyJson;
-          cloudSaveChunked(legacyJson, ()=>{});
+    TG.CloudStorage.getItem(SAVE_INDEX_KEY, (indexErr, indexValue)=>{
+      const index = !indexErr ? normalizeSaveIndex(indexValue) : {activeSlotId:null, slots:[]};
+      currentSaveSlotId = index.activeSlotId || null;
+      saveSlots = index.slots || [];
+      const active = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0];
+      if(active){
+        currentSaveSlotId = active.id;
+        cloudLoadChunked(json=>{
+          if(json) savedGameSnapshot = json;
+          updateMainMenuState();
+        }, SAVE_SLOT_PREFIX+active.id);
+        return;
+      }
+
+      cloudLoadChunked(json=>{
+        if(json){
+          currentSaveSlotId = makeSaveSlotId();
+          savedGameSnapshot = json;
+          setSlotMeta(getSaveMetaFromJson(json, currentSaveSlotId));
+          cloudSaveChunked(json, ()=>{}, SAVE_SLOT_PREFIX+currentSaveSlotId);
+          saveIndexToCloud();
+          updateMainMenuState();
+          return;
         }
-        updateMainMenuState();
+        TG.CloudStorage.getItem(SAVE_LEGACY_KEY, (err, legacyJson)=>{
+          if(!err && legacyJson){
+            currentSaveSlotId = makeSaveSlotId();
+            savedGameSnapshot = legacyJson;
+            setSlotMeta(getSaveMetaFromJson(legacyJson, currentSaveSlotId));
+            cloudSaveChunked(legacyJson, ()=>{}, SAVE_SLOT_PREFIX+currentSaveSlotId);
+            saveIndexToCloud();
+          }
+          updateMainMenuState();
+        });
       });
     });
   } else {
@@ -2057,8 +2353,14 @@ function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
       if(c.defeated){ c.defeated=false; c.def = rollCampContent(c.x, c.y); respawned++; }
     });
     s.dragonLairs = rollDragonLairs(s.resourcePickups); // position and strength reroll every week, win or lose
-    s.resourcePickups.forEach(p=>{
-      if(p.collected){ p.collected=false; p.amount = 8+Math.floor(Math.random()*18); }
+    const home = findCharPos(WORLD_TEMPLATE, 'H');
+    s.resourcePickups.forEach((p,i)=>{
+      if(p.collected){
+        const fresh = rollResourcePickup(home, p, i);
+        p.type = fresh.type;
+        p.amount = fresh.amount;
+        p.collected = false;
+      }
     });
     addLog('📯 Пополнение резервов! В гарнизон встало свежее подкрепление (неделя прошла).', 'event');
     if(respawned>0) addLog(`👹 Монстры осмелели и вернулись в ${respawned} логово(а) — уже под новым флагом, неделя всё лечит, даже нежити.`, 'event');
@@ -2175,6 +2477,7 @@ function openLeaderboard(){
 /* ===================== WORLD MAP ===================== */
 function openWorldMap(){
   showScreen('screen-worldmap');
+  centerWorldCameraOn(state.heroPos);
   renderWorldMap();
 }
 
@@ -2198,7 +2501,7 @@ function terrainIcon(ch){
 function describeWorldTile(x,y){
   const key = x+','+y;
   if(!(state.exploredTiles||[]).includes(key)){
-    return {icon:'🌫️', title:'Неизведанные земли',
+    return {icon:'?', title:'Неизведанные земли',
       text:'Здесь ещё не бывал ни герой, ни вассальный дозор. Подойдите ближе (в радиусе 2 клеток), чтобы рассеять туман войны.'};
   }
   const visible = computeVisibleTiles();
@@ -2298,7 +2601,8 @@ function computeRoadTiles(){
 /* ---- Fog of war: hero and captured vassal forts each light up a small radius; everything seen
    stays "explored" (dimly remembered) forever after, only the live radius is fully bright. ---- */
 function fogVisionSources(){
-  const sources = [state.heroPos];
+  const home = findCharPos(state.worldMap || WORLD_TEMPLATE, 'H');
+  const sources = [state.heroPos, home];
   (state.forts||[]).filter(f=>f.captured).forEach(f=> sources.push({x:f.x, y:f.y}));
   return sources;
 }
@@ -2326,24 +2630,235 @@ function refreshFogOfWar(){
   return {visible, explored};
 }
 
-function renderWorldMap(){
-  saveGame();
-  updateWorldTopbar();
+let worldCamera = {x:0, y:0};
+let worldDrag = null;
+let worldDragSuppressClickUntil = 0;
+let worldCameraSnapTimer = null;
+function worldViewportSize(){
+  const narrow = window.innerWidth <= 640;
+  return {w: Math.min(WORLD_COLS, narrow ? 9 : 13), h: Math.min(WORLD_ROWS, narrow ? 9 : 9)};
+}
+function worldCameraKey(){ return `${worldCamera.x || 0},${worldCamera.y || 0}`; }
+function markWorldCameraSnap(){
   const wrap = document.querySelector('.worldmap-wrap');
-  if(wrap) wrap.style.aspectRatio = WORLD_COLS+'/'+WORLD_ROWS;
-  const grid = document.getElementById('worldmap-grid');
-  grid.style.gridTemplateColumns = `repeat(${WORLD_COLS},1fr)`;
-  grid.style.gridTemplateRows = `repeat(${WORLD_ROWS},1fr)`;
-  const reachable = reachableWorldTiles();
-  const {visible, explored} = refreshFogOfWar();
-  const roads = computeRoadTiles();
+  if(!wrap) return;
+  wrap.classList.add('camera-snap');
+  clearTimeout(worldCameraSnapTimer);
+  worldCameraSnapTimer = setTimeout(()=>wrap.classList.remove('camera-snap'), 80);
+}
+function clampWorldCamera(){
+  const size = worldViewportSize();
+  worldCamera.x = Math.max(0, Math.min(WORLD_COLS - size.w, worldCamera.x || 0));
+  worldCamera.y = Math.max(0, Math.min(WORLD_ROWS - size.h, worldCamera.y || 0));
+  return size;
+}
+function centerWorldCameraOn(pos){
+  const size = worldViewportSize();
+  worldCamera.x = Math.round(pos.x - size.w/2 + 0.5);
+  worldCamera.y = Math.round(pos.y - size.h/2 + 0.5);
+  clampWorldCamera();
+}
+function centerWorldCameraOnHero(){
+  if(!state || !state.heroPos) return;
+  centerWorldCameraOn(state.heroPos);
+  markWorldCameraSnap();
+  renderWorldMap();
+}
+function centerWorldCameraOnCastle(){
+  if(!state) return;
+  centerWorldCameraOn(findCharPos(state.worldMap || WORLD_TEMPLATE, 'H'));
+  markWorldCameraSnap();
+  renderWorldMap();
+}
+function panWorldCamera(dx, dy){
+  const before = worldCameraKey();
+  worldCamera.x = (worldCamera.x || 0) + dx;
+  worldCamera.y = (worldCamera.y || 0) + dy;
+  clampWorldCamera();
+  if(worldCameraKey() !== before) markWorldCameraSnap();
+  renderWorldMap();
+}
+function worldCameraTileSize(){
+  const wrap = document.querySelector('.worldmap-wrap');
+  const viewport = clampWorldCamera();
+  if(!wrap) return {w:1, h:1};
+  const rect = wrap.getBoundingClientRect();
+  return {w: rect.width / viewport.w, h: rect.height / viewport.h};
+}
+function panWorldCameraIfChanged(dx, dy){
+  const before = worldCameraKey();
+  worldCamera.x = (worldCamera.x || 0) + dx;
+  worldCamera.y = (worldCamera.y || 0) + dy;
+  clampWorldCamera();
+  if(worldCameraKey() !== before){
+    markWorldCameraSnap();
+    renderWorldMap();
+  }
+}
+function beginWorldDrag(e){
+  if(!state || state.moveAnimating || e.button > 0) return;
+  const tile = worldCameraTileSize();
+  worldDrag = {id:e.pointerId, el:e.currentTarget, x:e.clientX, y:e.clientY, accX:0, accY:0, moved:false, captured:false, tileW:tile.w, tileH:tile.h};
+}
+function moveWorldDrag(e){
+  if(!worldDrag || worldDrag.id !== e.pointerId) return;
+  const dx = e.clientX - worldDrag.x;
+  const dy = e.clientY - worldDrag.y;
+  worldDrag.x = e.clientX;
+  worldDrag.y = e.clientY;
+  worldDrag.accX += dx;
+  worldDrag.accY += dy;
+  if(Math.abs(worldDrag.accX) + Math.abs(worldDrag.accY) > 8 && !worldDrag.moved){
+    worldDrag.moved = true;
+    worldDrag.el.classList.add('dragging');
+    try{ worldDrag.el.setPointerCapture(e.pointerId); worldDrag.captured = true; }catch(err){}
+  }
+  let panX = 0, panY = 0;
+  while(worldDrag.accX >= worldDrag.tileW){ panX--; worldDrag.accX -= worldDrag.tileW; }
+  while(worldDrag.accX <= -worldDrag.tileW){ panX++; worldDrag.accX += worldDrag.tileW; }
+  while(worldDrag.accY >= worldDrag.tileH){ panY--; worldDrag.accY -= worldDrag.tileH; }
+  while(worldDrag.accY <= -worldDrag.tileH){ panY++; worldDrag.accY += worldDrag.tileH; }
+  if(panX || panY) panWorldCameraIfChanged(panX, panY);
+}
+function endWorldDrag(e){
+  if(!worldDrag || worldDrag.id !== e.pointerId) return;
+  if(worldDrag.moved) worldDragSuppressClickUntil = Date.now() + 250;
+  worldDrag.el.classList.remove('dragging');
+  if(worldDrag.captured){
+    try{ worldDrag.el.releasePointerCapture(e.pointerId); }catch(err){}
+  }
+  worldDrag = null;
+}
+function bindWorldMapControls(){
+  const wrap = document.querySelector('.worldmap-wrap');
+  if(wrap && !wrap.dataset.dragBound){
+    wrap.dataset.dragBound = '1';
+    wrap.addEventListener('pointerdown', beginWorldDrag);
+    wrap.addEventListener('pointermove', moveWorldDrag);
+    wrap.addEventListener('pointerup', endWorldDrag);
+    wrap.addEventListener('pointercancel', endWorldDrag);
+    wrap.addEventListener('lostpointercapture', endWorldDrag);
+  }
+  if(!document.body.dataset.worldKeysBound){
+    document.body.dataset.worldKeysBound = '1';
+    document.addEventListener('keydown', (e)=>{
+      if(!state || document.getElementById('screen-worldmap').style.display==='none') return;
+      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+        e.preventDefault();
+        const delta = {ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0]}[e.key];
+        panWorldCamera(delta[0], delta[1]);
+      }
+    });
+  }
+}
+function centerWorldCameraFromMinimap(x,y){
+  centerWorldCameraOn({x,y});
+  markWorldCameraSnap();
+  renderWorldMap();
+}
+function ensureHeroInWorldCamera(){
+  const before = worldCameraKey();
+  const size = clampWorldCamera();
+  if(!state || !state.heroPos) return size;
+  if(state.heroPos.x < worldCamera.x || state.heroPos.x >= worldCamera.x + size.w || state.heroPos.y < worldCamera.y || state.heroPos.y >= worldCamera.y + size.h){
+    ensureHeroInWorldCamera();
+  }
+  if(worldCameraKey() !== before) markWorldCameraSnap();
+  return clampWorldCamera();
+}
+
+function renderMiniMap(visible, explored, viewport){
+  const mini = document.getElementById('world-minimap');
+  if(!mini) return;
+  mini.style.gridTemplateColumns = `repeat(${WORLD_COLS},1fr)`;
+  mini.style.gridTemplateRows = `repeat(${WORLD_ROWS},1fr)`;
   let html = '';
   for(let y=0;y<WORLD_ROWS;y++){
     for(let x=0;x<WORLD_COLS;x++){
       const key = x+','+y;
+      const ch = state.worldMap[y][x];
+      const classes = ['minimap-cell'];
+      if(explored.has(key)) classes.push('seen');
+      if(visible.has(key)) classes.push('visible');
+      if(ch==='w') classes.push('water');
+      if(ch==='m') classes.push('mountain');
+      if(ch==='H') classes.push('home');
+      if((state.forts||[]).some(f=>f.x===x && f.y===y)) classes.push('fort');
+      if(state.heroPos.x===x && state.heroPos.y===y) classes.push('hero');
+      if(x>=worldCamera.x && x<worldCamera.x+viewport.w && y>=worldCamera.y && y<worldCamera.y+viewport.h) classes.push('viewport');
+      html += `<div class="${classes.join(' ')}" onclick="centerWorldCameraFromMinimap(${x},${y})"></div>`;
+    }
+  }
+  mini.innerHTML = html;
+}
+
+function escHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+function renderWorldIntel(visible, explored){
+  const box = document.getElementById('world-intel');
+  if(!box || !state) return;
+  const seen = key=>explored.has(key);
+  const isVisible = key=>visible.has(key);
+  const threats = [];
+  (state.camps||[]).filter(c=>!c.defeated && seen(c.x+','+c.y)).forEach(c=>{
+    const raceObj = RACES.find(r=>r.id===c.def.race) || RACES[0];
+    const size = c.def.armyTiers.reduce((s,t)=>s+t.count,0);
+    threats.push({dist:tileDistance(state.heroPos,c), text:`${raceObj.emoji} ${c.def.label}`, right:`${size} бойц.`});
+  });
+  (state.dragonLairs||[]).filter(d=>!d.defeated && seen(d.x+','+d.y)).forEach(d=>{
+    threats.push({dist:tileDistance(state.heroPos,d), text:`${d.def.icon} ${d.def.label}`, right:`${d.count} дракон.`});
+  });
+  (state.forts||[]).filter(f=>seen(f.x+','+f.y)).forEach(f=>{
+    threats.push({dist:tileDistance(state.heroPos,f), text:`${f.captured?'🚩':'🏯'} ${f.name}`, right:f.captured ? `+${f.income}${iconOf(f.resource)}` : 'форт'});
+  });
+  if(state.rivalHero && isVisible(state.rivalHero.x+','+state.rivalHero.y)){
+    threats.unshift({dist:tileDistance(state.heroPos,state.rivalHero), text:`⚔️ ${state.rivalHero.name}`, right:'рядом'});
+  }
+  threats.sort((a,b)=>a.dist-b.dist);
+
+  const pickups = (state.resourcePickups||[])
+    .filter(p=>!p.collected && seen(p.x+','+p.y))
+    .map(p=>({dist:tileDistance(state.heroPos,p), text:`${iconOf(p.type)} Находка`, right:`${p.amount}`}))
+    .sort((a,b)=>a.dist-b.dist);
+  const logs = (state.log||[]).slice(-4).reverse();
+  const block = (title, rows, empty)=>`
+    <div class="world-intel-block">
+      <div class="world-intel-title">${title}</div>
+      <div class="world-intel-list">
+        ${rows.length ? rows.map(r=>`<div class="world-intel-row"><span>${escHtml(r.text)}</span><b>${escHtml(r.right)}</b></div>`).join('') : `<div class="world-intel-empty">${empty}</div>`}
+      </div>
+    </div>`;
+  box.innerHTML =
+    block('Разведка', threats.slice(0,5), 'В разведанной области пока спокойно.') +
+    block('Добыча', pickups.slice(0,5), 'Поблизости не видно свободных находок.') +
+    block('События', logs.map(l=>({text:l.text, right:l.type==='combat'?'бой':'событие'})), 'Журнал пока пуст.') +
+    block('Обзор', [
+      {text:`Открыто клеток`, right:`${explored.size}/${WORLD_COLS*WORLD_ROWS}`},
+      {text:`Сейчас видно`, right:`${visible.size}`},
+    ], '');
+}
+
+function renderWorldMap(){
+  saveGame();
+  updateWorldTopbar();
+  const wrap = document.querySelector('.worldmap-wrap');
+  bindWorldMapControls();
+  const viewport = clampWorldCamera();
+  if(wrap) wrap.style.aspectRatio = viewport.w+'/'+viewport.h;
+  const grid = document.getElementById('worldmap-grid');
+  grid.style.gridTemplateColumns = `repeat(${viewport.w},1fr)`;
+  grid.style.gridTemplateRows = `repeat(${viewport.h},1fr)`;
+  const reachable = reachableWorldTiles();
+  const {visible, explored} = refreshFogOfWar();
+  const roads = computeRoadTiles();
+  let html = '';
+  for(let y=worldCamera.y;y<worldCamera.y+viewport.h;y++){
+    for(let x=worldCamera.x;x<worldCamera.x+viewport.w;x++){
+      const key = x+','+y;
       if(!explored.has(key)){
         // Never-seen tile: no terrain, no camps/loot/rival leaked — just fog, still clickable to walk into.
-        html += `<div class="wtile wtile-unexplored" onclick="handleWorldClick(${x},${y})">🌫️</div>`;
+        html += `<div class="wtile wtile-unexplored" onclick="handleWorldClick(${x},${y})">?</div>`;
         continue;
       }
       const ch = state.worldMap[y][x];
@@ -2389,6 +2904,8 @@ function renderWorldMap(){
   grid.innerHTML = html;
   document.getElementById('hero-token').textContent = state.race.heroEmoji;
   updateHeroTokenPosition();
+  renderMiniMap(visible, explored, viewport);
+  renderWorldIntel(visible, explored);
 }
 
 function updateWorldTopbar(){
@@ -2403,11 +2920,18 @@ function updateWorldTopbar(){
 }
 
 function updateHeroTokenPosition(){
-  const leftPct = (state.heroPos.x + 0.5) / WORLD_COLS * 100;
-  const topPct = (state.heroPos.y + 0.5) / WORLD_ROWS * 100;
+  const viewport = clampWorldCamera();
+  const localX = state.heroPos.x - worldCamera.x;
+  const localY = state.heroPos.y - worldCamera.y;
   const heroEl = document.getElementById('hero-token');
   const partyEl = document.getElementById('party-token');
   if(!heroEl) return;
+  const onScreen = localX>=0 && localY>=0 && localX<viewport.w && localY<viewport.h;
+  heroEl.style.display = onScreen ? '' : 'none';
+  partyEl.style.display = onScreen ? '' : 'none';
+  if(!onScreen) return;
+  const leftPct = (localX + 0.5) / viewport.w * 100;
+  const topPct = (localY + 0.5) / viewport.h * 100;
   heroEl.style.left = leftPct + '%';
   heroEl.style.top = topPct + '%';
   partyEl.style.left = leftPct + '%';
@@ -2656,6 +3180,7 @@ function triggerRivalEncounter(){
 }
 
 function handleWorldClick(x,y){
+  if(Date.now() < worldDragSuppressClickUntil) return;
   if(state.moveAnimating) return;
   if(state.heroPos.x===x && state.heroPos.y===y){
     state.worldHeroSelected = !state.worldHeroSelected;
@@ -2683,6 +3208,7 @@ function animatePath(path){
     const p = path[i];
     state.heroPos = {x:p.x, y:p.y};
     state.movePoints--;
+    centerWorldCameraOn(state.heroPos);
     // Full re-render on every step: this is what makes fog of war reveal tile-by-tile as the hero
     // walks. Safe for smoothness too — #hero-token/#party-token are separate DOM nodes outside the
     // rebuilt grid, so their CSS position transition (see updateHeroTokenPosition) keeps gliding.
@@ -2752,6 +3278,12 @@ function startFortBattle(fort){
 }
 
 function continueAfterBattle(){
+  if(battle && (battle.meta.source==='quick_menu' || battle.meta.source==='quick_siege')){
+    forceSaveNow();
+    updateMainMenuState();
+    showScreen(battle.meta.returnScreen || 'screen-mainmenu');
+    return;
+  }
   if(battle && battle.meta.source==='siege'){
     const target = battle.meta.returnScreen || 'screen-village';
     showScreen(target);
@@ -2870,9 +3402,9 @@ function makeTowerStack(id, x, y){
 
 function startTacticalBattle(enemyDefs, meta){
   const cols = 8, rows = 6;
-  const isSiege = meta.source==='siege';
+  const isSiege = meta.source==='siege' || meta.source==='quick_siege';
   const isVassalRaid = meta.source==='vassalRaid';
-  const usesSiegeLayout = meta.source==='siege' || meta.source==='fort' || isVassalRaid;
+  const usesSiegeLayout = meta.source==='siege' || meta.source==='quick_siege' || meta.source==='fort' || isVassalRaid;
   const sourceTroops = isSiege ? state.garrison : (isVassalRaid ? (meta.defenderTroops || []) : state.army);
   const wallBonus = (isSiege || isVassalRaid) ? garrisonDefBonus() : 0;
   const playerStacks = sourceTroops.filter(u=>u.count>0).map(u=> buildStack('p'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus}));
@@ -3309,7 +3841,7 @@ const SPELLS = [
   {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:12, dmgMax:20, unlockLevel:1,
     desc:'Классика полевой дипломатии: если переговоры не удались, значит шар был недостаточно огненным.'},
   {id:'chain', name:'Цепная молния', icon:'⚡', cost:12, type:'chain', dmgMin:16, dmgMax:26, unlockLevel:1,
-    desc:'Бьёт цель и перескакивает дальше. Колдун уверяет, что это магия, а не плохая проводка.'},
+    desc:'Бьёт цель и перескакивает ещё на двух ближайших врагов: половина и треть урона.'},
   {id:'heal', name:'Исцеление', icon:'💚', cost:8, type:'heal', healMin:18, healMax:30, unlockLevel:2,
     desc:'Возвращает бойцов в строй. Побочные эффекты: благодарность, подозрение и лёгкий запах трав.'},
   {id:'blind', name:'Слепота', icon:'🌫️', cost:5, type:'blind', unlockLevel:3,
@@ -3394,15 +3926,18 @@ function castSpellOn(sp, target){
     applyStackDamage(target, dmg);
     logBattle(`${sp.icon} ${sp.name} бьёт в ${target.icon} ${target.name}: ${dmg} урона!`);
     playFx(target, 'chain');
-    const others = battle.stacks.filter(s=>s.alive && s.side==='enemy' && s.id!==target.id);
-    if(others.length){
-      others.sort((a,b)=> manhattan(a,target)-manhattan(b,target));
-      const secondary = others[0];
-      const dmg2 = Math.round(dmg/2);
-      applyStackDamage(secondary, dmg2);
-      logBattle(`⚡ Молния перескакивает на ближайшего ${secondary.icon} ${secondary.name}: ${dmg2} урона (половина). ${spellJoke(sp.id)}`);
-      setTimeout(()=>{ if(!battle.over) playFx(secondary,'chain'); }, 200);
-    }
+    const chainTargets = battle.stacks
+      .filter(s=>s.alive && s.side==='enemy' && s.id!==target.id)
+      .sort((a,b)=> manhattan(a,target)-manhattan(b,target))
+      .slice(0, 2);
+    chainTargets.forEach((nextTarget, i)=>{
+      const divisor = i===0 ? 2 : 3;
+      const dmgNext = Math.max(1, Math.round(dmg/divisor));
+      applyStackDamage(nextTarget, dmgNext);
+      const note = i===0 ? 'половина' : 'треть';
+      logBattle(`⚡ Молния перескакивает на ${nextTarget.icon} ${nextTarget.name}: ${dmgNext} урона (${note}). ${i===0 ? spellJoke(sp.id) : ''}`);
+      setTimeout(()=>{ if(!battle.over) playFx(nextTarget,'chain'); }, 200 + i*180);
+    });
   } else if(sp.type==='meteor'){
     const center = {x:target.x, y:target.y};
     const base = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.8) * spellPowerMult());
@@ -3437,6 +3972,67 @@ function retreatBattle(){
   showBattleResult({emoji:'🏳️', title:'Отступление', subtitle:'Отряд цел, но без трофеев.', lootHtml:''});
 }
 
+function randomInt(min, max){
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+const QUICK_BATTLE_ARMY_TEMPLATE = [
+  {tier:1, weight:6, min:18, max:42, jitter:0.24},
+  {tier:2, weight:5, min:12, max:32, jitter:0.22},
+  {tier:3, weight:4, min:8,  max:24, jitter:0.20},
+  {tier:4, weight:3, min:5,  max:15, jitter:0.18},
+  {tier:5, weight:2, min:2,  max:9,  jitter:0.16},
+  {tier:6, weight:1, min:1,  max:4,  jitter:0.12},
+];
+
+function rollFullQuickBattleArmy(scale){
+  return QUICK_BATTLE_ARMY_TEMPLATE.map(row=>{
+    const base = row.weight * scale;
+    const swing = 1 + (Math.random()*2-1) * row.jitter;
+    return {
+      tier: row.tier,
+      count: Math.max(row.min, Math.min(row.max, Math.round(base * swing)))
+    };
+  });
+}
+
+function prepareQuickBattleForces(){
+  const playerScale = randomInt(4, 7);
+  const enemyScale = Math.max(3, playerScale + randomInt(-1, 2));
+  return {
+    playerArmy: rollFullQuickBattleArmy(playerScale),
+    enemyArmy: rollFullQuickBattleArmy(enemyScale),
+    playerScale,
+    enemyScale
+  };
+}
+
+function startQuickBattleMode(){
+  state = newGame(pickedRace, 'quick_battle');
+  createSaveSlotForCurrentGame();
+  const forces = prepareQuickBattleForces();
+  const isSiege = Math.random() < 0.45;
+  const enemyRaceObj = RACES.filter(r=>r.id!==pickedRace)[Math.floor(Math.random()*Math.max(1,RACES.length-1))] || RACES[0];
+  state.army = forces.playerArmy.map(u=>Object.assign({}, u));
+  state.garrison = forces.playerArmy.map(u=>Object.assign({}, u));
+  state.hero.level = randomInt(3, 8);
+  state.hero.sp += randomInt(0, 8);
+  state.hero.maxManaBase = randomInt(14, 34);
+  state.hero.mana = getMaxMana();
+  const tower = state.buildings.find(b=>b.key==='tower');
+  const walls = state.buildings.find(b=>b.key==='walls');
+  if(tower) tower.level = randomInt(1, 5);
+  if(walls) walls.level = isSiege ? randomInt(2, 5) : randomInt(0, 3);
+  garrisonTab = 'garrison';
+  addLog(`Быстрый бой: ${isSiege ? 'оборона города' : 'битва в поле'} против народа «${enemyRaceObj.name}».`, 'combat');
+  saveGame();
+  const defs = forces.enemyArmy.map(u=>Object.assign({}, u, {raceObj:enemyRaceObj}));
+  const intro = isSiege
+    ? `Быстрый бой: армия «${enemyRaceObj.name}» идёт на штурм города. У защитников полные гарнизоны, башни заряжены, магия готова. ${enemyRaceObj.emoji}`
+    : `Быстрый бой: две полные армии встретились в поле. Силы сторон разнятся, магия героя доступна сразу. Противник — «${enemyRaceObj.name}». ${enemyRaceObj.emoji}`;
+  startTacticalBattle(defs, {source:isSiege ? 'quick_siege' : 'quick_menu', returnScreen:'screen-mainmenu', introText:intro});
+}
+
 function goToBattle(){
   const enemyRaceObj = RACES[Math.floor(Math.random()*RACES.length)];
   const cfg = CONFIG.QUICK_BATTLE;
@@ -3461,7 +4057,7 @@ function syncRivalArmyFromBattle(){
 }
 
 function finishTacticalBattle(result){
-  const isSiege = battle.meta.source==='siege';
+  const isSiege = battle.meta.source==='siege' || battle.meta.source==='quick_siege';
   const isVassalRaid = battle.meta.source==='vassalRaid';
   if(isVassalRaid){
     const fort = (state.forts||[]).find(f=>f.id===battle.meta.fortId);
