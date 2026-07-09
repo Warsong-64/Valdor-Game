@@ -310,6 +310,9 @@
   .minimap-cell.hero::after{ content:""; position:absolute; inset:22%; border-radius:50%; background:#2e5fae; box-shadow:0 0 0 1px #fff; }
   .minimap-cell.viewport{ outline:2px solid #f0c419; z-index:1; }
   .minimap-caption{ margin-top:4px; color:var(--ink-soft); font-size:.72em; text-align:center; }
+  .worldmap-widget-bar{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; justify-content:center; }
+  .wm-widget-toggle.active{ background:var(--royal); color:#fff2d1; }
+  .worldmap-widget-panel{ margin-top:8px; }
   .world-intel{ margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .world-intel-block{ background:rgba(255,248,224,.62); border:1px solid var(--parchment-dark); border-radius:8px; padding:8px; min-height:62px; }
   .world-intel-title{ font-family:'IM Fell English SC',serif; color:var(--ink); font-size:.9em; margin-bottom:4px; }
@@ -512,11 +515,32 @@
       <div class="hero-token" id="hero-token">🤺</div>
       <div class="party-token" id="party-token"></div>
     </div>
-    <div class="minimap-wrap">
-      <div class="minimap-grid" id="world-minimap"></div>
-      <div class="minimap-caption">Миникарта: нажмите на область, чтобы сдвинуть обзор</div>
+    <div class="worldmap-widget-bar">
+      <button class="mini-btn wm-widget-toggle" id="wmtoggle-minimap" onclick="toggleWorldWidget('minimap')">🗺️ Миникарта</button>
+      <button class="mini-btn wm-widget-toggle" id="wmtoggle-scout" onclick="toggleWorldWidget('scout')">🔭 Разведка</button>
+      <button class="mini-btn wm-widget-toggle" id="wmtoggle-loot" onclick="toggleWorldWidget('loot')">💰 Добыча</button>
+      <button class="mini-btn wm-widget-toggle" id="wmtoggle-log" onclick="toggleWorldWidget('log')">📜 События</button>
+      <button class="mini-btn wm-widget-toggle" id="wmtoggle-overview" onclick="toggleWorldWidget('overview')">📊 Обзор</button>
     </div>
-    <div class="world-intel" id="world-intel"></div>
+    <div class="worldmap-widget-panel" id="widget-minimap" style="display:none;">
+      <div class="minimap-wrap">
+        <div class="minimap-grid" id="world-minimap"></div>
+        <div class="minimap-caption">Нажмите на область, чтобы сдвинуть обзор</div>
+        <button class="mini-btn" onclick="toggleMinimapViewport()">👁 Область обзора</button>
+      </div>
+    </div>
+    <div class="worldmap-widget-panel" id="widget-scout" style="display:none;">
+      <div class="world-intel-block"><div class="world-intel-title">Разведка</div><div class="world-intel-list" id="intel-scout"></div></div>
+    </div>
+    <div class="worldmap-widget-panel" id="widget-loot" style="display:none;">
+      <div class="world-intel-block"><div class="world-intel-title">Добыча</div><div class="world-intel-list" id="intel-loot"></div></div>
+    </div>
+    <div class="worldmap-widget-panel" id="widget-log" style="display:none;">
+      <div class="world-intel-block"><div class="world-intel-title">События</div><div class="world-intel-list" id="intel-log"></div></div>
+    </div>
+    <div class="worldmap-widget-panel" id="widget-overview" style="display:none;">
+      <div class="world-intel-block"><div class="world-intel-title">Обзор</div><div class="world-intel-list" id="intel-overview"></div></div>
+    </div>
     <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;❄️ Зима&nbsp; • &nbsp;🏜️ Пески&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 Вассалы&nbsp; • &nbsp;Клик по клетке — описание объекта</div>
   </div>
 </div>
@@ -612,6 +636,15 @@
     <p class="market-note">Продавайте излишки или докупайте недостающее — курс каждый день немного гуляет.</p>
     <div id="market-list"></div>
     <button class="close-btn" onclick="closeModal('modal-market')">Закрыть лавку</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-tavern">
+  <div class="modal">
+    <h2>🍺 Таверна</h2>
+    <p class="market-note">Именные герои нанимаются за золото и кристаллы (разово, дальше — бесплатно). Облик и пассивки меняются, уровень и опыт — нет.</p>
+    <div id="tavern-hero-list" class="race-grid"></div>
+    <button class="close-btn" onclick="closeModal('modal-tavern')">Закрыть таверну</button>
   </div>
 </div>
 
@@ -995,6 +1028,7 @@ function newGame(raceId, modeId){
       {key:'warehouse', name:'Склад', ico:'📦', level:1, produces:null},
       {key:'walls', name:'Стены', ico:'🧱', level:1, produces:null},
       {key:'market', name:'Рынок', ico:'🏪', level:0, produces:null},
+      {key:'tavern', name:'Таверна', ico:'🍺', level:0, produces:null, maxLevel:3},
     ],
     hero: {
       level:1, xp:0, xpNeeded:40,
@@ -1003,6 +1037,8 @@ function newGame(raceId, modeId){
       sp: 5 + (race.spBonus||0),
       mana: baseMana, maxManaBase: baseMana,
     },
+    heroId: 'default',
+    unlockedHeroes: [],
     // troops recruited go to the garrison first; the player deploys some to the marching army before heading out
     army: [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?3:0})),
     garrison: [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?3:0})),
@@ -1351,6 +1387,12 @@ function loadGame(snapshotJson){
       f.garrison = f.garrison || watchtowerTotalGarrison(f.watchtower);
     });
     state.selectedVassal = state.selectedVassal || 'wood';
+    state.unlockedHeroes = Array.isArray(state.unlockedHeroes) ? state.unlockedHeroes : [];
+    if(state.heroId && state.heroId!=='default' && !state.unlockedHeroes.includes(state.heroId)){
+      state.unlockedHeroes.push(state.heroId); // grandfather in whichever named hero an old save already had active
+    }
+    state.heroId = HERO_DEFS.some(h=>h.id===state.heroId && !h.locked) ? state.heroId : 'default';
+    if(!state.buildings.some(b=>b.key==='tavern')) state.buildings.push({key:'tavern', name:'Таверна', ico:'🍺', level:0, produces:null, maxLevel:3});
     if(state.hero && state.hero.level>=2) state.edictUnlocks.drill = true;
     if(state.day >= CONFIG.SIEGE.minDay - 1) state.edictUnlocks.defense = true;
     if((state.resourcePickups||[]).some(p=>p.collected)) state.edictUnlocks.scout = true;
@@ -1566,24 +1608,27 @@ function renderVillage(){
   const mg = document.getElementById('map-grid');
   mg.innerHTML = state.buildings.map(b=>{
     const isUnbuilt = b.level===0;
+    const maxLvl = buildingMaxLevel(b);
     const upgradeCost = buildingUpgradeCost(b);
-    const canAfford = (!isUnbuilt && b.level>=5) ? false : affordable(upgradeCost);
+    const canAfford = (!isUnbuilt && b.level>=maxLvl) ? false : affordable(upgradeCost);
     const lvlLine = isUnbuilt ? 'Не построено' : (b.produces? 'Ур. '+b.level+' • +'+Math.round(b.base*b.level*raceMod(b.produces)*productionMultiplier()) : 'Ур. '+b.level);
-    const upgradeBtn = (!isUnbuilt && b.level>=5)
+    const upgradeBtn = (!isUnbuilt && b.level>=maxLvl)
       ? '<span style="font-size:.7em;color:#6b5236;">MAX</span>'
       : `<button ${canAfford?'':'disabled'} onclick="event.stopPropagation();upgradeBuilding('${b.key}')">${isUnbuilt?'🔨 Построить':'⬆'} ${Object.entries(upgradeCost).map(([k,v])=>v+iconOf(k)).join(' ')}</button>`;
     const marketBtn = (b.key==='market' && !isUnbuilt) ? `<button style="background:var(--royal);" onclick="event.stopPropagation();openMarket()">🛒 Открыть рынок</button>` : '';
+    const tavernBtn = (b.key==='tavern' && !isUnbuilt) ? `<button style="background:var(--royal);" onclick="event.stopPropagation();openTavern()">🍺 Открыть таверну</button>` : '';
     return `<div class="tile" onclick="showBuildingInfo(event,'${b.key}')" oncontextmenu="showBuildingInfo(event,'${b.key}')" title="Тап — что это здание даёт">
       <div class="ico">${b.ico}</div>
       <b>${b.name}</b>
       <div class="lvl">${lvlLine}</div>
       ${upgradeBtn}
       ${marketBtn}
+      ${tavernBtn}
     </div>`;
   }).join('');
 
   const hero = state.hero;
-  document.getElementById('hero-emoji').textContent = state.race.heroEmoji;
+  document.getElementById('hero-emoji').textContent = heroDefIcon(currentHeroDef());
   document.getElementById('hero-name').textContent = `Герой народа «${state.race.name}»`;
   document.getElementById('hero-level').textContent = `${hero.level} / 25`;
   document.getElementById('hero-xpbar').style.width = Math.min(100, Math.round(100*hero.xp/hero.xpNeeded))+'%';
@@ -1750,9 +1795,10 @@ function raceMod(res){ return state.race.mod[res]||1; }
 function affordable(cost){ return Object.entries(cost).every(([k,v])=> state.res[k] >= v); }
 function pay(cost){ Object.entries(cost).forEach(([k,v])=> state.res[k]-=v); }
 
+function buildingMaxLevel(b){ return b.maxLevel || 5; }
 function buildingUpgradeCost(b){
   if(b.level===0){
-    return {gold:50, wood:20, stone:20}; // one-time construction cost for buildings that start unbuilt (e.g. market)
+    return {gold:50, wood:20, stone:20}; // one-time construction cost for buildings that start unbuilt (e.g. market, tavern)
   }
   const lvl = b.level;
   return {gold: 30*lvl, wood: b.produces==='wood'?0:12*lvl, stone: b.produces==='stone'?0:12*lvl};
@@ -1760,7 +1806,7 @@ function buildingUpgradeCost(b){
 function upgradeBuilding(key){
   const b = state.buildings.find(x=>x.key===key);
   const cost = buildingUpgradeCost(b);
-  if(b.level>=5 || !affordable(cost)) return;
+  if(b.level>=buildingMaxLevel(b) || !affordable(cost)) return;
   const wasUnbuilt = b.level===0;
   pay(cost); b.level++;
   if(wasUnbuilt){ addLog(`«${b.name}» построен! Теперь доступен в поселении.`, 'event'); }
@@ -1800,6 +1846,7 @@ const BUILDING_INFO = {
     return `Крепостные стены — дают +${garrisonDefBonus()} к защите отрядам в гарнизоне (в походе бонус не действует). При осаде на поле боя появляется стена с единственными воротами и ${towers} стрелковой(ыми) башней(ями) — противник вынужден идти через горловину под обстрелом.${nextTowerNote}${moatNote}`;
   },
   market: (b)=> b.level===0 ? `Ещё не построен. Постройте рынок, чтобы открыть покупку и продажу ресурсов по плавающему курсу.` : `Открывает окно торговли: продажа излишков дерева, камня и кристаллов за золото, и обратная покупка при нужде. Курс каждый день немного гуляет — следите за трендом (📈/📉) перед крупной сделкой.`,
+  tavern: (b)=> b.level===0 ? `Ещё не построена. Постройте таверну, чтобы нанимать в поход именных героев с собственными пассивными бонусами.` : `Здесь можно нанять именных героев за ${CONFIG_HERO_PRICE.gold}💰 и ${CONFIG_HERO_PRICE.crystal}💎 каждого (плата разовая, дальше переключение бесплатно) — сейчас доступно ${HERO_DEFS.filter(h=>!h.locked && !h.free).length} из ${HERO_DEFS.filter(h=>!h.locked).length}. Вернуться к безымянному герою можно бесплатно в любой момент. Смена облика не трогает уровень, опыт и характеристики.`,
 };
 function showBuildingInfo(evt, key){
   if(evt) evt.preventDefault();
@@ -1819,13 +1866,68 @@ function unitCapPerTier(tier){
   return base + barracksBonus;
 }
 function townStatBonus(){ return Math.floor((townHallLevel()-1)/2); }
-function getMaxMana(){ return state.hero.maxManaBase + (mageTowerLevel()-1)*4; }
+function getMaxMana(){ return Math.round((state.hero.maxManaBase + (mageTowerLevel()-1)*4) * heroManaMult()); }
 // Mage tower spell-power bonus: +3% at level 1, +5% at level 2, +7% at 3, ...(+2% per level thereafter).
 function mageTowerSpellBonusPct(){ return 2*mageTowerLevel()+1; }
 function spellPowerMult(){ return 1 + mageTowerSpellBonusPct()/100; }
 function spellUnlockedByTower(sp){ return mageTowerLevel() >= (sp.unlockLevel||1); }
 
 function barracksLevel(){ const b = state.buildings.find(x=>x.key==='barracks'); return b ? b.level : 1; }
+
+/* ---- Tavern & heroes: the tavern just unlocks the roster, picking a hero swaps icon/flavor and a
+   couple of small passive multipliers on top of the SAME underlying level/xp/stats progression —
+   switching heroes never resets state.hero.level/xp/atk/def/sp. ---- */
+function tavernLevel(){ const b = state.buildings.find(x=>x.key==='tavern'); return b ? b.level : 0; }
+const CONFIG_HERO_PRICE = {gold:100, crystal:50}; // one-time hire cost for each named tavern hero
+const HERO_DEFS = [
+  {id:'default', name:'Безымянный герой', icon:null, locked:false, free:true,
+    desc:'Испытанный боец без раскрытых пассивных способностей — просто верное лицо вашей расы во главе войска. Можно всегда вернуться к нему.',
+    bonusText:'Без бонусов — базовый герой (когда-нибудь и до него дойдут руки).',
+    bonuses:{}},
+  {id:'pablo', name:'Маг-аспирант Пабло', icon:'🧙‍♂️', locked:false,
+    desc:'Вопросы про его диссертацию вызывают жжение, потемнение в глазах и потерю сознания.',
+    bonusText:'+10% к максимуму маны, +10% урона «Цепной молнии».',
+    bonuses:{manaMult:1.10, chainDmgMult:1.10}},
+  {id:'dionis', name:'Дворф Дионис', icon:'🍺', locked:false,
+    desc:'Нет такой двери, которую не откроет сапог пьяного дворфа.',
+    bonusText:'+10% к получаемому опыту, +5% урона отрядов дальнего боя.',
+    bonuses:{xpMult:1.10, rangedDmgMult:1.05}},
+  {id:'locked3', name:'???', icon:'❔', locked:true,
+    desc:'Ещё один искатель приключений вот-вот постучится в таверну.',
+    bonusText:'Пока недоступно.', bonuses:{}},
+];
+// The default hero's icon follows the player's race (close-to-medieval, race-flavored look), same
+// emoji each race originally used for its generic hero.
+function defaultHeroIcon(){ return (state.race && state.race.heroEmoji) || '🤺'; }
+function heroDefIcon(h){ return h.id==='default' ? defaultHeroIcon() : h.icon; }
+function isHeroUnlocked(h){ return h.id==='default' || h.free || (state.unlockedHeroes||[]).includes(h.id); }
+function currentHeroDef(){ return HERO_DEFS.find(h=>h.id===state.heroId) || HERO_DEFS[0]; }
+function heroManaMult(){ return currentHeroDef().bonuses.manaMult || 1; }
+function heroXpMult(){ return currentHeroDef().bonuses.xpMult || 1; }
+function heroRangedDmgMult(){ return currentHeroDef().bonuses.rangedDmgMult || 1; }
+function heroChainDmgMult(){ return currentHeroDef().bonuses.chainDmgMult || 1; }
+// Switching to an already-unlocked hero (default is always unlocked) is free and instant. Switching
+// to a named hero for the first time charges CONFIG_HERO_PRICE once; after that it's unlocked for
+// the rest of the game and future switches back to them are free.
+function selectHero(id){
+  const def = HERO_DEFS.find(h=>h.id===id);
+  if(!def || def.locked) return;
+  if(!isHeroUnlocked(def)){
+    if(!affordable(CONFIG_HERO_PRICE)){
+      addLog(`Не хватает средств, чтобы нанять героя «${def.name}» (нужно ${CONFIG_HERO_PRICE.gold}💰 и ${CONFIG_HERO_PRICE.crystal}💎).`, 'event');
+      renderVillage(); renderTavern();
+      return;
+    }
+    pay(CONFIG_HERO_PRICE);
+    state.unlockedHeroes = state.unlockedHeroes || [];
+    state.unlockedHeroes.push(def.id);
+    addLog(`Герой «${def.name}» ${heroDefIcon(def)} присоединился к таверне за ${CONFIG_HERO_PRICE.gold}💰 и ${CONFIG_HERO_PRICE.crystal}💎.`, 'event');
+  }
+  state.heroId = id; // level/xp/atk/def/sp/mana all stay exactly as they were — only the identity+passives change
+  addLog(`В таверне герой сменил облик: теперь во главе похода ${def.name} ${heroDefIcon(def)}. Уровень и опыт остались при нём.`, 'event');
+  renderVillage();
+  renderTavern();
+}
 function isTierUnlocked(tier){
   const need = CONFIG.BARRACKS.unlockLevel[tier];
   return !need || barracksLevel() >= need;
@@ -2239,6 +2341,38 @@ function openMarket(){
   renderMarket();
   openModal('modal-market');
 }
+function openTavern(){
+  if(tavernLevel()<1) return; // tavern not built yet
+  renderTavern();
+  openModal('modal-tavern');
+}
+function renderTavern(){
+  const el = document.getElementById('tavern-hero-list');
+  if(!el) return;
+  el.innerHTML = HERO_DEFS.map(h=>{
+    const active = h.id===state.heroId;
+    const unlocked = isHeroUnlocked(h);
+    const icon = heroDefIcon(h);
+    if(h.locked){
+      return `<div class="pick-card" style="opacity:.55;cursor:default;">
+        <div class="emoji">${icon}</div>
+        <b>${h.name}</b>
+        <small>${h.desc}</small>
+        <small style="display:block;margin-top:4px;">${h.bonusText}</small>
+      </div>`;
+    }
+    const canAfford = unlocked || affordable(CONFIG_HERO_PRICE);
+    const priceTag = unlocked ? '' : `<small style="display:block;margin-top:4px;color:var(--gold-ink,#8a6a1a);font-weight:800;">Нанять: ${CONFIG_HERO_PRICE.gold}💰 ${CONFIG_HERO_PRICE.crystal}💎</small>`;
+    const ownedTag = (!h.free && unlocked) ? '<small style="display:block;margin-top:2px;opacity:.75;">✓ Уже нанят</small>' : '';
+    return `<div class="pick-card ${active?'selected':''} ${canAfford?'':'disabled'}" onclick="${canAfford?`selectHero('${h.id}')`:''}">
+      <div class="emoji">${icon}</div>
+      <b>${h.name}${active?' ✓':''}</b>
+      <small>${h.desc}</small>
+      <small style="display:block;margin-top:4px;color:var(--royal);font-weight:700;">${h.bonusText}</small>
+      ${priceTag}${ownedTag}
+    </div>`;
+  }).join('');
+}
 function sellResource(type, qty){
   const rate = state.marketRates[type];
   const amount = Math.min(qty, Math.floor(state.res[type]||0));
@@ -2315,7 +2449,7 @@ const EVENTS = [
   {title:'Странствующий торговец', emoji:'🧳', bad:false, text:'Хитрый купец продал «древние реликвии» втридорога, но заплатил вперёд за постой.',
     apply:s=>{ addRes('gold', 40); addRes('crystal', 3); }},
   {title:'Благословение волхвов', emoji:'🕊️', bad:false, text:'Местный оракул прочитал герою длинную нотацию о судьбе. Получилось на удивление полезно.',
-    apply:s=>{ s.hero.xp += 25; }},
+    apply:s=>{ grantXp(25); }},
   {title:'Тихая неделя', emoji:'😴', bad:false, text:'Ничего не случилось. Летописец в отчаянии выдумал этот абзац для галочки.', apply:s=>{}},
 ];
 
@@ -2410,9 +2544,8 @@ function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
 
   // hero passive xp trickle + level ups
   const edictXp = activeEdictId()==='drill' ? CONFIG.EDICTS.drillXp : 0;
-  s.hero.xp += 5 + edictXp;
+  grantXp(5 + edictXp);
   if(edictXp>0) addLog(`🎯 Учения дали герою +${edictXp} опыта.`, 'event');
-  tryLevelUp();
 
   // mana: full instant refill if resting in the castle, otherwise gradual regen on the road
   if(wasInVillage){ s.hero.mana = getMaxMana(); }
@@ -2440,6 +2573,12 @@ function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
   }
 }
 
+// All XP awards should route through here (not state.hero.xp += ... directly) so the active
+// tavern hero's XP passive (if any) is never accidentally skipped at some call site.
+function grantXp(amount){
+  state.hero.xp += Math.round(amount * heroXpMult());
+  tryLevelUp();
+}
 function tryLevelUp(){
   const h = state.hero;
   while(h.xp >= h.xpNeeded && h.level < 25){
@@ -2706,6 +2845,30 @@ let worldCamera = {x:0, y:0};
 let worldDrag = null;
 let worldDragSuppressClickUntil = 0;
 let worldCameraSnapTimer = null;
+// World-map side widgets (minimap/scout/loot/log/overview) are collapsed by default so they don't
+// clutter the view; each renders lazily, only while its panel is actually open.
+let worldWidgetOpen = {minimap:false, scout:false, loot:false, log:false, overview:false};
+let lastWorldVisible = new Set(), lastWorldExplored = new Set(), lastWorldViewport = {w:0,h:0};
+let showMinimapViewport = false; // the yellow "what's on screen" outline is opt-in, not always-on
+function toggleWorldWidget(name){
+  worldWidgetOpen[name] = !worldWidgetOpen[name];
+  const panel = document.getElementById('widget-'+name);
+  const btn = document.getElementById('wmtoggle-'+name);
+  if(panel) panel.style.display = worldWidgetOpen[name] ? '' : 'none';
+  if(btn) btn.classList.toggle('active', worldWidgetOpen[name]);
+  if(worldWidgetOpen[name]) renderOpenWorldWidgets();
+}
+function renderOpenWorldWidgets(){
+  if(!state) return;
+  if(worldWidgetOpen.minimap) renderMiniMap(lastWorldVisible, lastWorldExplored, lastWorldViewport);
+  if(worldWidgetOpen.scout || worldWidgetOpen.loot || worldWidgetOpen.log || worldWidgetOpen.overview){
+    renderWorldIntel(lastWorldVisible, lastWorldExplored);
+  }
+}
+function toggleMinimapViewport(){
+  showMinimapViewport = !showMinimapViewport;
+  if(worldWidgetOpen.minimap) renderMiniMap(lastWorldVisible, lastWorldExplored, lastWorldViewport);
+}
 function worldViewportSize(){
   const narrow = window.innerWidth <= 640;
   return {w: Math.min(WORLD_COLS, narrow ? 9 : 13), h: Math.min(WORLD_ROWS, narrow ? 9 : 9)};
@@ -2931,7 +3094,6 @@ function renderWorldIntel(visible, explored){
 }
 
 function renderWorldMap(){
-  saveGame();
   updateWorldTopbar();
   const wrap = document.querySelector('.worldmap-wrap');
   bindWorldMapControls();
@@ -2993,7 +3155,7 @@ function renderWorldMap(){
     }
   }
   grid.innerHTML = html;
-  document.getElementById('hero-token').textContent = state.race.heroEmoji;
+  document.getElementById('hero-token').textContent = heroDefIcon(currentHeroDef());
   updateHeroTokenPosition();
   renderMiniMap(visible, explored, viewport);
   renderWorldIntel(visible, explored);
@@ -3155,7 +3317,7 @@ function animateRivalMove(callback){
   state.moveAnimating = true;
   let target = chooseRivalTarget(rival);
   let stepsLeft = CONFIG.RIVAL.movePoints;
-  function finish(result){ state.moveAnimating = false; callback(result); }
+  function finish(result){ state.moveAnimating = false; saveGame(); callback(result); }
   function step(){
     if(stepsLeft<=0 || !target){ finish(resolveRivalTile()); return; }
     const path = bfsPath({x:rival.x,y:rival.y}, target);
@@ -3167,6 +3329,7 @@ function animateRivalMove(callback){
     flashWorldMsg(`⚔️ ${rival.name} действует на карте — следите за его манёврами...`);
     if(rival.x===state.heroPos.x && rival.y===state.heroPos.y){
       state.moveAnimating = false;
+      saveGame();
       triggerRivalEncounter();
       callback(true);
       return;
@@ -3295,7 +3458,7 @@ function animatePath(path){
   renderWorldMap();
   let i = 0;
   function step(){
-    if(i >= path.length){ state.moveAnimating = false; return; }
+    if(i >= path.length){ state.moveAnimating = false; saveGame(); return; }
     const p = path[i];
     state.heroPos = {x:p.x, y:p.y};
     state.movePoints--;
@@ -3307,16 +3470,16 @@ function animatePath(path){
     i++;
     const ch = state.worldMap[p.y][p.x];
     const rival = state.rivalHero && state.rivalHero.x===p.x && state.rivalHero.y===p.y ? state.rivalHero : null;
-    if(rival){ state.moveAnimating = false; setTimeout(()=>triggerRivalEncounter(), 350); return; }
+    if(rival){ state.moveAnimating = false; saveGame(); setTimeout(()=>triggerRivalEncounter(), 350); return; }
     const camp = state.camps.find(c=>c.x===p.x && c.y===p.y && !c.defeated);
-    if(camp){ state.moveAnimating = false; setTimeout(()=>triggerCampBattle(camp.id), 350); return; }
+    if(camp){ state.moveAnimating = false; saveGame(); setTimeout(()=>triggerCampBattle(camp.id), 350); return; }
     const fort = (state.forts||[]).find(f=>f.x===p.x && f.y===p.y && !f.captured);
-    if(fort){ state.moveAnimating = false; setTimeout(()=>triggerFortEncounter(fort.id), 350); return; }
+    if(fort){ state.moveAnimating = false; saveGame(); setTimeout(()=>triggerFortEncounter(fort.id), 350); return; }
     const dragon = state.dragonLairs.find(d=>d.x===p.x && d.y===p.y && !d.defeated);
-    if(dragon){ state.moveAnimating = false; setTimeout(()=>triggerDragonEncounter(dragon.id), 350); return; }
+    if(dragon){ state.moveAnimating = false; saveGame(); setTimeout(()=>triggerDragonEncounter(dragon.id), 350); return; }
     const pickup = state.resourcePickups.find(r=>r.x===p.x && r.y===p.y && !r.collected);
-    if(pickup){ state.moveAnimating = false; setTimeout(()=>triggerResourceEvent(pickup), 350); return; }
-    if(ch==='H'){ state.moveAnimating = false; setTimeout(()=>{ showScreen('screen-village'); renderVillage(); }, 350); return; }
+    if(pickup){ state.moveAnimating = false; saveGame(); setTimeout(()=>triggerResourceEvent(pickup), 350); return; }
+    if(ch==='H'){ state.moveAnimating = false; saveGame(); setTimeout(()=>{ showScreen('screen-village'); renderVillage(); }, 350); return; }
     setTimeout(step, 260);
   }
   step();
@@ -3856,6 +4019,7 @@ function resolveCombat(attacker, defender){
   const adjacent = isAdjacent8(attacker,defender);
   let rangeNote = '';
   const isRangedShot = attacker.ranged && !adjacent;
+  if(attacker.side==='player' && attacker.ranged) dmg = Math.round(dmg * heroRangedDmgMult());
   if(isRangedShot){
     const dist = chebyshev(attacker, defender);
     if(dist > RANGED_FULL_RANGE){ dmg = Math.max(2, Math.round(dmg*0.5)); rangeNote = ' (дальняя дистанция, урон вполсилы)'; }
@@ -4013,7 +4177,7 @@ function castSpellOn(sp, target){
     logBattle(`${sp.icon} ${sp.name} накрывает ${target.icon} ${target.name}: отряд ослеплён на 2 хода. ${spellJoke(sp.id)}`);
     playFx(target, 'blind');
   } else if(sp.type==='chain'){
-    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3) * spellPowerMult());
+    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3) * spellPowerMult() * heroChainDmgMult());
     applyStackDamage(target, dmg);
     logBattle(`${sp.icon} ${sp.name} бьёт в ${target.icon} ${target.name}: ${dmg} урона!`);
     playFx(target, 'chain');
@@ -4167,7 +4331,7 @@ function finishTacticalBattle(result){
     if(result==='win'){
       const loot = {gold: 15+state.day*2, wood:5, stone:5, crystal:0};
       Object.entries(loot).forEach(([k,v])=>{ if(v>0) addRes(k,v); });
-      state.hero.xp += 15; tryLevelUp();
+      grantXp(15);
       const lootHtml = Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>`<span class="loot-chip">+${v}${iconOf(k)}</span>`).join('') + `<span class="loot-chip">+15✨XP</span>`;
       logBattle('<b>🎉 Гарнизон отбил набег!</b> Трофеи с разбитых налётчиков достались защитникам.');
       addLog('Гарнизон успешно отразил набег на поселение.', 'combat');
@@ -4229,8 +4393,7 @@ function finishTacticalBattle(result){
     let lootOverflowed = false;
     Object.entries(loot).forEach(([k,v])=>{ if(addRes(k,v) < v) lootOverflowed = true; });
     const xp = battle.meta.source==='dragon' ? 120 : (battle.meta.source==='fort' ? 60 : (battle.meta.source==='rival' ? 70 : 35));
-    state.hero.xp += xp;
-    tryLevelUp();
+    grantXp(xp);
     const lootHtml = Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>`<span class="loot-chip">+${v}${iconOf(k)}</span>`).join('') + `<span class="loot-chip">+${xp}✨XP</span>`;
     logBattle(`<b>🎉 Победа!</b> Трофеи: ${Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>v+iconOf(k)).join(' ')}. Герой получил опыт.${lootOverflowed?' 📦 Часть добычи не влезла на склад и была брошена.':''}`);
     let subtitle = 'Отряд возвращается с добычей.';
