@@ -303,6 +303,8 @@
   .minimap-cell.visible{ background:#bcd98f; }
   .minimap-cell.water{ background:#557f92; }
   .minimap-cell.mountain{ background:#827769; }
+  .minimap-cell.snow{ background:#d7eef1; }
+  .minimap-cell.desert{ background:#d9b66d; }
   .minimap-cell.home{ background:#e8cf8a; }
   .minimap-cell.fort{ box-shadow:inset 0 0 0 2px #d0b04f; }
   .minimap-cell.hero::after{ content:""; position:absolute; inset:22%; border-radius:50%; background:#2e5fae; box-shadow:0 0 0 1px #fff; }
@@ -319,6 +321,8 @@
   .wtile{ position:relative; display:flex; align-items:center; justify-content:center; font-size:1.3em; user-select:none; }
   .wtile.t-grass{ background:#bcd98f; cursor:pointer; }
   .wtile.t-forest{ background:#6b8f4e; cursor:pointer; }
+  .wtile.t-snow{ background:#d7eef1; cursor:pointer; color:#39525c; }
+  .wtile.t-desert{ background:#d9b66d; cursor:pointer; color:#5a3d1d; }
   .wtile.t-mountain{ background:#93897a; cursor:not-allowed; }
   .wtile.t-water{ background:#6fa8b8; cursor:not-allowed; }
   .wtile.t-home{ background:#e8cf8a; cursor:pointer; }
@@ -513,7 +517,7 @@
       <div class="minimap-caption">Миникарта: нажмите на область, чтобы сдвинуть обзор</div>
     </div>
     <div class="world-intel" id="world-intel"></div>
-    <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 Вассалы&nbsp; • &nbsp;Клик по клетке — описание объекта</div>
+    <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;❄️ Зима&nbsp; • &nbsp;🏜️ Пески&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 Вассалы&nbsp; • &nbsp;Клик по клетке — описание объекта</div>
   </div>
 </div>
 
@@ -707,32 +711,34 @@ function unitFlavor(raceId, tier){
 }
 
 /* ---- Global (overworld) map ---- */
-// . grass  f forest  m mountain  w water  H home/castle  1/2/3 enemy camps  F capturable forts
+// . grass  f forest  s snow  d desert  m mountain  w water  H home/castle
+// 1-9/A-C enemy camps  F capturable forts
 // NOTE: bigger than a single settlement's turf on purpose — this is the seed of the
 // eventual shared world map (other players' castles/armies will live here later).
 const WORLD_TEMPLATE = [
-  "....m..f....m..f....w..",
-  ".H....f..1....f.....w..",
-  "...m.f......w.....m....",
-  "f.....m..f..w..2.....f.",
-  ".w..m.....f....m....f..",
-  "..f.....F....w.....m...",
-  "f..f.m......f....3.....",
-  "..m....w..f....m....f..",
-  "....w..F....f.....w....",
-  "f.....m.....w..f....4..",
-  "...f....m......w..f....",
-  ".5....f....m.....F.....",
-  "....m.....w....f....m..",
-  "..f....w.....6....m....",
-  "m.....f....m.....w..f..",
-  "...w....f.....m.....f..",
-  "f....m.....w....f.....m",
-  "...f.....m....w....f...",
+  "....mfff....mmssssssw..",
+  ".H....f..1..mssss8ssw..",
+  "...m.f.....msssssssm...",
+  "f.....m..f.msss2ssm.f..",
+  ".w..m.....f.msssss7m...",
+  "..f.....F...mmss.s.....",
+  "f..f.m......f.m3ssm....",
+  "..m....w..f....mss.f...",
+  "....w.......f..m..w.9..",
+  "f.....m.d...w..f....4..",
+  "...f..d.m......w..f....",
+  ".5...md.ddm.....F..d...",
+  "....mdddddw....f..B.m..",
+  "..f.mddwdddd6....m.....",
+  "m..Addfddddm..d..w..f..",
+  "...wddFdf.....m..C..f..",
+  "f.dddmdd...w..d.f...m..",
+  "...f..ddm....w....f....",
 ];
 const WORLD_COLS = WORLD_TEMPLATE[0].length;
 const WORLD_ROWS = WORLD_TEMPLATE.length;
-const CAMP_MARKER_CHARS = ['1','2','3','4','5','6']; // world-map positions are fixed; WHO occupies them is rolled at runtime
+const WORLD_MAP_VERSION = 4;
+const CAMP_MARKER_CHARS = ['1','2','3','4','5','6','7','8','9','A','B','C']; // world-map positions are fixed; WHO occupies them is rolled at runtime
 const CAMP_FLAVOR_NAMES = {
   humans:  ['Лагерь дезертиров', 'Бандитский острог', 'Стоянка наёмников'],
   elves:   ['Эльфийский дозор', 'Лесная застава', 'Стоянка стражей рощи'],
@@ -757,6 +763,31 @@ function shuffleArray(arr){
 }
 function tileDistance(a, b){ return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y)); } // chebyshev, matches grid movement
 function unitPowerValue(tier){ return tier*tier*4; } // rough "how much budget one of these costs"
+
+const WORLD_REGIONS = {
+  outskirts: {name:'Предместья замка', icon:'🏰', danger:1, note:'Безопасная стартовая зона: больше дерева и камня, слабее угрозы.', campRaces:['humans','humans','dwarves'], resources:['wood','wood','stone','stone','gold']},
+  woods: {name:'Лесной пояс', icon:'🌲', danger:2, note:'Леса дают укрытие лагерям и засадам, зато здесь часто попадается дерево.', campRaces:['elves','elves','humans','dwarves'], resources:['wood','wood','wood','gold','crystal']},
+  winter: {name:'Зимний биом', icon:'❄️', danger:3, note:'Снега богаты камнем и кристаллами, но местные отряды обычно крепче.', campRaces:['dwarves','dwarves','undead','humans'], resources:['stone','stone','crystal','crystal','gold']},
+  desert: {name:'Песчаный биом', icon:'🏜️', danger:3, note:'Пески бедны деревом, зато в них чаще находят золото и древние тайники.', campRaces:['humans','undead','dwarves'], resources:['gold','gold','gold','crystal','stone']},
+  ruins: {name:'Старые руины', icon:'☠️', danger:3, note:'Опасные развалины с нежитью, золотом и кристаллами.', campRaces:['undead','undead','humans'], resources:['gold','gold','crystal','stone']},
+  frontier: {name:'Пограничные форты', icon:'🏯', danger:3, note:'Спорные земли вокруг фортов: контроль даёт обзор и стабильные подати.', campRaces:['humans','dwarves','elves','undead'], resources:['stone','stone','gold','wood','crystal']},
+  wastes: {name:'Драконьи пустоши', icon:'🐉', danger:4, note:'Дальние земли с лучшей добычей и самыми жёсткими боями.', campRaces:['undead','dwarves','humans'], resources:['gold','gold','crystal','crystal','stone']},
+};
+function pickFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function worldRegionAt(x, y){
+  const home = findCharPos(WORLD_TEMPLATE, 'H');
+  const dist = tileDistance({x,y}, home);
+  const ch = WORLD_TEMPLATE[y] ? WORLD_TEMPLATE[y][x] : '.';
+  const nearFort = findFortPositions(WORLD_TEMPLATE).some(f=>tileDistance({x,y}, f)<=2);
+  if(ch==='s') return Object.assign({id:'winter'}, WORLD_REGIONS.winter);
+  if(ch==='d') return Object.assign({id:'desert'}, WORLD_REGIONS.desert);
+  if(dist <= 4) return Object.assign({id:'outskirts'}, WORLD_REGIONS.outskirts);
+  if(nearFort) return Object.assign({id:'frontier'}, WORLD_REGIONS.frontier);
+  if(dist >= 12) return Object.assign({id:'wastes'}, WORLD_REGIONS.wastes);
+  if(ch==='f' || x < 7) return Object.assign({id:'woods'}, WORLD_REGIONS.woods);
+  if(y >= 9 || (x >= 10 && y >= 5)) return Object.assign({id:'ruins'}, WORLD_REGIONS.ruins);
+  return Object.assign({id:'frontier'}, WORLD_REGIONS.frontier);
+}
 
 function findFortPositions(template){
   const out = [];
@@ -791,7 +822,9 @@ function rollCampContent(x, y){
   const jitter = 1 + (Math.random()*2-1)*cfg.jitter;
   const budget = Math.max(20, Math.round((cfg.baseBudget + dist*cfg.budgetPerDistance)*jitter));
 
-  const raceObj = RACES[Math.floor(Math.random()*RACES.length)];
+  const region = worldRegionAt(x, y);
+  const preferredRace = pickFrom(region.campRaces || RACES.map(r=>r.id));
+  const raceObj = RACES.find(r=>r.id===preferredRace) || RACES[Math.floor(Math.random()*RACES.length)];
   let maxTier = 1;
   for(let t=1;t<=6;t++){ if(budget >= unitPowerValue(t)*1.3) maxTier = t; }
   const stackCount = 1 + Math.floor(Math.random()*Math.min(3, maxTier));
@@ -820,13 +853,13 @@ function rollDragonLairs(resourcePickups){
   for(let y=0;y<WORLD_ROWS;y++){
     for(let x=0;x<WORLD_COLS;x++){
       const ch = WORLD_TEMPLATE[y][x];
-      if((ch==='.'||ch==='f') && !occupied.has(x+','+y)) candidates.push({x,y});
+      if(isResourceTerrain(ch) && !occupied.has(x+','+y)) candidates.push({x,y});
     }
   }
   shuffleArray(candidates);
   candidates.sort((a,b)=>tileDistance(b,home)-tileDistance(a,home));
   const cfg = CONFIG.DRAGON;
-  const farCandidates = candidates.filter(c=>tileDistance(c,home)>=7);
+  const farCandidates = candidates.filter(c=>worldRegionAt(c.x,c.y).id==='wastes' || tileDistance(c,home)>=9);
   const lairSpots = farCandidates.length >= cfg.minLairs ? farCandidates : candidates;
   const lairCount = Math.min(lairSpots.length, cfg.minLairs + Math.floor(Math.random()*(cfg.maxLairs-cfg.minLairs+1)));
   const lairs = [];
@@ -843,7 +876,7 @@ function rollDragonLairs(resourcePickups){
   }
   return lairs;
 }
-const RESOURCE_PICKUP_COUNT = 14;
+const RESOURCE_PICKUP_COUNT = 24;
 
 /* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
 const CONFIG = {
@@ -975,6 +1008,7 @@ function newGame(raceId, modeId){
     garrison: [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?3:0})),
     log: [],
     leaderboard: seedLeaderboard(raceId),
+    worldMapVersion: WORLD_MAP_VERSION,
     worldMap: WORLD_TEMPLATE.slice(),
     heroPos: homePos,
     worldHeroSelected: false,
@@ -1002,11 +1036,12 @@ function rollResourcePickup(home, spot, index){
   const dist = tileDistance(home, spot);
   const far = dist >= 10;
   const mid = dist >= 6;
-  const pool = far
+  const region = worldRegionAt(spot.x, spot.y);
+  const pool = region.resources || (far
     ? ['gold','gold','crystal','crystal','stone','wood']
     : mid
       ? ['gold','gold','wood','stone','stone','crystal']
-      : ['wood','wood','stone','stone','gold'];
+      : ['wood','wood','stone','stone','gold']);
   const type = pool[Math.floor(Math.random()*pool.length)];
   const typeBonus = type==='crystal' ? 4 : type==='gold' ? 6 : 0;
   const distanceBonus = Math.floor(dist * (far ? 1.8 : mid ? 1.1 : 0.55));
@@ -1014,12 +1049,14 @@ function rollResourcePickup(home, spot, index){
   return {id:'res'+index, x:spot.x, y:spot.y, type, amount, collected:false};
 }
 
+function isResourceTerrain(ch){ return ch==='.' || ch==='f' || ch==='s' || ch==='d'; }
+
 function generateResourcePickups(template, home){
   const spots = [];
   for(let y=0;y<template.length;y++){
     for(let x=0;x<template[y].length;x++){
       const ch = template[y][x];
-      if((ch==='.'||ch==='f') && !(x===home.x && y===home.y)) spots.push({x,y});
+      if(isResourceTerrain(ch) && !(x===home.x && y===home.y)) spots.push({x,y});
     }
   }
   for(let i=spots.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [spots[i],spots[j]]=[spots[j],spots[i]]; }
@@ -1029,9 +1066,9 @@ function generateResourcePickups(template, home){
     far: spots.filter(s=>tileDistance(home,s)>10),
   };
   const plan = [
-    ...buckets.near.slice(0,5),
-    ...buckets.mid.slice(0,5),
-    ...buckets.far.slice(0,RESOURCE_PICKUP_COUNT-10),
+    ...buckets.near.slice(0,7),
+    ...buckets.mid.slice(0,8),
+    ...buckets.far.slice(0,RESOURCE_PICKUP_COUNT-15),
   ];
   const used = new Set(plan.map(s=>s.x+','+s.y));
   spots.forEach(s=>{
@@ -1286,7 +1323,8 @@ function loadGame(snapshotJson){
     if(!parsed || !parsed.race || !parsed.res) return false;
     state = parsed;
     const mapMismatch = !state.worldMap || state.worldMap.length!==WORLD_ROWS || state.worldMap.some(row=>row.length!==WORLD_COLS);
-    if(mapMismatch){
+    const mapOutdated = state.worldMapVersion !== WORLD_MAP_VERSION;
+    if(mapMismatch || mapOutdated){
       const homePos = findCharPos(WORLD_TEMPLATE, 'H');
       state.worldMap = WORLD_TEMPLATE.slice();
       state.heroPos = homePos;
@@ -1295,7 +1333,9 @@ function loadGame(snapshotJson){
       state.dragonLairs = rollDragonLairs(state.resourcePickups);
       state.forts = rollForts();
       state.exploredTiles = [];
+      state.worldMapVersion = WORLD_MAP_VERSION;
     }
+    state.worldMapVersion = state.worldMapVersion || WORLD_MAP_VERSION;
     state.exploredTiles = Array.isArray(state.exploredTiles) ? state.exploredTiles : [];
     state.edict = state.edict || 'balanced';
     state.nextEdict = state.nextEdict || state.edict || 'balanced';
@@ -2483,6 +2523,8 @@ function openWorldMap(){
 
 function terrainClass(ch){
   if(ch==='f') return 't-forest';
+  if(ch==='s') return 't-snow';
+  if(ch==='d') return 't-desert';
   if(ch==='m') return 't-mountain';
   if(ch==='w') return 't-water';
   if(ch==='H') return 't-home';
@@ -2490,6 +2532,8 @@ function terrainClass(ch){
 }
 function terrainIcon(ch){
   if(ch==='f') return '🌲';
+  if(ch==='s') return '';
+  if(ch==='d') return '';
   if(ch==='m') return '⛰️';
   if(ch==='w') return '🌊';
   if(ch==='H') return '🏰';
@@ -2500,7 +2544,7 @@ function terrainIcon(ch){
 // falling back to plain terrain flavor. Used by the "click to inspect" popup on the world map.
 function describeWorldTile(x,y){
   const key = x+','+y;
-  if(!(state.exploredTiles||[]).includes(key)){
+  if(!devFowDisabled && !(state.exploredTiles||[]).includes(key)){
     return {icon:'?', title:'Неизведанные земли',
       text:'Здесь ещё не бывал ни герой, ни вассальный дозор. Подойдите ближе (в радиусе 2 клеток), чтобы рассеять туман войны.'};
   }
@@ -2550,12 +2594,17 @@ function describeWorldTile(x,y){
   if(ch==='m') return {icon:'⛰️', title:'Горы', text:'Непроходимая местность — обойдите стороной.'};
   if(ch==='w') return {icon:'🌊', title:'Вода', text:'Непроходимая местность — обойдите стороной.'};
   if(ch==='f') return {icon:'🌲', title:'Лес', text:'Проходимая местность без построек. Иногда в лесах прячутся находки или засады.'};
+  if(ch==='s') return {icon:'❄️', title:'Зимний биом', text:'Холодные земли. Здесь чаще встречаются камень, кристаллы и суровые отряды.'};
+  if(ch==='d') return {icon:'🏜️', title:'Песчаный биом', text:'Сухие земли дальних переходов. В песках чаще находят золото, но и угрозы здесь злее.'};
   return {icon:'🌾', title:'Пустошь', text:'Обычная проходимая клетка — ничего примечательного.'};
 }
 
 function showTileInfoModal(x,y){
   const d = describeWorldTile(x,y);
-  showEventModal2({icon:d.icon, title:d.title, text:d.text, buttonLabel:'Понятно'});
+  const key = x+','+y;
+  const region = worldRegionAt(x,y);
+  const prefix = (devFowDisabled || (state.exploredTiles||[]).includes(key)) ? `Область: ${region.icon} ${region.name}. ${region.note}\n\n` : '';
+  showEventModal2({icon:d.icon, title:d.title, text:prefix + d.text, buttonLabel:'Понятно'});
 }
 
 function reachableWorldTiles(){
@@ -2607,6 +2656,7 @@ function fogVisionSources(){
   return sources;
 }
 function computeVisibleTiles(){
+  if(devFowDisabled) return allWorldTileKeys();
   const visible = new Set();
   const r = CONFIG.FOG_OF_WAR.visionRadius;
   fogVisionSources().forEach(pos=>{
@@ -2620,9 +2670,31 @@ function computeVisibleTiles(){
   });
   return visible;
 }
+function allWorldTileKeys(){
+  const out = new Set();
+  for(let y=0;y<WORLD_ROWS;y++){
+    for(let x=0;x<WORLD_COLS;x++) out.add(x+','+y);
+  }
+  return out;
+}
+let devFowDisabled = false;
+let devCheatBuffer = '';
+function toggleDevFogOfWar(){
+  devFowDisabled = !devFowDisabled;
+  if(document.getElementById('screen-worldmap').classList.contains('active')){
+    renderWorldMap();
+    flashWorldMsg(devFowDisabled ? 'DEV: туман войны отключён (toggle_fow).' : 'DEV: туман войны включён обратно.');
+  }
+  return devFowDisabled;
+}
+window.toggle_fow = toggleDevFogOfWar;
 // Grows the persistent "ever seen" memory with whatever's visible right now, saves it back onto
 // state (so it survives saves/reloads), and returns both sets for this render pass to use.
 function refreshFogOfWar(){
+  if(devFowDisabled){
+    const all = allWorldTileKeys();
+    return {visible: all, explored: all};
+  }
   const visible = computeVisibleTiles();
   const explored = new Set(state.exploredTiles || []);
   visible.forEach(k=>explored.add(k));
@@ -2743,6 +2815,15 @@ function bindWorldMapControls(){
     document.body.dataset.worldKeysBound = '1';
     document.addEventListener('keydown', (e)=>{
       if(!state || document.getElementById('screen-worldmap').style.display==='none') return;
+      if(e.key && e.key.length===1){
+        devCheatBuffer = (devCheatBuffer + e.key.toLowerCase()).slice(-16);
+        if(devCheatBuffer.endsWith('toggle_fow')){
+          e.preventDefault();
+          devCheatBuffer = '';
+          toggleDevFogOfWar();
+          return;
+        }
+      }
       if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
         e.preventDefault();
         const delta = {ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0]}[e.key];
@@ -2761,7 +2842,7 @@ function ensureHeroInWorldCamera(){
   const size = clampWorldCamera();
   if(!state || !state.heroPos) return size;
   if(state.heroPos.x < worldCamera.x || state.heroPos.x >= worldCamera.x + size.w || state.heroPos.y < worldCamera.y || state.heroPos.y >= worldCamera.y + size.h){
-    ensureHeroInWorldCamera();
+    centerWorldCameraOn(state.heroPos);
   }
   if(worldCameraKey() !== before) markWorldCameraSnap();
   return clampWorldCamera();
@@ -2782,6 +2863,8 @@ function renderMiniMap(visible, explored, viewport){
       if(visible.has(key)) classes.push('visible');
       if(ch==='w') classes.push('water');
       if(ch==='m') classes.push('mountain');
+      if(ch==='s') classes.push('snow');
+      if(ch==='d') classes.push('desert');
       if(ch==='H') classes.push('home');
       if((state.forts||[]).some(f=>f.x===x && f.y===y)) classes.push('fort');
       if(state.heroPos.x===x && state.heroPos.y===y) classes.push('hero');
@@ -2804,13 +2887,16 @@ function renderWorldIntel(visible, explored){
   (state.camps||[]).filter(c=>!c.defeated && seen(c.x+','+c.y)).forEach(c=>{
     const raceObj = RACES.find(r=>r.id===c.def.race) || RACES[0];
     const size = c.def.armyTiers.reduce((s,t)=>s+t.count,0);
-    threats.push({dist:tileDistance(state.heroPos,c), text:`${raceObj.emoji} ${c.def.label}`, right:`${size} бойц.`});
+    const region = worldRegionAt(c.x,c.y);
+    threats.push({dist:tileDistance(state.heroPos,c), text:`${region.icon} ${raceObj.emoji} ${c.def.label}`, right:`${size} бойц.`});
   });
   (state.dragonLairs||[]).filter(d=>!d.defeated && seen(d.x+','+d.y)).forEach(d=>{
-    threats.push({dist:tileDistance(state.heroPos,d), text:`${d.def.icon} ${d.def.label}`, right:`${d.count} дракон.`});
+    const region = worldRegionAt(d.x,d.y);
+    threats.push({dist:tileDistance(state.heroPos,d), text:`${region.icon} ${d.def.icon} ${d.def.label}`, right:`${d.count} дракон.`});
   });
   (state.forts||[]).filter(f=>seen(f.x+','+f.y)).forEach(f=>{
-    threats.push({dist:tileDistance(state.heroPos,f), text:`${f.captured?'🚩':'🏯'} ${f.name}`, right:f.captured ? `+${f.income}${iconOf(f.resource)}` : 'форт'});
+    const region = worldRegionAt(f.x,f.y);
+    threats.push({dist:tileDistance(state.heroPos,f), text:`${region.icon} ${f.captured?'🚩':'🏯'} ${f.name}`, right:f.captured ? `+${f.income}${iconOf(f.resource)}` : 'форт'});
   });
   if(state.rivalHero && isVisible(state.rivalHero.x+','+state.rivalHero.y)){
     threats.unshift({dist:tileDistance(state.heroPos,state.rivalHero), text:`⚔️ ${state.rivalHero.name}`, right:'рядом'});
@@ -2819,9 +2905,13 @@ function renderWorldIntel(visible, explored){
 
   const pickups = (state.resourcePickups||[])
     .filter(p=>!p.collected && seen(p.x+','+p.y))
-    .map(p=>({dist:tileDistance(state.heroPos,p), text:`${iconOf(p.type)} Находка`, right:`${p.amount}`}))
+    .map(p=>{
+      const region = worldRegionAt(p.x,p.y);
+      return {dist:tileDistance(state.heroPos,p), text:`${region.icon} ${iconOf(p.type)} Находка`, right:`${p.amount}`};
+    })
     .sort((a,b)=>a.dist-b.dist);
   const logs = (state.log||[]).slice(-4).reverse();
+  const heroRegion = worldRegionAt(state.heroPos.x, state.heroPos.y);
   const block = (title, rows, empty)=>`
     <div class="world-intel-block">
       <div class="world-intel-title">${title}</div>
@@ -2834,6 +2924,7 @@ function renderWorldIntel(visible, explored){
     block('Добыча', pickups.slice(0,5), 'Поблизости не видно свободных находок.') +
     block('События', logs.map(l=>({text:l.text, right:l.type==='combat'?'бой':'событие'})), 'Журнал пока пуст.') +
     block('Обзор', [
+      {text:`Текущая область`, right:`${heroRegion.icon} ${heroRegion.name}`},
       {text:`Открыто клеток`, right:`${explored.size}/${WORLD_COLS*WORLD_ROWS}`},
       {text:`Сейчас видно`, right:`${visible.size}`},
     ], '');
