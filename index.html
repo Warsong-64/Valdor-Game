@@ -2627,7 +2627,9 @@ function requestCloudSave(json, baseKey, force, meta){
   if(!(isTelegramEnv() && hasCloudStorage())) return;
   const now = Date.now();
   const wait = Math.max(0, CLOUD_SAVE_MIN_INTERVAL - (now - lastCloudSaveAt));
-  const payload = {json, baseKey:baseKey || activeCloudKey(), meta:meta || null};
+  const resolvedBaseKey = baseKey || activeCloudKey();
+  const payloadMeta = meta ? Object.assign({}, meta, {cloudBaseKey: meta.cloudBaseKey || resolvedBaseKey}) : null;
+  const payload = {json, baseKey:resolvedBaseKey, meta:payloadMeta};
   if(!force && wait>0){
     cloudSavePending = payload;
     clearTimeout(cloudSaveFlushTimer);
@@ -2873,7 +2875,9 @@ function loadSaveSlot(slotId){
     if(loadGame(snapshot)){
       currentSaveSlotId = slotId;
       savedGameSnapshot = snapshot;
+      const previousMeta = saveSlots.find(s=>s.id===slotId);
       const meta = getSaveMetaFromJson(snapshot, slotId);
+      if(isTelegramEnv() && hasCloudStorage() && previousMeta) meta.cloudBaseKey = cloudBaseForSlot(previousMeta);
       meta.snapshot = snapshot;
       setSlotMeta(meta);
       if(isTelegramEnv() && hasCloudStorage()) saveIndexToCloud(meta);
