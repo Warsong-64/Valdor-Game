@@ -2046,7 +2046,7 @@ const SAVE_INDEX_KEY = 'valdor_save_index_v3';
 const SAVE_DELETED_MARKER_KEY = 'valdor_save_deleted_v1';
 const SAVE_SLOT_PREFIX = 'valdor_save_slot_';
 const TELEGRAM_REMOTE_POINTER_KEY = 'valdor_tg_remote_pointer_v1';
-const SAVE_CHUNK_SIZE = 3500;           // bytes per chunk, safely under Telegram's 4096-byte-per-key cap
+const SAVE_CHUNK_SIZE = 2400;           // UTF-8 bytes per chunk, safely under Telegram's 4096-byte-per-key cap
 const MAX_SAVE_SLOTS = 24;
 const IDB_SAVE_DB = 'ValdorSaveDB';
 const IDB_SAVE_STORE = 'saves';
@@ -2086,11 +2086,33 @@ function getSaveMetaFromJson(json, slotId){
       raceName: parsed.race && parsed.race.name ? parsed.race.name : 'Фракция',
       day: parsed.day || 1,
       updatedAt: Date.now(),
-      chunks: Math.max(1, Math.ceil(json.length / SAVE_CHUNK_SIZE))
+      chunks: splitCloudValue(json).length
     };
   }catch(e){
     return {id:slotId, title:'Сохранение', raceName:'Фракция', day:1, updatedAt:Date.now(), chunks:1};
   }
+}
+function utf8ByteLength(str){
+  if(typeof TextEncoder !== 'undefined') return new TextEncoder().encode(str).length;
+  try{ return unescape(encodeURIComponent(str)).length; }catch(e){ return str.length * 2; }
+}
+function splitCloudValue(str){
+  const chunks = [];
+  let current = '';
+  let currentBytes = 0;
+  for(const ch of str){
+    const chBytes = utf8ByteLength(ch);
+    if(current && currentBytes + chBytes > SAVE_CHUNK_SIZE){
+      chunks.push(current);
+      current = ch;
+      currentBytes = chBytes;
+    } else {
+      current += ch;
+      currentBytes += chBytes;
+    }
+  }
+  if(current || !chunks.length) chunks.push(current);
+  return chunks;
 }
 function parseSaveSummary(json){
   try{
@@ -2356,15 +2378,16 @@ function renderSaveManager(){
     list.innerHTML = saveSlots.map(slot=>{
       const date = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString('ru-RU') : '';
       const active = slot.id===currentSaveSlotId ? ' · текущий слот' : '';
+      const broken = slot.broken ? ' · повреждено' : '';
       return `
         <div class="save-slot-row">
           <div class="save-slot-info">
             <b>${slot.title || 'Сохранение'}</b>
-            <span>${slot.raceName || 'Фракция'} · день ${slot.day || 1}${active}</span>
+            <span>${slot.raceName || 'Фракция'} · день ${slot.day || 1}${active}${broken}</span>
             <span>${date}</span>
           </div>
           <div class="save-slot-actions">
-            <button onclick="loadSaveSlot('${slot.id}')">играть</button>
+            <button ${slot.broken ? 'disabled' : ''} onclick="loadSaveSlot('${slot.id}')">играть</button>
             <button onclick="deleteSaveSlot('${slot.id}')">Удалить</button>
           </div>
         </div>`;
@@ -2567,9 +2590,8 @@ function createSaveSlotForCurrentGame(){
 
 function cloudSaveChunked(json, callback, baseKey){
   baseKey = baseKey || activeCloudKey();
-  const chunks = [];
-  for(let i=0;i<json.length;i+=SAVE_CHUNK_SIZE) chunks.push(json.slice(i, i+SAVE_CHUNK_SIZE));
-  const meta = JSON.stringify({n: chunks.length});
+  const chunks = splitCloudValue(json);
+  const meta = JSON.stringify({n: chunks.length, bytes:utf8ByteLength(json), chars:json.length});
   const keys = [...chunks.map((_,i)=>baseKey+'_c'+i), baseKey+'_meta'];
   const values = [...chunks, meta];
   let idx = 0;
@@ -2604,7 +2626,8 @@ function cloudLoadChunked(callback, baseKey){
       TG.CloudStorage.getItems(keys, (err2, result)=>{
         if(err2 || !result){ callback(null); return; }
         if(keys.some(k=>typeof result[k] !== 'string' || !result[k])){ callback(null); return; }
-        callback(keys.map(k=>result[k]).join(''));
+        const joined = keys.map(k=>result[k]).join('');
+        callback(parseSaveSummary(joined) ? joined : null);
       });
     } else {
       // Older client without batch getItems — read chunks one at a time instead.
@@ -2616,7 +2639,10 @@ function cloudLoadChunked(callback, baseKey){
           if(e3 || typeof v !== 'string' || !v){ failed = true; callback(null); return; }
           parts[i] = v;
           done++;
-          if(done===keys.length) callback(parts.join(''));
+          if(done===keys.length){
+            const joined = parts.join('');
+            callback(parseSaveSummary(joined) ? joined : null);
+          }
         });
       });
     }
@@ -2647,8 +2673,13 @@ function startCloudSave(payload){
   lastCloudSaveAt = Date.now();
   cloudSaveChunked(payload.json, (err)=>{
     cloudSaveInFlight = false;
-    if(err) console.error('Telegram CloudStorage save error:', err);
-    else saveIndexToCloud(payload.meta);
+    if(err){
+      console.error('Telegram CloudStorage save error:', err);
+      setRemoteStatus('⚠️ Telegram не принял сохранение: '+(err.message || err));
+    } else {
+      saveIndexToCloud(payload.meta);
+      setRemoteStatus('☁️ Telegram-сохранение обновлено.');
+    }
     if(cloudSavePending){
       const next = cloudSavePending;
       cloudSavePending = null;
@@ -2820,7 +2851,7 @@ function loadGame(snapshotJson){
   }catch(e){ console.error('Load failed:', e); return false; }
 }
 function continueGame(){
-  const slot = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0];
+  const slot = saveSlots.find(s=>s.id===currentSaveSlotId && !s.broken) || saveSlots.find(s=>!s.broken);
   if(slot){ loadSaveSlot(slot.id); return; }
   if(!savedGameSnapshot) return;
   if(loadGame(savedGameSnapshot)){
@@ -2865,9 +2896,22 @@ function loadSlotSnapshot(slotId, cb){
     cb(null);
   }
 }
+function quarantineBrokenSaveSlot(slotId){
+  const slot = saveSlots.find(s=>s.id===slotId);
+  if(!slot) return;
+  slot.broken = true;
+  slot.title = (slot.title || 'Сохранение') + ' — повреждено';
+  if(currentSaveSlotId===slotId){
+    const next = saveSlots.find(s=>s.id!==slotId && !s.broken);
+    currentSaveSlotId = next ? next.id : null;
+    savedGameSnapshot = next && next.snapshot ? next.snapshot : null;
+  }
+  if(isTelegramEnv() && hasCloudStorage()) saveIndexToCloud(saveSlots.find(s=>s.id===currentSaveSlotId) || null);
+}
 function loadSaveSlot(slotId){
   loadSlotSnapshot(slotId, snapshot=>{
     if(!snapshot){
+      quarantineBrokenSaveSlot(slotId);
       alert('Не удалось загрузить это сохранение: Telegram вернул пустой или устаревший снимок слота. Игра не будет откатывать прогресс на старый день.');
       updateMainMenuState();
       return;
@@ -2948,15 +2992,16 @@ function renderSaveSlotsPanel(){
   panel.innerHTML = saveSlots.map(slot=>{
     const date = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString('ru-RU') : '';
     const active = slot.id===currentSaveSlotId ? ' · последнее' : '';
+    const broken = slot.broken ? ' · повреждено' : '';
     return `
       <div class="save-slot-row">
         <div class="save-slot-info">
           <b>${slot.title || 'Сохранение'}</b>
-          <span>${slot.raceName || 'Фракция'} · день ${slot.day || 1}${active}</span>
+          <span>${slot.raceName || 'Фракция'} · день ${slot.day || 1}${active}${broken}</span>
           <span>${date}</span>
         </div>
         <div class="save-slot-actions">
-          <button onclick="loadSaveSlot('${slot.id}')">играть</button>
+          <button ${slot.broken ? 'disabled' : ''} onclick="loadSaveSlot('${slot.id}')">играть</button>
           <button onclick="deleteSaveSlot('${slot.id}')">Удалить</button>
         </div>
       </div>`;
@@ -2969,7 +3014,7 @@ function updateMainMenuState(){
   const note = document.getElementById('menu-save-note');
   const fileRow = document.getElementById('menu-file-save-row');
   if(!btn) return;
-  const hasSave = saveSlots.length>0 || !!savedGameSnapshot;
+  const hasSave = saveSlots.some(s=>!s.broken) || !!savedGameSnapshot;
   const cloudActive = isTelegramEnv() && hasCloudStorage();
   const siteDbActive = hasIndexedDb() && !indexedDbFailed;
   btn.disabled = !hasSave;
