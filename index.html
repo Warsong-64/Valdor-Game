@@ -90,6 +90,10 @@
   .save-slot-info span{ color:var(--ink-soft); font-size:.85em; }
   .save-slot-actions{ display:flex; gap:6px; flex-shrink:0; }
   .save-slot-actions button{ padding:6px 8px; border-radius:6px; font-size:.85em; background:#7c5c2e; color:#fff2d1; }
+  .save-manager-actions{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  .save-config-grid{ display:grid; grid-template-columns:1fr; gap:7px; margin-top:10px; }
+  .save-config-grid input{ width:100%; padding:8px; border:1px solid var(--parchment-dark); border-radius:8px; background:#fff8e2; color:var(--ink); }
+  .save-status{ color:var(--ink-soft); font-size:.84em; line-height:1.35; margin-top:8px; }
 
   /* ---------- TOPBAR ---------- */
   .topbar{
@@ -281,6 +285,7 @@
   .bf-stack.bf-selected{ outline:3px solid #f0c419; }
   .bf-stack.bf-attackable{ outline:3px solid #ff5252; animation:bf-pulse 1s infinite; }
   .bf-stack.bf-magic-target{ outline:3px solid #b98af0; animation:bf-pulse 1s infinite; }
+  .bf-stack.bf-waited{ filter:saturate(.8); }
   .bf-stack.bf-acted-mark{ opacity:.55; }
   .bf-count{ position:absolute; bottom:-5px; right:-5px; background:#fff; color:#111; font-size:.6em; font-weight:800; border-radius:8px; padding:1px 4px; box-shadow:0 1px 2px rgba(0,0,0,.4); }
   .bf-acted{ position:absolute; top:-5px; left:-5px; background:#222; color:#fff; font-size:.55em; border-radius:8px; padding:0 3px; }
@@ -334,8 +339,13 @@
 
   /* ---------- SPELL MENU ---------- */
   .battle-stage{ position:relative; }
-  .battle-quickbar{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-top:8px; }
+  .battle-quickbar{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:6px; margin-top:8px; }
   @media(max-width:520px){ .battle-quickbar{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  .battle-turn-queue{ display:flex; gap:5px; overflow-x:auto; margin:6px 0 8px; padding-bottom:2px; }
+  .turn-chip{ flex:0 0 auto; background:#f4ecd4; border:1px solid #c7ae7d; border-radius:7px; padding:3px 6px; font-size:.75em; font-weight:800; }
+  .turn-chip.active{ background:var(--royal); color:#fff2d1; }
+  .turn-chip.waited{ background:#efe0aa; border-color:#b99635; }
+  .attack-preview{ margin-top:5px; padding:5px 7px; background:#efe2bd; border-radius:7px; color:var(--ink); font-size:.9em; }
   .spell-menu{ display:none; position:absolute; inset:0; z-index:15; align-items:center; justify-content:center; padding:10px; background:rgba(20,14,8,.52); }
   .spell-book{
     width:min(760px,96%); max-height:92%; overflow:auto; background:#efe2bd; border:4px double #7b5a2a;
@@ -343,6 +353,9 @@
   }
   .spell-book-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
   .spell-book-title{ font-family:'IM Fell English SC',serif; font-size:1.35em; color:var(--royal); }
+  .spell-tab-row{ display:flex; gap:6px; flex-wrap:wrap; margin:9px 0; }
+  .spell-tab-btn{ flex:1; min-width:105px; }
+  .spell-tab-btn.active{ background:var(--royal); color:#fff2d1; }
   .spell-book-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
   .spell-card{
     background:var(--parchment); border:2px solid var(--parchment-dark); border-radius:10px; padding:8px 10px;
@@ -354,7 +367,9 @@
   .spell-card b{ display:block; font-size:.85em; margin:2px 0; }
   .spell-card span{ font-size:.78em; color:var(--royal); font-weight:800; }
   .spell-card small{ display:block; font-size:.68em; color:var(--ink-soft); margin-top:2px; line-height:1.25; }
+  .spell-card .spell-target{ display:block; margin-top:3px; color:#6b4b21; font-size:.72em; font-weight:800; }
   .spell-mana-header{ font-weight:800; font-size:.85em; color:var(--ink-soft); background:#e9dcb9; border:2px dashed var(--parchment-dark); border-radius:8px; padding:4px 8px; }
+  .spell-aim-note{ margin-top:8px; padding:7px 9px; border-radius:8px; background:#e9dcb9; color:var(--ink-soft); font-size:.82em; font-weight:700; }
 
   .fx-fireball{ animation:fx-fire .6s ease; }
   .fx-chain{ animation:fx-chain .6s ease; }
@@ -405,6 +420,35 @@
   .worldmap-widget-bar{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; justify-content:center; }
   .wm-widget-toggle.active{ background:var(--royal); color:#fff2d1; }
   .worldmap-widget-panel{ margin-top:8px; }
+  .worldmap-underbar{ display:flex; gap:8px; margin:8px 0 0; }
+  .worldmap-underbar .mini-btn{ flex:1; }
+  .end-turn-near-map{ background:linear-gradient(180deg,#c9a227,#96761a); color:#2c1f0a; box-shadow:0 2px 0 #6b5310; }
+  .world-field-actions{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%); z-index:12;
+    display:flex; flex-direction:column; gap:7px; pointer-events:auto;
+  }
+  .world-field-btn{
+    min-width:42px; max-width:96px; min-height:42px; padding:6px 7px; border-radius:10px;
+    background:rgba(244,236,212,.94); color:var(--ink); border:2px solid #8b6b32;
+    box-shadow:0 3px 8px rgba(0,0,0,.32), inset 0 0 0 1px rgba(255,255,255,.35);
+    font-weight:900; line-height:1.05; text-align:center; backdrop-filter:blur(2px);
+  }
+  .world-field-btn.end-turn-near-map{ background:linear-gradient(180deg,#d8b842,#a58222); color:#2c1f0a; }
+  .world-field-btn .turn-cost{ display:block; font-size:1.16em; letter-spacing:0; }
+  .world-field-btn span{ display:block; font-size:.72em; margin-top:2px; }
+  .world-target-panel{
+    position:fixed; left:50%; bottom:12px; width:min(560px, calc(100vw - 24px)); max-height:42vh; overflow:auto;
+    background:#f4ecd4; border:2px solid #c7ae7d; border-radius:12px 12px 10px 10px; padding:10px;
+    font-size:.82em; z-index:45; box-shadow:0 10px 28px rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,255,255,.35);
+    transform:translate(-50%, calc(100% + 24px)); opacity:0; pointer-events:none; transition:transform .22s ease, opacity .18s ease;
+  }
+  .world-target-panel.active{ transform:translate(-50%, 0); opacity:1; pointer-events:auto; }
+  .world-target-panel b{ font-size:1.03em; }
+  .world-target-text{ margin-top:4px; color:var(--ink-soft); line-height:1.32; }
+  .world-target-meta{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+  .world-target-chip{ background:#e9dcb9; border:1px solid #c7ae7d; border-radius:999px; padding:2px 7px; font-weight:800; color:var(--ink); }
+  .world-target-actions{ display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
+  .overview-filter-row{ display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
   .world-hero-strip{
     display:grid; grid-template-columns:minmax(140px,.85fr) minmax(0,1.6fr); gap:8px; align-items:stretch;
     margin:0 0 8px;
@@ -426,6 +470,36 @@
   .world-army-cell b{ font-size:.78em; line-height:1; }
   .world-army-cell small{ font-size:.62em; color:var(--ink-soft); line-height:1; margin-top:2px; }
   .world-army-empty{ color:var(--ink-soft); font-size:.82em; padding:0 4px; }
+  .world-action-row{ display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .world-action-row .mini-btn{ flex:1 1 140px; }
+  .inventory-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:8px; }
+  .inventory-slot{
+    min-height:58px; background:#f4ecd4; border:2px dashed #c7ae7d; border-radius:8px; padding:7px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--ink-soft);
+    font-size:.76em;
+  }
+  .inventory-slot .ico{ font-size:1.35em; line-height:1; margin-bottom:2px; }
+  .hero-sheet-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .hero-sheet-card{ background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:9px; }
+  .hero-sheet-card h3{ margin:0 0 6px; font-size:.95em; border-bottom:1px dashed var(--parchment-dark); padding-bottom:4px; }
+  .spell-chip-row{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+  .spell-chip{ background:#e8d9b5; border:1px solid #c7ae7d; border-radius:7px; padding:4px 6px; font-size:.74em; font-weight:800; }
+  .transfer-row{ display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px dashed var(--parchment-dark); }
+  .transfer-row:last-child{ border-bottom:none; }
+  .transfer-row input{ flex:1; accent-color:var(--royal); }
+  .hero-switch-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .hero-switch-card{
+    background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:9px; cursor:pointer;
+    display:flex; gap:8px; align-items:center; min-height:78px;
+  }
+  .hero-switch-card.active{ border-color:var(--royal); box-shadow:0 0 0 2px rgba(106,74,158,.2) inset; }
+  .hero-switch-card .emoji{ font-size:2em; line-height:1; }
+  .hero-switch-card b{ display:block; font-size:.86em; line-height:1.1; }
+  .hero-switch-card span{ display:block; color:var(--ink-soft); font-size:.72em; margin-top:2px; }
+  .hero-inventory-head{ display:flex; gap:10px; align-items:center; background:#f4ecd4; border:2px solid #c7ae7d; border-radius:10px; padding:9px; margin-bottom:8px; }
+  .hero-inventory-head .emoji{ font-size:2.2em; }
+  @media(max-width:520px){ .hero-sheet-grid{ grid-template-columns:1fr; } .inventory-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:520px){ .hero-switch-grid{ grid-template-columns:1fr; } .world-action-row .mini-btn{ flex:1 1 46%; padding-left:6px; padding-right:6px; } }
   @media(max-width:520px){
     .world-hero-strip{ grid-template-columns:1fr; }
     .world-army-strip{ min-height:44px; }
@@ -440,13 +514,13 @@
   @media (max-width:640px){ .world-intel{ grid-template-columns:1fr; } }
   .wtile{ position:relative; display:flex; align-items:center; justify-content:center; font-size:1.3em; user-select:none; }
   .wtile.t-grass{ background:#bcd98f; cursor:pointer; }
-  .wtile.t-forest{ background:#6b8f4e; cursor:pointer; }
+  .wtile.t-forest{ background:#416b35; cursor:not-allowed; }
   .wtile.t-snow{ background:#d7eef1; cursor:pointer; color:#39525c; }
   .wtile.t-desert{ background:#d9b66d; cursor:pointer; color:#5a3d1d; }
   .wtile.t-mountain{ background:#93897a; cursor:not-allowed; }
   .wtile.t-water{ background:#6fa8b8; cursor:not-allowed; }
   .wtile.t-home{ background:#e8cf8a; cursor:pointer; }
-  .wtile:hover:not(.t-mountain):not(.t-water){ filter:brightness(1.12); }
+  .wtile:hover:not(.t-mountain):not(.t-water):not(.t-forest){ filter:brightness(1.12); }
   .camp-badge{ position:absolute; bottom:1px; right:1px; font-size:.5em; background:#2c1f14; color:#f1e0b0; padding:0 3px; border-radius:5px; line-height:1.4; }
   .wtile-guarded{ box-shadow: inset 0 0 0 3px #e21b1b, 0 0 10px rgba(226,27,27,.75); animation: guard-pulse 1.8s infinite; }
   .wtile.wtile-fort{ background:#b1a077; }
@@ -457,8 +531,12 @@
   .wtile-mapsite-income{ background:#e2c56d !important; box-shadow: inset 0 0 0 3px #9c7420, 0 0 8px rgba(156,116,32,.55); }
   .wtile-mapsite-income.captured{ box-shadow: inset 0 0 0 3px #2f7f63, 0 0 8px rgba(47,127,99,.55); }
   .wtile-mapsite-utility{ background:#97d0c6 !important; box-shadow: inset 0 0 0 3px #2f7180, 0 0 8px rgba(47,113,128,.55); }
+  .wtile.t-hellgate{ background:#57312b !important; color:#ffd18a; cursor:pointer; text-shadow:0 1px 2px #000; box-shadow: inset 0 0 0 3px #b12f1d, 0 0 14px rgba(177,47,29,.85); animation: hellgate-pulse 1.6s infinite; }
   .wtile-rival{ box-shadow: inset 0 0 0 3px #6a2323, 0 0 12px rgba(106,35,35,.9); animation: rival-pulse 1.4s infinite; }
   .wtile-reachable{ box-shadow: inset 0 0 0 3px rgba(143,208,122,.95); filter:brightness(1.12); }
+  .wtile-route{ box-shadow: inset 0 0 0 3px #f0c419, 0 0 10px rgba(240,196,25,.75); filter:brightness(1.16); }
+  .wtile-target{ box-shadow: inset 0 0 0 4px #fff2a8, 0 0 14px rgba(240,196,25,.95); filter:brightness(1.24); }
+  .wtile-inspected{ box-shadow: inset 0 0 0 3px #fff2a8, 0 0 12px rgba(240,196,25,.75); filter:brightness(1.18); }
   .wtile-hero-selected{ box-shadow: inset 0 0 0 3px #f0c419, 0 0 12px rgba(240,196,25,.85); filter:brightness(1.15); }
   .wtile-unexplored{ background:#1b140d !important; box-shadow:none !important; cursor:pointer; color:#c9b37a; font-weight:900; }
   .wtile-unexplored:hover{ filter:brightness(1.25); }
@@ -466,11 +544,12 @@
   .wtile-explored-dim:hover{ filter: grayscale(.3) brightness(.9); }
   .wtile-enemy-turn-reveal{ box-shadow: inset 0 0 0 3px #c45b44, 0 0 12px rgba(196,91,68,.85); filter:brightness(1.08); }
   .wtile.wtile-road{
-    background-image: radial-gradient(circle, rgba(112,80,42,.75) 22%, transparent 23%);
+    background-image: radial-gradient(circle, rgba(112,80,42,.65) 20%, transparent 22%);
     background-size: 9px 9px;
     background-position: center;
   }
   @keyframes guard-pulse{ 0%,100%{ box-shadow: inset 0 0 0 3px #e21b1b, 0 0 6px rgba(226,27,27,.6);} 50%{ box-shadow: inset 0 0 0 3px #ff5252, 0 0 14px rgba(226,27,27,.9);} }
+  @keyframes hellgate-pulse{ 0%,100%{ filter:brightness(.96);} 50%{ filter:brightness(1.22);} }
   @keyframes rival-pulse{ 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.22);} }
   .hero-token{ position:absolute; font-size:1.7em; transform:translate(-50%,-65%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:6; filter:drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
   .party-token{ position:absolute; display:flex; gap:1px; font-size:.68em; transform:translate(-50%, 20%); transition:left .25s linear, top .25s linear; pointer-events:none; z-index:5; }
@@ -492,6 +571,28 @@
   .turn-phase-card.player{ border-color:var(--royal); box-shadow:0 0 0 3px rgba(46,95,174,.16), 0 10px 30px var(--shadow); }
   .turn-phase-card .emoji-big{ font-size:3.2em; display:block; }
   .turn-phase-card p{ color:var(--ink-soft); margin-bottom:0; }
+  .map-editor-shell{ display:grid; grid-template-columns:minmax(0,1fr) 270px; gap:12px; align-items:start; }
+  .map-editor-grid{ display:grid; grid-template-columns:repeat(40, minmax(12px, 1fr)); gap:1px; background:#2c1f14; border:2px solid var(--ink); padding:3px; border-radius:8px; touch-action:none; }
+  .map-edit-cell{ aspect-ratio:1; min-width:0; border:0; display:flex; align-items:center; justify-content:center; font-size:.72em; line-height:1; cursor:pointer; }
+  .map-edit-cell:hover{ filter:brightness(1.18); }
+  .map-edit-cell.t-grass{ background:#bcd98f; }
+  .map-edit-cell.t-forest{ background:#416b35; }
+  .map-edit-cell.t-snow{ background:#d7eef1; }
+  .map-edit-cell.t-desert{ background:#d9b66d; }
+  .map-edit-cell.t-mountain{ background:#93897a; }
+  .map-edit-cell.t-water{ background:#6fa8b8; }
+  .map-edit-cell.t-home{ background:#e8cf8a; }
+  .map-edit-cell.t-hellgate{ background:#57312b; color:#ffd18a; }
+  .map-editor-side{ display:flex; flex-direction:column; gap:8px; }
+  .map-tool-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .map-tool{ background:#f4e4bd; border:1px solid var(--parchment-dark); border-radius:8px; padding:7px; font-size:.82em; font-weight:800; }
+  .map-tool.active{ background:var(--royal); color:#fff; border-color:#173b77; }
+  .map-editor-text{ width:100%; min-height:120px; resize:vertical; border:1px solid var(--parchment-dark); border-radius:8px; padding:8px; background:#fff8e2; color:var(--ink); font-family:Consolas, monospace; font-size:.78em; }
+  .map-editor-status{ color:var(--ink-soft); font-size:.82em; line-height:1.35; }
+  @media (max-width:760px){
+    .map-editor-shell{ grid-template-columns:1fr; }
+    .map-editor-grid{ grid-template-columns:repeat(40, 13px); overflow:auto; justify-content:start; }
+  }
 </style>
 </head>
 <body>
@@ -506,6 +607,7 @@
     <button class="big-btn" onclick="openModeSelect()">🆕 Новая игра</button>
     <button class="big-btn" id="continue-btn" onclick="continueGame()" disabled>▶️ Продолжить</button>
     <button class="big-btn" id="load-slots-btn" onclick="toggleSaveSlots()" disabled>📚 Загрузить</button>
+    <button class="big-btn" id="map-editor-menu-btn" style="display:none;" onclick="openMapEditor()">🧭 Редактор карт</button>
     <button class="big-btn" disabled title="Пока недоступно">⚙️ Настройки</button>
     <button class="big-btn" disabled title="Пока недоступно">🛒 Магазин</button>
   </div>
@@ -517,6 +619,36 @@
       📂 Загрузить из файла
       <input type="file" accept="application/json" style="display:none;" onchange="importSaveFromFile(event)">
     </label>
+  </div>
+</div>
+
+<!-- ============ MAP EDITOR ============ -->
+<div class="screen menu-screen" id="screen-map-editor">
+  <div class="title-banner">
+    <h1>🧭 Генератор карт</h1>
+    <p>Соберите сценарную карту: биомы, препятствия, лагеря, форты, дороги и будущие активности</p>
+  </div>
+  <div class="panel">
+    <div class="map-editor-shell">
+      <div>
+        <div class="section-title">Полотно сценария 40×32</div>
+        <div class="map-editor-grid" id="map-editor-grid"></div>
+      </div>
+      <div class="map-editor-side">
+        <div class="section-title">Инструменты</div>
+        <div class="map-tool-grid" id="map-tool-grid"></div>
+        <div class="map-editor-status" id="map-editor-status"></div>
+        <button class="mini-btn" onclick="resetMapEditor()">Сбросить к текущей карте</button>
+        <button class="mini-btn" onclick="validateMapEditor(true)">Проверить карту</button>
+        <button class="mini-btn" onclick="exportMapEditor()">Экспорт JSON</button>
+        <button class="mini-btn" onclick="importMapEditor()">Импорт из поля</button>
+        <button class="big-btn" onclick="useEditorMapScenario()">Играть на этой карте</button>
+        <textarea class="map-editor-text" id="map-editor-json" placeholder="JSON сценария появится здесь после экспорта. Сюда же можно вставить карту для импорта."></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="menu-link-row">
+    <button class="menu-link-btn" onclick="showScreen('screen-mainmenu')">← В меню</button>
   </div>
 </div>
 
@@ -566,6 +698,7 @@
         <div class="topbar-overflow-panel" id="village-overflow">
           <button class="mini-btn" onclick="openLeaderboard()">🏆 Лидеры</button>
           <button class="mini-btn" onclick="manualAutosave()">💾 Сохранить</button>
+          <button class="mini-btn" onclick="openSaveManager()">📚 Сохранения</button>
           <button class="mini-btn" onclick="returnToMainMenu()" style="background:var(--ink-soft);">🏠 В меню</button>
         </div>
       </div>
@@ -635,6 +768,11 @@
         </div>
         <div class="hero-army-label">🛡️ Отряд героя</div>
         <div class="hero-army-mini" id="hero-army-mini"></div>
+        <div class="world-action-row">
+          <button class="mini-btn" onclick="openHeroSwitch()">🧙 Герои</button>
+          <button class="mini-btn" onclick="openHeroInventory()">🎒 Инвентарь</button>
+          <button class="mini-btn" onclick="openArmyTransfer()">⚖️ Армия</button>
+        </div>
         <div class="hero-army-label">🧙 Доступные герои</div>
         <div class="hero-roster-grid" id="hero-roster-grid"></div>
         </div>
@@ -657,12 +795,12 @@
     <div class="res-pill" id="res-pill-world"></div>
     <div class="day-pill" id="day-pill-world"></div>
     <div class="actions">
-      <button class="mini-btn" onclick="endTurn()">⏭️ Завершить ход</button>
       <button class="mini-btn" onclick="showScreen('screen-village'); renderVillage();">🏰 В замок</button>
       <div class="topbar-overflow">
         <button class="mini-btn topbar-overflow-btn" onclick="event.stopPropagation();toggleTopbarOverflow('worldmap-overflow')">⋮</button>
         <div class="topbar-overflow-panel" id="worldmap-overflow">
           <button class="mini-btn" onclick="manualAutosave()">💾 Сохранить</button>
+          <button class="mini-btn" onclick="openSaveManager()">📚 Сохранения</button>
           <button class="mini-btn" onclick="returnToMainMenu()" style="background:var(--ink-soft);">🏠 В меню</button>
         </div>
       </div>
@@ -675,6 +813,7 @@
       <div class="world-hero-summary" id="world-hero-summary"></div>
       <div class="world-army-strip" id="world-army-strip"></div>
     </div>
+    <div class="world-target-panel" id="world-target-panel"></div>
     <div class="worldmap-nav">
       <button class="mini-btn" onclick="panWorldCamera(0,-1)">↑</button>
       <button class="mini-btn" onclick="panWorldCamera(-1,0)">←</button>
@@ -687,14 +826,29 @@
       <div class="worldmap-grid" id="worldmap-grid"></div>
       <div class="hero-token" id="hero-token">🤺</div>
       <div class="party-token" id="party-token"></div>
+      <div class="world-field-actions">
+        <button class="world-field-btn end-turn-near-map" id="world-end-turn-btn" title="Завершить текущий ход" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();endTurn()"><b class="turn-cost">...</b><span>ход</span></button>
+      </div>
     </div>
-    <div class="worldmap-widget-bar">
-      <button class="mini-btn wm-widget-toggle" id="wmtoggle-minimap" onclick="toggleWorldWidget('minimap')">🗺️ Миникарта</button>
-      <button class="mini-btn wm-widget-toggle" id="wmtoggle-scout" onclick="toggleWorldWidget('scout')">🔭 Разведка</button>
-      <button class="mini-btn wm-widget-toggle" id="wmtoggle-loot" onclick="toggleWorldWidget('loot')">💰 Добыча</button>
-      <button class="mini-btn wm-widget-toggle" id="wmtoggle-log" onclick="toggleWorldWidget('log')">📜 События</button>
-      <button class="mini-btn wm-widget-toggle" id="wmtoggle-overview" onclick="toggleWorldWidget('overview')">📊 Обзор</button>
+    <div class="worldmap-underbar">
+      <button class="mini-btn" onclick="openWorldOverview()">🗺️ Обзор карты</button>
     </div>
+    <div class="modal-bg" id="modal-world-overview">
+      <div class="modal">
+        <h2>🗺️ Обзор карты</h2>
+        <div class="overview-filter-row">
+          <button class="mini-btn" onclick="setWorldOverviewFilter('all')">Все</button>
+          <button class="mini-btn" onclick="setWorldOverviewFilter('threats')">Угрозы</button>
+          <button class="mini-btn" onclick="setWorldOverviewFilter('loot')">Добыча</button>
+          <button class="mini-btn" onclick="setWorldOverviewFilter('events')">События</button>
+        </div>
+        <div class="worldmap-widget-bar">
+          <button class="mini-btn wm-widget-toggle" id="wmtoggle-minimap" onclick="toggleWorldWidget('minimap')">🗺️ Миникарта</button>
+          <button class="mini-btn wm-widget-toggle" id="wmtoggle-scout" onclick="toggleWorldWidget('scout')">🔭 Разведка</button>
+          <button class="mini-btn wm-widget-toggle" id="wmtoggle-loot" onclick="toggleWorldWidget('loot')">💰 Добыча</button>
+          <button class="mini-btn wm-widget-toggle" id="wmtoggle-log" onclick="toggleWorldWidget('log')">📜 События</button>
+          <button class="mini-btn wm-widget-toggle" id="wmtoggle-overview" onclick="toggleWorldWidget('overview')">📊 Обзор</button>
+        </div>
     <div class="worldmap-widget-panel" id="widget-minimap" style="display:none;">
       <div class="minimap-wrap">
         <div class="minimap-grid" id="world-minimap"></div>
@@ -713,6 +867,9 @@
     </div>
     <div class="worldmap-widget-panel" id="widget-overview" style="display:none;">
       <div class="world-intel-block"><div class="world-intel-title">Обзор</div><div class="world-intel-list" id="intel-overview"></div></div>
+    </div>
+        <button class="close-btn" onclick="closeModal('modal-world-overview')">Закрыть</button>
+      </div>
     </div>
     <div class="legend">🏰 Замок&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;❄️ Зима&nbsp; • &nbsp;🏜️ Пески&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 Вассалы&nbsp; • &nbsp;Клик по клетке — описание объекта</div>
   </div>
@@ -737,6 +894,7 @@
   <div class="panel">
     <p class="worldmap-hint" id="battle-phase-label"></p>
     <p class="worldmap-msg" id="battle-msg"></p>
+    <div class="battle-turn-queue" id="battle-turn-queue"></div>
     <div class="bf-selected-info" id="bf-selected-info" style="display:none;"></div>
     <div class="battle-stage">
       <div class="bf-wrap" id="battlefield-wrap"></div>
@@ -744,7 +902,9 @@
     </div>
     <div class="battle-quickbar">
       <button class="mini-btn" onclick="toggleMagic()">📖 Магия</button>
+      <button class="mini-btn" onclick="waitSelected()">⏳ Ждать</button>
       <button class="mini-btn" onclick="skipSelected()">⏭ Пропустить</button>
+      <button class="mini-btn" id="battle-auto-btn" onclick="toggleAutoBattleFull()">🤖 Автобой</button>
       <button class="mini-btn" onclick="endPlayerPhaseBtn()">🏳 Закончить ход</button>
       <button class="mini-btn" id="battle-log-toggle" onclick="toggleBattleLog()">📜 Журнал</button>
     </div>
@@ -765,6 +925,33 @@
       <tbody id="lb-body"></tbody>
     </table>
     <button class="close-btn" onclick="closeModal('modal-leaderboard')">Закрыть свиток</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-save-manager">
+  <div class="modal">
+    <h2>📚 Сохранения</h2>
+    <p class="market-note">Слоты сохраняются локально и в облаке Вальдора. В Telegram профиль привязывается к вашему Telegram ID.</p>
+    <div class="save-manager-actions">
+      <button class="mini-btn" onclick="manualAutosave(); renderSaveManager()">💾 Сохранить сейчас</button>
+      <button class="mini-btn" onclick="syncServerSavesNow()">☁️ Синхронизировать</button>
+      <button class="mini-btn" onclick="exportSaveToFile()">📤 Файл</button>
+    </div>
+    <div id="save-manager-list" class="save-slots-list" style="margin:8px 0;"></div>
+    <div id="remote-save-dev-panel" style="display:none;">
+    <div class="section-title">Облачный профиль</div>
+    <div class="save-config-grid">
+      <input id="remote-save-endpoint" placeholder="URL облака сохранений">
+      <input id="remote-save-player" placeholder="ID игрока">
+      <input id="remote-save-token" placeholder="Токен, если нужен серверу">
+    </div>
+    <div class="save-manager-actions">
+      <button class="mini-btn" onclick="saveRemoteConfigFromModal()">Сохранить настройки</button>
+      <button class="mini-btn" onclick="resetRemoteProfile()">Сбросить профиль</button>
+    </div>
+    </div>
+    <div class="save-status" id="remote-save-status"></div>
+    <button class="close-btn" onclick="closeModal('modal-save-manager')">Закрыть</button>
   </div>
 </div>
 
@@ -855,13 +1042,21 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modal-hero-sheet">
+  <div class="modal">
+    <h2 id="hero-sheet-title">Герой</h2>
+    <div id="hero-sheet-body"></div>
+    <button class="close-btn" onclick="closeModal('modal-hero-sheet')">Закрыть</button>
+  </div>
+</div>
+
 
 <script>
 /* ===================== DATA ===================== */
 const RACES = [
   {id:'humans', name:'Люди', emoji:'👨‍🌾', bonus:'+20% к золоту, базовая дипломатия: +10% к шансу переговоров до прокачки навыка.', mod:{gold:1.2,wood:1,stone:1,crystal:1}, heroEmoji:'🤺', diplomacyBase:0.10},
-  {id:'elves', name:'Эльфы', emoji:'🧝', bonus:'+30% к кристаллам, герой начинает с бонусом к магии и базовым колдовством +5% к силе заклинаний.', mod:{gold:1,wood:1,stone:1,crystal:1.3}, heroEmoji:'🧙‍♀️', spBonus:3, sorceryBase:0.05},
-  {id:'dwarves', name:'Гномы', emoji:'🧔', bonus:'+30% к камню, отряды прочнее на 10%, базовый налёт: +10% к добыче после победы.', mod:{gold:1,wood:1,stone:1.3,crystal:1}, heroEmoji:'🪓', defBonus:0.1, raidBase:0.10},
+  {id:'forestfolk', name:'Лесные жители', emoji:'🌲', bonus:'Союз эльфов, гномов и лесных существ: +15% к дереву и камню, базовое колдовство +3%, базовый налёт +5%.', mod:{gold:1,wood:1.15,stone:1.15,crystal:1.05}, heroEmoji:'🧝', spBonus:2, defBonus:0.05, sorceryBase:0.03, raidBase:0.05},
+  {id:'orcs', name:'Орки и гоблины', emoji:'🧌', bonus:'Грубая сила и грязные рейды: +12% к атаке отрядов, базовый налёт +10%, +10% к золоту после побед и добыче.', mod:{gold:1.1,wood:1,stone:1,crystal:1}, heroEmoji:'🧌', atkBonus:0.12, raidBase:0.10},
   {id:'undead', name:'Нежить', emoji:'🧟', bonus:'Иммунитет к мору и неурожаю, +10% к атаке, базовая некромантия 10% павших врагов после победы.', mod:{gold:1,wood:1,stone:1,crystal:1}, heroEmoji:'💀', atkBonus:0.1, immuneBadEvents:true, necromancyBase:0.10},
 ];
 const MODES = [
@@ -882,21 +1077,21 @@ const UNIT_DATA = {
     {name:'Паладин', icon:'⚜️', ranged:false},
     {name:'Королевский гвардеец', icon:'👑', ranged:false},
   ],
-  elves: [
-    {name:'Лесной разведчик', icon:'🍃', ranged:false},
-    {name:'Стрелок', icon:'🏹', ranged:true},
-    {name:'Друид', icon:'🌿', ranged:true},
-    {name:'Всадник на олене', icon:'🦌', ranged:false},
-    {name:'Мастер клинка', icon:'🗡️', ranged:false},
-    {name:'Архимаг рощи', icon:'🧙', ranged:true},
+  forestfolk: [
+    {name:'Гном-пехотинец', icon:'🧔', ranged:false},
+    {name:'Эльф-разведчик', icon:'🍃', ranged:false},
+    {name:'Гном-топорщик', icon:'🪓', ranged:true},
+    {name:'Эльф-маг', icon:'🧝', ranged:true},
+    {name:'Энт', icon:'🌳', ranged:false},
+    {name:'Подземный змей', icon:'🐍', ranged:false},
   ],
-  dwarves: [
-    {name:'Щитоносец', icon:'🛡️', ranged:false},
-    {name:'Метатель топоров', icon:'🪓', ranged:true},
-    {name:'Молотобоец', icon:'🔨', ranged:false},
-    {name:'Арбалетчик', icon:'🎯', ranged:true},
-    {name:'Рунный страж', icon:'🔰', ranged:false},
-    {name:'Повелитель кузни', icon:'👑', ranged:false},
+  orcs: [
+    {name:'Гоблин-резак', icon:'🗡️', ranged:false},
+    {name:'Орк-дуболом', icon:'🧌', ranged:false},
+    {name:'Гоблин-пращник', icon:'🎯', ranged:true},
+    {name:'Орк-берсерк', icon:'💢', ranged:false},
+    {name:'Шаман орды', icon:'🪬', ranged:true},
+    {name:'Вождь на варге', icon:'🐺👑', ranged:false},
   ],
   undead: [
     {name:'Скелет', icon:'💀', ranged:false},
@@ -907,7 +1102,29 @@ const UNIT_DATA = {
     {name:'Личность-лич', icon:'🧙', ranged:true},
   ],
 };
-function unitInfo(raceId, tier){ return (UNIT_DATA[raceId]||UNIT_DATA.humans)[tier-1]; }
+UNIT_DATA.elves = UNIT_DATA.forestfolk; // legacy save/camp compatibility
+UNIT_DATA.dwarves = UNIT_DATA.forestfolk;
+function normalizeRaceId(id){ return (id==='elves' || id==='dwarves') ? 'forestfolk' : (id || 'humans'); }
+function unitInfo(raceId, tier){ return (UNIT_DATA[normalizeRaceId(raceId)]||UNIT_DATA.humans)[tier-1]; }
+const UNIT_BALANCE = {
+  forestfolk: {
+    1:{defFlat:1, hpFlat:2, costMult:1.05, powerMult:1.12},        // гном-пехотинец: крепкий ранний фронт
+    2:{atkFlat:1, speedFlat:1, costMult:1.05, powerMult:1.08},     // эльф-разведчик: мобильный лёгкий боец
+    3:{atkFlat:1, defFlat:-1, costMult:1.08, powerMult:1.10},      // топорщик: стрелок посильнее, но уязвимее
+    4:{atkFlat:2, defFlat:-1, hpMult:0.9, costMult:1.12, powerMult:1.16}, // эльф-маг: высокий урон, мягкая цель
+    5:{atkFlat:1, defFlat:3, hpMult:1.35, speedFlat:-1, costMult:1.18, powerMult:1.28}, // энт: медленный танк
+    6:{atkFlat:4, defFlat:1, hpMult:1.15, speedFlat:1, costMult:1.10, powerMult:1.30},  // змей: дорогой ударный монстр
+  },
+  orcs: {
+    1:{atkFlat:1, defFlat:-1, hpMult:0.85, costMult:0.95, powerMult:0.92}, // гоблины: дешёвые и злые, но хрупкие
+    2:{atkFlat:2, defFlat:-1, hpFlat:2, costMult:1.00, powerMult:1.08},
+    3:{defFlat:-1, hpMult:0.85, costMult:0.90, powerMult:0.95},
+    4:{atkFlat:3, defFlat:-2, hpMult:1.05, speedFlat:1, costMult:1.12, powerMult:1.18},
+    5:{atkFlat:2, defFlat:-1, costMult:1.15, powerMult:1.15},
+    6:{atkFlat:3, defFlat:1, hpMult:1.20, speedFlat:1, costMult:1.25, powerMult:1.25},
+  },
+};
+function unitBalanceMod(raceId, tier){ return (UNIT_BALANCE[normalizeRaceId(raceId)] && UNIT_BALANCE[normalizeRaceId(raceId)][tier]) || {}; }
 const RANGED_FULL_RANGE = 3; // full damage within this many cells; half damage beyond
 
 // Flavor blurb shown in the recruit popup — one per race per tier, same cheeky tone as the rest of the game.
@@ -920,21 +1137,21 @@ const UNIT_FLAVOR = {
     'Паладин сочетает клинок и веру — враги боятся, союзники вдохновляются, конюх не успевает чистить доспехи.',
     'Королевский гвардеец — вершина людской воинской школы. Дорого, эффектно, надёжно.',
   ],
-  elves: [
-    'Лесной разведчик бесшумен, быстр и слегка высокомерен — типичный эльф на минималках.',
-    'Стрелок эльфов почти никогда не промахивается. «Почти» тут ключевое слово.',
-    'Друид зовёт на помощь силу леса — деревья не жалуются, а вот противники очень даже.',
-    'Всадник на олене выглядит мирно, пока не разгонится в атаку — тогда уже не до умиления.',
-    'Мастер клинка — грация и смерть в одном движении, чему завидуют даже коллеги-эльфы.',
-    'Архимаг рощи повелевает древней магией леса — с таким лучше дружить, а не воевать.',
+  forestfolk: [
+    'Гном-пехотинец держит передний ряд так крепко, будто за ним личная кладовая с припасами.',
+    'Эльф-разведчик быстро находит слабое место врага и делает вид, что это было очевидно с самого начала.',
+    'Гном-топорщик мечет топоры с пугающей уверенностью человека, который потом сам же их и найдёт.',
+    'Эльф-маг бьёт издалека лесной магией — красиво, больно и с лёгким запахом озона.',
+    'Энт идёт медленно, зато каждый его шаг звучит как аргумент против войны.',
+    'Подземный змей вырывается из глубин и напоминает врагу, что под ногами тоже бывает фронт.',
   ],
-  dwarves: [
-    'Щитоносец — стена из стали и упрямства, которую не сдвинет даже осадный таран.',
-    'Метатель топоров бьёт издалека, экономя силы для застолья после боя.',
-    'Молотобоец крушит броню и мораль врага одним ударом. Ну, почти одним.',
-    'Арбалетчик — гномья инженерия в деле: бьёт метко и с хорошим КПД.',
-    'Рунный страж защищён древними рунами — крепче не только доспех, но и характер.',
-    'Повелитель кузни — легенда среди гномов, ходячая наковальня с боевым духом.',
+  orcs: [
+    'Гоблин-резак дешёвый, шумный и уверен, что количество всегда побеждает качество.',
+    'Орк-дуболом решает тактические задачи одним способом: ударить сильнее.',
+    'Гоблин-пращник стреляет издалека и очень надеется, что никто не спросит, куда делся второй камень.',
+    'Орк-берсерк бежит вперёд первым, потому что назад всё равно не умеет.',
+    'Шаман орды кидает проклятия и странные советы. Иногда срабатывает и то, и другое.',
+    'Вождь на варге ведёт атаку так, что даже дисциплина предпочитает отойти в сторону.',
   ],
   undead: [
     'Скелет не ест, не спит и не жалуется на погоду — идеальный солдат с точки зрения логистики.',
@@ -946,45 +1163,69 @@ const UNIT_FLAVOR = {
   ],
 };
 function unitFlavor(raceId, tier){
-  const arr = UNIT_FLAVOR[raceId] || UNIT_FLAVOR.humans;
+  const arr = UNIT_FLAVOR[normalizeRaceId(raceId)] || UNIT_FLAVOR.humans;
   return arr[tier-1] || 'Надёжный боец, готовый выступить в поход.';
 }
+UNIT_FLAVOR.elves = UNIT_FLAVOR.forestfolk;
+UNIT_FLAVOR.dwarves = UNIT_FLAVOR.forestfolk;
 
 /* ---- Global (overworld) map ---- */
-// . grass  f forest  s snow  d desert  m mountain  w water  H home/castle
-// 1-9/A-C enemy camps  F capturable forts
+// . grass  f forest  s snow  d desert  m mountain  w water  r road waypoint  H home/castle  V hell gate
+// 1-9/A-C/D-R enemy camps  F capturable forts
 // NOTE: bigger than a single settlement's turf on purpose — this is the seed of the
 // eventual shared world map (other players' castles/armies will live here later).
 const WORLD_TEMPLATE = [
-  "....mfff....mmssssssw..",
-  ".H....f..1..mssss8ssw..",
-  "...m.f.....msssssssm...",
-  "f.....m..f.msss2ssm.f..",
-  ".w..m.....f.msssss7m...",
-  "..f.....F...mmss.s.....",
-  "f..f.m......f.m3ssm....",
-  "..m....w..f....mss.f...",
-  "....w.......f..m..w.9..",
-  "f.....m.d...w..f....4..",
-  "...f..d.m......w..f....",
-  ".5...md.ddm.....F..d...",
-  "....mdddddw....f..B.m..",
-  "..f.mddwdddd6....m.....",
-  "m..Addfddddm..d..w..f..",
-  "...wddFdf.....m..C..f..",
-  "f.dddmdd...w..d.f...m..",
-  "...f..ddm....w....f....",
+  "mmmmmmmmmm.mmmmmmmmmmmmsmmmmmmmmmmmmm.mm",
+  "mf..m...mfD...mmssssEss.w....f.....f...m",
+  "m.ff.ff.m...f.msssssss.m..G..ff...f....m",
+  "m....ff...f....mssssss..m.....ffw.f....m",
+  "..w.f...I...m.m..mmss..fm...m......ff..m",
+  "m...m....f...m.J....m....mf.K...m..ff...",
+  "m.ff.ffff....mm...w....m..m..f.........m",
+  "m..f....m..L...mf.....m..N.m..fw..f....m",
+  "mm....f....m....dddd....m...m.f........m",
+  "m...m...O....m.dddddw....f..P...m......m",
+  "ms..m.m....f....mddddd....m.....f.m....m",
+  "mss..Q.m....w...dmdd...R....m...f..m...m",
+  "msssssm..m....mf..m.dd....m.....w.f.m..m",
+  "m.ffmmss...f...mm.....f....m.....f.....m",
+  "mffff..f...........mfffm...mmssssssw...m",
+  ".ff.m.f.f.f.....H....f..1..mssss8ssw...m",
+  "m..m.f....f.......m.f.....msssssssm....m",
+  "m....m.....f.fff.....m..f.msss2ssm.f...s",
+  "m.w...f....mf..fw..m.....f.msssss7m....m",
+  "m..m....F....f...f.....F...mmss.s......m",
+  "mfff...m.......f..f.m......f.m3fsm.....m",
+  "m.mf.fw...f......m....w..f....msf.ff...m",
+  "m..w...............w.......f..m..w.9...m",
+  "d....mmd.....m.f.....m.dm..w..f....4...m",
+  "m.f.fd.m......m...f..d.m.m....wf.f.....m",
+  "m...mf.dmm.....m5...md.dmmm....F..f....m",
+  "m..mfdfddw...m.....mdddddw....f..B.m...m",
+  "m.f.mfdwdddd..m..f.mddwdddm6....m......m",
+  "m.ddd.fdddm....m..Addfddddmm.d..w..f...d",
+  "mdVddFdff.........wddFdf....f...Cf.f...m",
+  "mddddmdd..w....f.dddmdd...w..d.f...m...m",
+  "mmmmmmdmmmmmmmmmmmdmmmmmmmmmmmmmmm.mmmmm",
 ];
 const WORLD_COLS = WORLD_TEMPLATE[0].length;
 const WORLD_ROWS = WORLD_TEMPLATE.length;
-const WORLD_MAP_VERSION = 4;
-const CAMP_MARKER_CHARS = ['1','2','3','4','5','6','7','8','9','A','B','C']; // world-map positions are fixed; WHO occupies them is rolled at runtime
+const WORLD_MAP_VERSION = 8;
+const CAMP_MARKER_CHARS = ['1','2','3','4','5','6','7','8','9','A','B','C','D','E','G','I','J','K','L','N','O','P','Q','R']; // world-map positions are fixed; WHO occupies them is rolled at runtime
+const WORLD_ROAD_EXIT_POINTS = [
+  {x:10,y:0}, {x:23,y:0}, {x:37,y:0},
+  {x:0,y:4}, {x:0,y:15}, {x:0,y:23},
+  {x:39,y:5}, {x:39,y:17}, {x:39,y:28},
+  {x:6,y:31}, {x:18,y:31}, {x:34,y:31},
+];
 const CAMP_FLAVOR_NAMES = {
   humans:  ['Лагерь дезертиров', 'Бандитский острог', 'Стоянка наёмников'],
-  elves:   ['Эльфийский дозор', 'Лесная застава', 'Стоянка стражей рощи'],
-  dwarves: ['Лагерь гномов-контрабандистов', 'Гномья застава', 'Старательский лагерь'],
+  forestfolk: ['Лесная застава', 'Корневой дозор', 'Старательская роща'],
+  orcs: ['Гоблинский налётный лагерь', 'Орочья стоянка', 'Шаманский костёр орды'],
   undead:  ['Логово нежити', 'Забытое кладбище', 'Курган мертвецов'],
 };
+CAMP_FLAVOR_NAMES.elves = CAMP_FLAVOR_NAMES.forestfolk;
+CAMP_FLAVOR_NAMES.dwarves = CAMP_FLAVOR_NAMES.forestfolk;
 const DRAGON_TIER = 7;
 const DRAGON_NAMES = [
   {label:'Логово дракона «Огнехвост»', icon:'🐉'},
@@ -996,6 +1237,8 @@ const FORT_DEFS = [
   {id:'wood', name:'Лесной форт', icon:'🪵', resource:'wood', income:4, x:null, y:null},
   {id:'stone', name:'Каменный форт', icon:'⛏️', resource:'stone', income:4, x:null, y:null},
   {id:'crystal', name:'Кристальный форт', icon:'💎', resource:'crystal', income:4, x:null, y:null},
+  {id:'gold', name:'Золотой форт', icon:'🪙', resource:'gold', income:4, x:null, y:null},
+  {id:'northwood', name:'Северный форт', icon:'🪵', resource:'wood', income:4, x:null, y:null},
 ];
 function shuffleArray(arr){
   for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
@@ -1003,22 +1246,27 @@ function shuffleArray(arr){
 }
 function tileDistance(a, b){ return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y)); } // chebyshev, matches grid movement
 function unitPowerValue(tier){ return tier*tier*4; } // rough "how much budget one of these costs"
+function unitPowerValueFor(raceId, tier){
+  const mod = unitBalanceMod(raceId, tier);
+  return Math.max(1, Math.round(unitPowerValue(tier) * (mod.powerMult || 1)));
+}
 
 const WORLD_REGIONS = {
-  outskirts: {name:'Предместья замка', icon:'🏰', danger:1, note:'Безопасная стартовая зона: больше дерева и камня, слабее угрозы.', campRaces:['humans','humans','dwarves'], resources:['wood','wood','stone','stone','gold']},
-  woods: {name:'Лесной пояс', icon:'🌲', danger:2, note:'Леса дают укрытие лагерям и засадам, зато здесь часто попадается дерево.', campRaces:['elves','elves','humans','dwarves'], resources:['wood','wood','wood','gold','crystal']},
-  winter: {name:'Зимний биом', icon:'❄️', danger:3, note:'Снега богаты камнем и кристаллами, но местные отряды обычно крепче.', campRaces:['dwarves','dwarves','undead','humans'], resources:['stone','stone','crystal','crystal','gold']},
-  desert: {name:'Песчаный биом', icon:'🏜️', danger:3, note:'Пески бедны деревом, зато в них чаще находят золото и древние тайники.', campRaces:['humans','undead','dwarves'], resources:['gold','gold','gold','crystal','stone']},
+  outskirts: {name:'Предместья замка', icon:'🏰', danger:1, note:'Безопасная стартовая зона: больше дерева и камня, слабее угрозы.', campRaces:['humans','humans','forestfolk'], resources:['wood','wood','stone','stone','gold']},
+  woods: {name:'Лесной пояс', icon:'🌲', danger:2, note:'Леса дают укрытие лагерям и засадам, зато здесь часто попадается дерево.', campRaces:['forestfolk','forestfolk','humans','orcs'], resources:['wood','wood','wood','gold','crystal']},
+  winter: {name:'Зимний биом', icon:'❄️', danger:3, note:'Снега богаты камнем и кристаллами, но местные отряды обычно крепче.', campRaces:['forestfolk','forestfolk','undead','humans'], resources:['stone','stone','crystal','crystal','gold']},
+  desert: {name:'Песчаный биом', icon:'🏜️', danger:3, note:'Пески бедны деревом, зато в них чаще находят золото и древние тайники.', campRaces:['humans','undead','orcs'], resources:['gold','gold','gold','crystal','stone']},
   ruins: {name:'Старые руины', icon:'🏚️', danger:3, note:'Опасные развалины с нежитью, золотом и кристаллами.', campRaces:['undead','undead','humans'], resources:['gold','gold','crystal','stone']},
-  frontier: {name:'Пограничные форты', icon:'🏯', danger:3, note:'Спорные земли вокруг фортов: контроль даёт обзор и стабильные подати.', campRaces:['humans','dwarves','elves','undead'], resources:['stone','stone','gold','wood','crystal']},
-  wastes: {name:'Драконьи пустоши', icon:'🐉', danger:4, note:'Дальние земли с лучшей добычей и самыми жёсткими боями.', campRaces:['undead','dwarves','humans'], resources:['gold','gold','crystal','crystal','stone']},
+  frontier: {name:'Пограничные форты', icon:'🏯', danger:3, note:'Спорные земли вокруг фортов: контроль даёт обзор и стабильные подати.', campRaces:['humans','forestfolk','orcs','undead'], resources:['stone','stone','gold','wood','crystal']},
+  wastes: {name:'Драконьи пустоши', icon:'🐉', danger:4, note:'Дальние земли с лучшей добычей и самыми жёсткими боями.', campRaces:['undead','orcs','humans'], resources:['gold','gold','crystal','crystal','stone']},
 };
 function pickFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function worldRegionAt(x, y){
-  const home = findCharPos(WORLD_TEMPLATE, 'H');
+function worldRegionAt(x, y, template){
+  template = template || (state && state.worldMap) || WORLD_TEMPLATE;
+  const home = findCharPos(template, 'H');
   const dist = tileDistance({x,y}, home);
-  const ch = WORLD_TEMPLATE[y] ? WORLD_TEMPLATE[y][x] : '.';
-  const nearFort = findFortPositions(WORLD_TEMPLATE).some(f=>tileDistance({x,y}, f)<=2);
+  const ch = template[y] ? template[y][x] : '.';
+  const nearFort = findFortPositions(template).some(f=>tileDistance({x,y}, f)<=2);
   if(ch==='s') return Object.assign({id:'winter'}, WORLD_REGIONS.winter);
   if(ch==='d') return Object.assign({id:'desert'}, WORLD_REGIONS.desert);
   if(dist <= 4) return Object.assign({id:'outskirts'}, WORLD_REGIONS.outskirts);
@@ -1038,8 +1286,9 @@ function findFortPositions(template){
   }
   return out;
 }
-function rollForts(){
-  const spots = findFortPositions(WORLD_TEMPLATE);
+function rollForts(template){
+  template = template || WORLD_TEMPLATE;
+  const spots = findFortPositions(template);
   return FORT_DEFS.map((def,i)=>{
     const spot = spots[i] || {x:0,y:0};
     const tier = i===2 ? 4 : 3;
@@ -1055,18 +1304,19 @@ function rollForts(){
 // Camp positions are fixed (the '1'/'2'/'3' markers on WORLD_TEMPLATE), but their race and
 // army composition are rolled fresh at game start and every time the camp respawns. Difficulty
 // is driven purely by distance from the castle, so it never depends on how many days have passed.
-function rollCampContent(x, y){
-  const home = findCharPos(WORLD_TEMPLATE, 'H');
+function rollCampContent(x, y, template){
+  template = template || WORLD_TEMPLATE;
+  const home = findCharPos(template, 'H');
   const dist = tileDistance({x,y}, home);
   const cfg = CONFIG.CAMP;
   const jitter = 1 + (Math.random()*2-1)*cfg.jitter;
   const budget = Math.max(20, Math.round((cfg.baseBudget + dist*cfg.budgetPerDistance)*jitter));
 
-  const region = worldRegionAt(x, y);
+  const region = worldRegionAt(x, y, template);
   const preferredRace = pickFrom(region.campRaces || RACES.map(r=>r.id));
   const raceObj = RACES.find(r=>r.id===preferredRace) || RACES[Math.floor(Math.random()*RACES.length)];
   let maxTier = 1;
-  for(let t=1;t<=6;t++){ if(budget >= unitPowerValue(t)*1.3) maxTier = t; }
+  for(let t=1;t<=6;t++){ if(budget >= unitPowerValueFor(raceObj.id, t)*1.3) maxTier = t; }
   const stackCount = 1 + Math.floor(Math.random()*Math.min(3, maxTier));
   const chosenTiers = [];
   while(chosenTiers.length < stackCount){
@@ -1076,7 +1326,7 @@ function rollCampContent(x, y){
   const perStackBudget = budget/chosenTiers.length;
   const armyTiers = chosenTiers.map(t=>{
     const spend = perStackBudget*(0.75+Math.random()*0.5);
-    return {tier:t, count: Math.max(1, Math.round(spend/unitPowerValue(t)))};
+    return {tier:t, count: Math.max(1, Math.round(spend/unitPowerValueFor(raceObj.id, t)))};
   });
   const namePool = CAMP_FLAVOR_NAMES[raceObj.id] || CAMP_FLAVOR_NAMES.humans;
   const label = namePool[Math.floor(Math.random()*namePool.length)];
@@ -1084,22 +1334,23 @@ function rollCampContent(x, y){
 }
 
 // Dragon lairs have no fixed spot at all: 1-3 of them, position AND strength rerolled every week.
-function rollDragonLairs(resourcePickups){
-  const home = findCharPos(WORLD_TEMPLATE, 'H');
-  const campSpots = findAllCharPositions(WORLD_TEMPLATE);
-  const fortSpots = findFortPositions(WORLD_TEMPLATE);
+function rollDragonLairs(resourcePickups, template){
+  template = template || WORLD_TEMPLATE;
+  const home = findCharPos(template, 'H');
+  const campSpots = findAllCharPositions(template);
+  const fortSpots = findFortPositions(template);
   const occupied = new Set([home.x+','+home.y, ...campSpots.map(c=>c.x+','+c.y), ...fortSpots.map(f=>f.x+','+f.y), ...resourcePickups.map(p=>p.x+','+p.y)]);
   const candidates = [];
   for(let y=0;y<WORLD_ROWS;y++){
     for(let x=0;x<WORLD_COLS;x++){
-      const ch = WORLD_TEMPLATE[y][x];
+      const ch = template[y][x];
       if(isResourceTerrain(ch) && !occupied.has(x+','+y)) candidates.push({x,y});
     }
   }
   shuffleArray(candidates);
   candidates.sort((a,b)=>tileDistance(b,home)-tileDistance(a,home));
   const cfg = CONFIG.DRAGON;
-  const farCandidates = candidates.filter(c=>worldRegionAt(c.x,c.y).id==='wastes' || tileDistance(c,home)>=9);
+  const farCandidates = candidates.filter(c=>worldRegionAt(c.x,c.y, template).id==='wastes' || tileDistance(c,home)>=9);
   const lairSpots = farCandidates.length >= cfg.minLairs ? farCandidates : candidates;
   const lairCount = Math.min(lairSpots.length, cfg.minLairs + Math.floor(Math.random()*(cfg.maxLairs-cfg.minLairs+1)));
   const spacedLairSpots = pickSpacedSpots(lairSpots, lairCount, {avoid:[home, ...fortSpots], minAvoidDist:2, minSelectedDist:4});
@@ -1118,10 +1369,10 @@ function rollDragonLairs(resourcePickups){
   }
   return lairs;
 }
-const RESOURCE_PICKUP_COUNT = 24;
-const CHEST_PICKUP_COUNT = 5;
-const MERC_CAMP_MIN = 1;
-const MERC_CAMP_MAX = 3;
+const RESOURCE_PICKUP_COUNT = 60;
+const CHEST_PICKUP_COUNT = 12;
+const MERC_CAMP_MIN = 3;
+const MERC_CAMP_MAX = 6;
 const CHEST_PROMPT = 'Во время странствия вы наткнулись на одинокий сундук. Рискнёте узнать, что внутри?';
 
 /* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
@@ -1171,7 +1422,7 @@ const CONFIG = {
     baseBudget: 35, budgetPerDistance: 15, jitter: 0.25,
   },
   DRAGON: {
-    minLairs: 1, maxLairs: 3,          // lair count itself is rerolled weekly
+    minLairs: 3, maxLairs: 6,          // lair count itself is rerolled weekly
     baseCount: 2, countPerDistance: 0.45, maxCount: 7,
     lootGoldPerDragon: 70, lootBonusPerDragon: 25,
   },
@@ -1245,18 +1496,39 @@ const POLICIES = [
 /* ===================== STATE ===================== */
 let state = null;
 
+function createHeroState(race, role){
+  const baseMana = 10 + (race.spBonus||0)*2;
+  const defensive = role==='garrison';
+  return {
+    level:1, xp:0, xpNeeded:40,
+    atk: 5 + (race.atkBonus? Math.round(5*race.atkBonus):0) + (defensive ? 0 : 0),
+    def: 5 + (race.defBonus? Math.round(5*race.defBonus):0) + (defensive ? 1 : 0),
+    sp: 5 + (race.spBonus||0) + (defensive ? 0 : 0),
+    mana: baseMana, maxManaBase: baseMana,
+    diplomacyBase: defensive ? 0 : (race.diplomacyBase || 0),
+    sorceryBase: race.sorceryBase || 0,
+    raidBase: defensive ? 0 : (race.raidBase || 0),
+    necromancyBase: race.necromancyBase || 0,
+    inventory: [],
+    spellbook: defensive ? ['bolt','heal'] : ['bolt','fireball','chain'],
+    talents: {},
+    pendingTalentChoices: null,
+  };
+}
+
 function newGame(raceId, modeId){
   const race = RACES.find(r=>r.id===raceId);
-  const baseMana = 10 + (race.spBonus||0)*2;
-  const homePos = findCharPos(WORLD_TEMPLATE, 'H');
-  const camps = findAllCharPositions(WORLD_TEMPLATE).map(c=>({
-    id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y)
+  const scenarioTemplate = selectedScenarioMap ? selectedScenarioMap.slice() : null;
+  const worldTemplate = scenarioTemplate || WORLD_TEMPLATE;
+  const homePos = findCharPos(worldTemplate, 'H');
+  const camps = findAllCharPositions(worldTemplate).map(c=>({
+    id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y, worldTemplate)
   }));
-  const resourcePickups = generateResourcePickups(WORLD_TEMPLATE, homePos);
-  const dragonLairs = rollDragonLairs(resourcePickups);
-  const forts = rollForts();
-  const mercCamps = generateMercCamps(WORLD_TEMPLATE, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts]);
-  const mapSites = generateMapSites(WORLD_TEMPLATE, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts, ...mercCamps]);
+  const resourcePickups = generateResourcePickups(worldTemplate, homePos);
+  const dragonLairs = rollDragonLairs(resourcePickups, worldTemplate);
+  const forts = rollForts(worldTemplate);
+  const mercCamps = generateMercCamps(worldTemplate, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts]);
+  const mapSites = generateMapSites(worldTemplate, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts, ...mercCamps]);
   return {
     race, mode: modeId, day: 1,
     res: {gold:150, wood:100, stone:100, crystal:20},
@@ -1273,17 +1545,9 @@ function newGame(raceId, modeId){
       {key:'market', name:'Рынок', ico:'🏪', level:0, produces:null, maxLevel:1},
       {key:'tavern', name:'Таверна', ico:'🍺', level:0, produces:null, maxLevel:1},
     ],
-    hero: {
-      level:1, xp:0, xpNeeded:40,
-      atk: 5 + (race.atkBonus? Math.round(5*race.atkBonus):0),
-      def: 5 + (race.defBonus? Math.round(5*race.defBonus):0),
-      sp: 5 + (race.spBonus||0),
-      mana: baseMana, maxManaBase: baseMana,
-      diplomacyBase: race.diplomacyBase || 0,
-      sorceryBase: race.sorceryBase || 0,
-      raidBase: race.raidBase || 0,
-      necromancyBase: race.necromancyBase || 0,
-    },
+    hero: createHeroState(race, 'field'),
+    garrisonHeroId: GARRISON_HERO_DEF.id,
+    garrisonHero: createHeroState(race, 'garrison'),
     heroId: 'default',
     unlockedHeroes: [],
     heroTalents: {},
@@ -1296,7 +1560,8 @@ function newGame(raceId, modeId){
     log: [],
     leaderboard: seedLeaderboard(raceId),
     worldMapVersion: WORLD_MAP_VERSION,
-    worldMap: WORLD_TEMPLATE.slice(),
+    worldMap: worldTemplate.slice(),
+    scenario: scenarioTemplate ? {name:selectedScenarioName || 'Пользовательская карта', edited:true} : null,
     heroPos: homePos,
     worldHeroSelected: false,
     movePoints: 5,
@@ -1325,11 +1590,11 @@ function newGame(raceId, modeId){
   };
 }
 
-function rollResourcePickup(home, spot, index){
+function rollResourcePickup(home, spot, index, template){
   const dist = tileDistance(home, spot);
   const far = dist >= 10;
   const mid = dist >= 6;
-  const region = worldRegionAt(spot.x, spot.y);
+  const region = worldRegionAt(spot.x, spot.y, template);
   const pool = region.resources || (far
     ? ['gold','gold','crystal','crystal','stone','wood']
     : mid
@@ -1342,7 +1607,7 @@ function rollResourcePickup(home, spot, index){
   return {id:'res'+index, x:spot.x, y:spot.y, type, amount, collected:false};
 }
 
-function isResourceTerrain(ch){ return ch==='.' || ch==='f' || ch==='s' || ch==='d'; }
+function isResourceTerrain(ch){ return ch==='.' || ch==='s' || ch==='d'; }
 function pointKey(p){ return p.x+','+p.y; }
 function shuffledResourceSpots(template, home, occupied){
   const used = new Set((occupied||[]).map(pointKey));
@@ -1378,7 +1643,7 @@ function generateResourcePickups(template, home){
       used.add(s.x+','+s.y);
     }
   });
-  const pickups = plan.slice(0,RESOURCE_PICKUP_COUNT).map((s,i)=>rollResourcePickup(home, s, i));
+  const pickups = plan.slice(0,RESOURCE_PICKUP_COUNT).map((s,i)=>rollResourcePickup(home, s, i, template));
   const chestSpots = shuffledResourceSpots(template, home, pickups).filter(s=>tileDistance(home,s)>=4);
   chestSpots.slice(0,CHEST_PICKUP_COUNT).forEach((s,i)=>pickups.push({id:'chest'+i, x:s.x, y:s.y, type:'chest', amount:1, collected:false}));
   return pickups;
@@ -1413,7 +1678,7 @@ function pickSpacedSpots(candidates, count, opts){
   }
   return selected;
 }
-const MAP_SITE_VERSION = 4;
+const MAP_SITE_VERSION = 7;
 const MAP_SITE_TYPES = {
   well:{name:'Колодец странника', icon:'⛲', cooldown:7, desc:'Раз в неделю восстанавливает очки хода героя.'},
   obelisk:{name:'Обелиск разведчика', icon:'🗿', cooldown:7, desc:'Раз в неделю открывает небольшую область вокруг себя.'},
@@ -1423,8 +1688,9 @@ const MAP_SITE_TYPES = {
   crystal:{name:'Кристальная выработка', icon:'🔷', resource:'crystal', income:1, desc:'После захвата даёт кристаллы каждый ход.'},
 };
 function generateMapSites(template, home, occupied){
-  const plan = ['well','well','obelisk','obelisk','wood','stone','gold'];
+  const plan = ['well','well','well','well','obelisk','obelisk','obelisk','wood','stone','gold','wood','stone','gold'];
   if(Math.random()<0.55) plan.push('crystal');
+  if(Math.random()<0.35) plan.push('crystal');
   const forts = (occupied||[]).filter(p=>p && p.id && typeof p.resource==='string');
   const road = roadTilesForTemplate(template, home, forts.length ? forts : rollForts());
   const settlements = [home, ...forts];
@@ -1471,6 +1737,15 @@ function findCharPos(template, ch){
   }
   return {x:0,y:0};
 }
+function findAllCharPositionsOf(template, wanted){
+  const out = [];
+  for(let y=0;y<template.length;y++){
+    for(let x=0;x<template[y].length;x++){
+      if(template[y][x]===wanted) out.push({x,y});
+    }
+  }
+  return out;
+}
 function findAllCharPositions(template){
   const out = [];
   for(let y=0;y<template.length;y++){
@@ -1484,19 +1759,215 @@ function findAllCharPositions(template){
 
 function seedLeaderboard(myRaceId){
   const names = ['Барон Освальд','Леди Миррин','Ярл Хротгар','Некромант Зейлус','Тень Аскара','Капитан Верна','Старейшина Тавиэль','Кузнец Гром'];
-  const races = ['humans','elves','dwarves','undead'];
+  const races = ['humans','forestfolk','orcs','undead'];
   return names.map((n,i)=>({name:n, race: races[i%4], score: 180 + Math.floor(Math.random()*220)}));
 }
 
 /* ===================== NAV / MENU ===================== */
 let pickedRace = 'humans', pickedMode = 'sandbox';
+let selectedScenarioMap = null;
+let selectedScenarioName = '';
+let mapEditorTemplate = null;
+let mapEditorTool = '.';
+let mapEditorDevUnlocked = false;
+const MAP_EDITOR_TOOLS = [
+  {id:'.', icon:'🌾', label:'Равнина'},
+  {id:'s', icon:'❄️', label:'Снег'},
+  {id:'d', icon:'🏜️', label:'Пески'},
+  {id:'f', icon:'🌲', label:'Лес'},
+  {id:'m', icon:'⛰️', label:'Горы'},
+  {id:'w', icon:'🌊', label:'Вода'},
+  {id:'r', icon:'🛤️', label:'Дорога'},
+  {id:'H', icon:'🏰', label:'Замок'},
+  {id:'F', icon:'🏳️', label:'Форт'},
+  {id:'camp', icon:'⚔️', label:'Лагерь'},
+  {id:'V', icon:'🔥', label:'Врата'},
+  {id:'erase', icon:'▫️', label:'Очистить'},
+];
+
+function cloneTemplateRows(rows){ return (rows || WORLD_TEMPLATE).map(r=>String(r)); }
+function mapEditorCharIcon(ch){
+  if(CAMP_MARKER_CHARS.includes(ch)) return '⚔️';
+  return {'.':'','s':'','d':'','f':'🌲','m':'⛰️','w':'🌊','r':'🛤️','H':'🏰','F':'🏳️','V':'🔥'}[ch] || '';
+}
+function mapEditorClass(ch){
+  if(ch==='f') return 't-forest';
+  if(ch==='s') return 't-snow';
+  if(ch==='d') return 't-desert';
+  if(ch==='m') return 't-mountain';
+  if(ch==='w') return 't-water';
+  if(ch==='H') return 't-home';
+  if(ch==='V') return 't-hellgate';
+  return 't-grass';
+}
+function openMapEditor(){
+  if(!mapEditorTemplate) mapEditorTemplate = cloneTemplateRows(selectedScenarioMap || WORLD_TEMPLATE);
+  renderMapEditor();
+  showScreen('screen-map-editor');
+}
+function updateMapEditorDevButton(){
+  const btn = document.getElementById('map-editor-menu-btn');
+  if(btn) btn.style.display = mapEditorDevUnlocked ? '' : 'none';
+}
+function unlockMapEditorDev(){
+  mapEditorDevUnlocked = true;
+  updateMapEditorDevButton();
+  openMapEditor();
+}
+function renderMapEditor(){
+  const tools = document.getElementById('map-tool-grid');
+  const grid = document.getElementById('map-editor-grid');
+  if(!tools || !grid || !mapEditorTemplate) return;
+  tools.innerHTML = MAP_EDITOR_TOOLS.map(t=>`<button class="map-tool ${mapEditorTool===t.id?'active':''}" onclick="setMapEditorTool('${t.id}')">${t.icon} ${t.label}</button>`).join('');
+  let html = '';
+  for(let y=0;y<WORLD_ROWS;y++){
+    for(let x=0;x<WORLD_COLS;x++){
+      const ch = mapEditorTemplate[y][x] || '.';
+      html += `<button class="map-edit-cell ${mapEditorClass(ch)}" title="${x},${y}: ${ch}" onclick="paintMapEditorCell(${x},${y})">${mapEditorCharIcon(ch)}</button>`;
+    }
+  }
+  grid.innerHTML = html;
+  updateMapEditorStatus();
+}
+function setMapEditorTool(tool){ mapEditorTool = tool; renderMapEditor(); }
+function setMapChar(rows, x, y, ch){
+  const row = rows[y].split('');
+  row[x] = ch;
+  rows[y] = row.join('');
+}
+function nextCampMarker(rows){
+  const used = new Set(rows.join('').split('').filter(ch=>CAMP_MARKER_CHARS.includes(ch)));
+  return CAMP_MARKER_CHARS.find(ch=>!used.has(ch)) || null;
+}
+function paintMapEditorCell(x,y){
+  if(!mapEditorTemplate) return;
+  let ch = mapEditorTool;
+  if(ch==='erase') ch='.';
+  if(ch==='camp'){
+    if(CAMP_MARKER_CHARS.includes(mapEditorTemplate[y][x])) ch='.';
+    else {
+      ch = nextCampMarker(mapEditorTemplate);
+      if(!ch){ alert('Все маркеры лагерей уже заняты. Удалите один лагерь или расширим список маркеров позже.'); return; }
+    }
+  }
+  if(ch==='H'){
+    const oldHome = findCharPos(mapEditorTemplate, 'H');
+    if(oldHome) setMapChar(mapEditorTemplate, oldHome.x, oldHome.y, '.');
+  }
+  setMapChar(mapEditorTemplate, x, y, ch);
+  renderMapEditor();
+}
+function resetMapEditor(){
+  mapEditorTemplate = cloneTemplateRows(WORLD_TEMPLATE);
+  selectedScenarioMap = null;
+  selectedScenarioName = '';
+  renderMapEditor();
+}
+function mapEditorPayload(){
+  return {
+    type:'valdor-map-scenario',
+    version:1,
+    name:'Пользовательская карта',
+    rows:cloneTemplateRows(mapEditorTemplate || WORLD_TEMPLATE),
+  };
+}
+function exportMapEditor(){
+  const result = validateMapEditor(false);
+  const area = document.getElementById('map-editor-json');
+  if(area) area.value = JSON.stringify(mapEditorPayload(), null, 2);
+  updateMapEditorStatus(result.ok ? 'JSON готов к сохранению или переносу.' : result.message);
+}
+function parseMapEditorInput(raw){
+  const text = String(raw||'').trim();
+  if(!text) throw new Error('Поле импорта пустое.');
+  if(text[0]==='{'){
+    const parsed = JSON.parse(text);
+    if(!Array.isArray(parsed.rows)) throw new Error('В JSON нет массива rows.');
+    return {name:parsed.name || 'Пользовательская карта', rows:cloneTemplateRows(parsed.rows)};
+  }
+  const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
+  return {name:'Пользовательская карта', rows};
+}
+function importMapEditor(){
+  try{
+    const area = document.getElementById('map-editor-json');
+    const parsed = parseMapEditorInput(area ? area.value : '');
+    const result = validateMapRows(parsed.rows);
+    if(!result.ok){ updateMapEditorStatus(result.message); alert(result.message); return; }
+    mapEditorTemplate = cloneTemplateRows(parsed.rows);
+    selectedScenarioName = parsed.name;
+    renderMapEditor();
+    updateMapEditorStatus('Карта импортирована.');
+  }catch(e){
+    updateMapEditorStatus(e.message || 'Не удалось импортировать карту.');
+    alert(e.message || 'Не удалось импортировать карту.');
+  }
+}
+function validateMapRows(rows){
+  if(!Array.isArray(rows) || rows.length!==WORLD_ROWS) return {ok:false, message:`Нужно ${WORLD_ROWS} строк карты.`};
+  if(rows.some(r=>String(r).length!==WORLD_COLS)) return {ok:false, message:`Каждая строка должна быть длиной ${WORLD_COLS} клеток.`};
+  const text = rows.join('');
+  if((text.match(/H/g)||[]).length!==1) return {ok:false, message:'На карте должен быть ровно один замок H.'};
+  if((text.match(/V/g)||[]).length>1) return {ok:false, message:'Пока поддерживаются только одни Врата ада V.'};
+  const allowed = new Set(['.','f','s','d','m','w','r','H','F','V', ...CAMP_MARKER_CHARS]);
+  for(const ch of text){ if(!allowed.has(ch)) return {ok:false, message:`Неизвестный символ карты: ${ch}`}; }
+  const seenMarkers = new Set();
+  for(const ch of text){
+    if(CAMP_MARKER_CHARS.includes(ch)){
+      if(seenMarkers.has(ch)) return {ok:false, message:`Маркер лагеря ${ch} повторяется.`};
+      seenMarkers.add(ch);
+    }
+  }
+  const home = findCharPos(rows, 'H');
+  const passable = ch => isPassableChar(ch);
+  const key = (x,y)=>x+','+y;
+  const visited = new Set([key(home.x,home.y)]);
+  const queue = [home];
+  while(queue.length){
+    const p = queue.shift();
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const x=p.x+dx, y=p.y+dy, k=key(x,y);
+      if(y<0||y>=WORLD_ROWS||x<0||x>=WORLD_COLS||visited.has(k)) continue;
+      if(!passable(rows[y][x])) continue;
+      visited.add(k);
+      queue.push({x,y});
+    }
+  }
+  const required = [];
+  rows.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch==='F'||ch==='V'||CAMP_MARKER_CHARS.includes(ch)) required.push({x,y,ch}); }));
+  const blocked = required.filter(p=>!visited.has(key(p.x,p.y)));
+  if(blocked.length) return {ok:false, message:`Недостижимые объекты: ${blocked.slice(0,6).map(p=>p.ch+' '+p.x+','+p.y).join('; ')}`};
+  return {ok:true, message:`Карта готова: лагерей ${seenMarkers.size}, фортов ${(text.match(/F/g)||[]).length}, доступных клеток ${visited.size}.`};
+}
+function validateMapEditor(showAlert){
+  const result = validateMapRows(mapEditorTemplate || WORLD_TEMPLATE);
+  updateMapEditorStatus(result.message);
+  if(showAlert) alert(result.message);
+  return result;
+}
+function updateMapEditorStatus(extra){
+  const el = document.getElementById('map-editor-status');
+  if(!el || !mapEditorTemplate) return;
+  const text = mapEditorTemplate.join('');
+  const result = validateMapRows(mapEditorTemplate);
+  el.innerHTML = `${extra || result.message}<br>Инструмент: ${MAP_EDITOR_TOOLS.find(t=>t.id===mapEditorTool)?.label || mapEditorTool}. Лагерей: ${(text.match(/[123456789ABCEGIJKLNOPQRD]/g)||[]).length}, фортов: ${(text.match(/F/g)||[]).length}.`;
+}
+function useEditorMapScenario(){
+  const result = validateMapEditor(false);
+  if(!result.ok){ alert(result.message); return; }
+  selectedScenarioMap = cloneTemplateRows(mapEditorTemplate);
+  selectedScenarioName = 'Пользовательская карта';
+  pickedMode = 'sandbox';
+  openRaceSelect();
+}
 
 function renderMenu(){
+  updateMapEditorDevButton();
   const rg = document.getElementById('race-grid');
   const mg = document.getElementById('mode-grid');
   const pickedModeTitle = document.getElementById('picked-mode-title');
   const mode = MODES.find(m=>m.id===pickedMode);
-  if(pickedModeTitle) pickedModeTitle.textContent = mode ? `${mode.emoji} ${mode.name}` : '';
+  if(pickedModeTitle) pickedModeTitle.textContent = mode ? `${mode.emoji} ${mode.name}${selectedScenarioMap?' · пользовательская карта':''}` : '';
   if(rg) rg.innerHTML = RACES.map(r=>`
     <div class="pick-card ${r.id===pickedRace?'selected':''}" onclick="pickRace('${r.id}')">
       <div class="emoji">${r.emoji}</div>
@@ -1521,6 +1992,8 @@ function pickMode(id){
 }
 
 function openModeSelect(){
+  selectedScenarioMap = null;
+  selectedScenarioName = '';
   renderMenu();
   showScreen('screen-mode-select');
 }
@@ -1539,6 +2012,7 @@ function startGame(){
   createSaveSlotForCurrentGame();
   garrisonTab = 'garrison';
   addLog(`Правление народа «${state.race.name}» началось. Да прибудет с вами казна!`, 'event');
+  if(state.scenario) addLog(`🧭 Сценарий: ${state.scenario.name}. Карта загружена из редактора.`, 'event');
   showScreen('screen-village');
   renderVillage();
 }
@@ -1557,9 +2031,10 @@ function returnToMainMenu(){
      CloudStorage caps each key at 4096 bytes, and this game's save easily grows past that (forts,
      camps, dragon lairs, fog-of-war memory, log...), so the save is split across multiple keys
      (chunks) plus one small manifest key recording how many chunks there are.
-   - As a plain web page (e.g. opened directly, outside Telegram): no browser storage API works in
-     this environment, so we keep an in-memory snapshot for "Продолжить" within the current tab,
-     plus manual "Сохранить в файл" / "Загрузить из файла" for persistence across sessions.
+   - As a plain web page / GitHub Pages: progress is stored in the site's IndexedDB database.
+     This is local to the player's browser/profile and survives closing the page; file export/import
+     stays as a portable backup. A static GitHub Pages site cannot write saves back into the repo
+     without a backend/token, so IndexedDB is the correct "site data" storage layer here.
 --------------------------------------------------------------------------------------------- */
 const TG = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 function isTelegramEnv(){ return !!(TG && TG.initData); } // initData is only populated when actually running inside Telegram
@@ -1570,15 +2045,29 @@ const SAVE_LEGACY_KEY = 'valdor_save_v1'; // read-once fallback so anyone who sa
 const SAVE_INDEX_KEY = 'valdor_save_index_v3';
 const SAVE_DELETED_MARKER_KEY = 'valdor_save_deleted_v1';
 const SAVE_SLOT_PREFIX = 'valdor_save_slot_';
+const TELEGRAM_REMOTE_POINTER_KEY = 'valdor_tg_remote_pointer_v1';
 const SAVE_CHUNK_SIZE = 3500;           // bytes per chunk, safely under Telegram's 4096-byte-per-key cap
 const MAX_SAVE_SLOTS = 24;
+const IDB_SAVE_DB = 'ValdorSaveDB';
+const IDB_SAVE_STORE = 'saves';
+const IDB_SETTINGS_STORE = 'settings';
+const DEFAULT_REMOTE_SAVE_ENDPOINT = 'https://valdor-saves.warsong1999.workers.dev';
+const REMOTE_CFG_ENDPOINT_KEY = 'valdor_remote_endpoint';
+const REMOTE_CFG_PLAYER_KEY = 'valdor_remote_player';
+const REMOTE_CFG_TOKEN_KEY = 'valdor_remote_token';
+const REMOTE_SAVE_MIN_INTERVAL = 15000;
 let savedGameSnapshot = null;
 let currentSaveSlotId = null;
 let saveSlots = [];
+let indexedDbReady = false;
+let indexedDbFailed = false;
 let lastCloudSaveAt = 0;
 let cloudSaveInFlight = false;
 let cloudSavePending = null;
 let cloudSaveFlushTimer = null;
+let remoteSaveInFlight = false;
+let remoteSavePending = null;
+let lastRemoteSaveAt = 0;
 const CLOUD_SAVE_MIN_INTERVAL = 4000; // avoid spamming CloudStorage.setItem on every single re-render
 
 function makeSaveSlotId(){ return `s${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`; }
@@ -1603,6 +2092,36 @@ function getSaveMetaFromJson(json, slotId){
     return {id:slotId, title:'Сохранение', raceName:'Фракция', day:1, updatedAt:Date.now(), chunks:1};
   }
 }
+function parseSaveSummary(json){
+  try{
+    const parsed = JSON.parse(json);
+    if(!parsed || !parsed.race || !parsed.res) return null;
+    return {day:parsed.day || 1, raceName:parsed.race && parsed.race.name ? parsed.race.name : 'Фракция'};
+  }catch(e){ return null; }
+}
+function saveSnapshotMatchesMeta(json, meta){
+  const summary = parseSaveSummary(json);
+  if(!summary) return false;
+  if(meta && meta.day && summary.day < meta.day){
+    console.warn('Rejected stale Telegram snapshot:', {slot:meta.id, metaDay:meta.day, snapshotDay:summary.day});
+    return false;
+  }
+  return true;
+}
+function normalizeMetaAgainstSnapshot(json, meta, slotId){
+  const realMeta = getSaveMetaFromJson(json, slotId || (meta && meta.id) || makeSaveSlotId());
+  return Object.assign({}, meta || {}, realMeta, {
+    id: slotId || (meta && meta.id) || realMeta.id,
+    updatedAt: Math.max(meta && meta.updatedAt || 0, realMeta.updatedAt || 0),
+    snapshot: json
+  });
+}
+function cloudVersionedSlotKey(slotId, updatedAt){
+  return SAVE_SLOT_PREFIX + slotId + '_v' + (updatedAt || Date.now());
+}
+function cloudBaseForSlot(slot){
+  return (slot && slot.cloudBaseKey) || (slot && slot.id ? SAVE_SLOT_PREFIX+slot.id : activeCloudKey());
+}
 function normalizeSaveIndex(raw){
   if(!raw) return {activeSlotId:null, slots:[]};
   try{
@@ -1619,15 +2138,365 @@ function setSlotMeta(meta){
   saveSlots.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   saveSlots = saveSlots.slice(0, MAX_SAVE_SLOTS);
 }
-function saveIndexToCloud(){
+function hasIndexedDb(){ return !isTelegramEnv() && typeof indexedDB !== 'undefined'; }
+let idbOpenPromise = null;
+function openSaveDb(){
+  if(!hasIndexedDb()) return Promise.reject(new Error('IndexedDB недоступен'));
+  if(idbOpenPromise) return idbOpenPromise;
+  idbOpenPromise = new Promise((resolve, reject)=>{
+    const req = indexedDB.open(IDB_SAVE_DB, 1);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains(IDB_SAVE_STORE)) db.createObjectStore(IDB_SAVE_STORE, {keyPath:'id'});
+      if(!db.objectStoreNames.contains(IDB_SETTINGS_STORE)) db.createObjectStore(IDB_SETTINGS_STORE, {keyPath:'key'});
+    };
+    req.onsuccess = ()=>{ indexedDbReady = true; resolve(req.result); };
+    req.onerror = ()=>{ indexedDbFailed = true; reject(req.error || new Error('IndexedDB open failed')); };
+  });
+  return idbOpenPromise;
+}
+function idbRequest(req){
+  return new Promise((resolve, reject)=>{
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+function saveSlotToIndexedDb(json, meta){
+  if(!hasIndexedDb() || !meta || !meta.id) return Promise.resolve();
+  const stored = Object.assign({}, meta, {snapshot:json});
+  return openSaveDb().then(db=>new Promise((resolve, reject)=>{
+    const tx = db.transaction([IDB_SAVE_STORE, IDB_SETTINGS_STORE], 'readwrite');
+    tx.objectStore(IDB_SAVE_STORE).put(stored);
+    tx.objectStore(IDB_SETTINGS_STORE).put({key:'activeSlotId', value:meta.id});
+    tx.oncomplete = resolve;
+    tx.onerror = ()=>{ indexedDbFailed = true; reject(tx.error); };
+  })).catch(err=>{ indexedDbFailed = true; console.warn('IndexedDB save failed:', err); });
+}
+function loadIndexedDbState(){
+  if(!hasIndexedDb()) return Promise.resolve(false);
+  return openSaveDb().then(async db=>{
+    const tx = db.transaction([IDB_SAVE_STORE, IDB_SETTINGS_STORE], 'readonly');
+    const slotsReq = tx.objectStore(IDB_SAVE_STORE).getAll();
+    const activeReq = tx.objectStore(IDB_SETTINGS_STORE).get('activeSlotId');
+    const [slots, active] = await Promise.all([idbRequest(slotsReq), idbRequest(activeReq)]);
+    saveSlots = (slots||[]).filter(s=>s && s.id).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0, MAX_SAVE_SLOTS);
+    currentSaveSlotId = (active && active.value) || (saveSlots[0] && saveSlots[0].id) || null;
+    const activeSlot = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0];
+    if(activeSlot){
+      currentSaveSlotId = activeSlot.id;
+      savedGameSnapshot = activeSlot.snapshot || null;
+    }
+    indexedDbReady = true;
+    return true;
+  }).catch(err=>{
+    indexedDbFailed = true;
+    console.warn('IndexedDB load failed:', err);
+    return false;
+  });
+}
+function loadSlotFromIndexedDb(slotId){
+  if(!hasIndexedDb() || !slotId) return Promise.resolve(null);
+  return openSaveDb()
+    .then(db=>idbRequest(db.transaction(IDB_SAVE_STORE, 'readonly').objectStore(IDB_SAVE_STORE).get(slotId)))
+    .then(slot=>slot && slot.snapshot ? slot.snapshot : null)
+    .catch(err=>{ indexedDbFailed = true; console.warn('IndexedDB slot load failed:', err); return null; });
+}
+function deleteSlotFromIndexedDb(slotId){
+  if(!hasIndexedDb() || !slotId) return Promise.resolve();
+  return openSaveDb().then(db=>new Promise((resolve, reject)=>{
+    const tx = db.transaction([IDB_SAVE_STORE, IDB_SETTINGS_STORE], 'readwrite');
+    tx.objectStore(IDB_SAVE_STORE).delete(slotId);
+    const nextActive = currentSaveSlotId || (saveSlots[0] && saveSlots[0].id) || null;
+    tx.objectStore(IDB_SETTINGS_STORE).put({key:'activeSlotId', value:nextActive});
+    tx.oncomplete = resolve;
+    tx.onerror = ()=>reject(tx.error);
+  })).catch(err=>{ indexedDbFailed = true; console.warn('IndexedDB delete failed:', err); });
+}
+function lsGet(key){
+  try{ return localStorage.getItem(key) || ''; }catch(e){ return ''; }
+}
+function lsSet(key, value){
+  try{ localStorage.setItem(key, value); }catch(e){}
+}
+function lsRemove(key){
+  try{ localStorage.removeItem(key); }catch(e){}
+}
+function ensureRemotePlayerId(){
+  const tgId = TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.id;
+  if(tgId) return 'tg_'+tgId;
+  let id = lsGet(REMOTE_CFG_PLAYER_KEY).trim();
+  if(!id){
+    id = 'web_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    lsSet(REMOTE_CFG_PLAYER_KEY, id);
+  }
+  return id;
+}
+function remoteSaveConfig(){
+  const endpoint = (lsGet(REMOTE_CFG_ENDPOINT_KEY).trim() || DEFAULT_REMOTE_SAVE_ENDPOINT).replace(/\/+$/, '');
+  const token = lsGet(REMOTE_CFG_TOKEN_KEY).trim();
+  const tgId = TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.id;
+  const playerId = tgId ? 'tg_'+tgId : (lsGet(REMOTE_CFG_PLAYER_KEY).trim() || ensureRemotePlayerId());
+  return {endpoint, token, playerId};
+}
+function remoteSaveConfigured(){ return !!remoteSaveConfig().endpoint; }
+function isDefaultRemoteEndpoint(){
+  const cfg = remoteSaveConfig();
+  return cfg.endpoint === DEFAULT_REMOTE_SAVE_ENDPOINT;
+}
+function remoteFetch(path, options){
+  const cfg = remoteSaveConfig();
+  if(!cfg.endpoint) return Promise.reject(new Error('URL сервера сохранений не указан.'));
+  options = options || {};
+  options.headers = Object.assign({'Content-Type':'application/json'}, options.headers || {});
+  if(cfg.token) options.headers.Authorization = 'Bearer '+cfg.token;
+  return fetch(cfg.endpoint + path, options).then(async res=>{
+    const text = await res.text();
+    let data = null;
+    try{ data = text ? JSON.parse(text) : null; }catch(e){ data = text; }
+    if(!res.ok) throw new Error((data && data.error) || text || ('HTTP '+res.status));
+    return data;
+  });
+}
+function remotePushSlot(json, meta){
+  if(!remoteSaveConfigured() || !json || !meta || !meta.id) return Promise.resolve(false);
+  const cfg = remoteSaveConfig();
+  const cleanMeta = Object.assign({}, meta);
+  delete cleanMeta.snapshot;
+  return remoteFetch('/saves/'+encodeURIComponent(meta.id), {
+    method:'PUT',
+    body:JSON.stringify({playerId:cfg.playerId, meta:cleanMeta, snapshot:json})
+  });
+}
+function startRemoteSave(payload){
+  remoteSaveInFlight = true;
+  lastRemoteSaveAt = Date.now();
+  remotePushSlot(payload.json, payload.meta).then(()=>{
+    saveTelegramRemotePointer(payload.meta);
+    setRemoteStatus('☁️ Слот отправлен на сервер.');
+  }).catch(err=>{
+    console.warn('Remote save failed:', err);
+    setRemoteStatus('⚠️ Серверное сохранение не прошло: '+(err && err.message ? err.message : err));
+  }).finally(()=>{
+    remoteSaveInFlight = false;
+    if(remoteSavePending){
+      const next = remoteSavePending;
+      remoteSavePending = null;
+      requestRemoteSave(next.json, next.meta, true);
+    }
+  });
+}
+function requestRemoteSave(json, meta, force){
+  if(!remoteSaveConfigured() || !json || !meta) return;
+  const payload = {json, meta:Object.assign({}, meta)};
+  delete payload.meta.snapshot;
+  if(remoteSaveInFlight){
+    remoteSavePending = payload;
+    return;
+  }
+  const wait = Math.max(0, REMOTE_SAVE_MIN_INTERVAL - (Date.now() - lastRemoteSaveAt));
+  if(!force && wait>0){
+    remoteSavePending = payload;
+    setTimeout(()=>{
+      if(!remoteSavePending || remoteSaveInFlight) return;
+      const next = remoteSavePending;
+      remoteSavePending = null;
+      startRemoteSave(next);
+    }, wait + 25);
+    return;
+  }
+  startRemoteSave(payload);
+}
+function remoteListSaves(){
+  const cfg = remoteSaveConfig();
+  if(!cfg.endpoint) return Promise.resolve([]);
+  return remoteFetch('/saves?playerId='+encodeURIComponent(cfg.playerId), {method:'GET'}).then(data=>{
+    if(Array.isArray(data)) return data;
+    if(data && Array.isArray(data.slots)) return data.slots;
+    return [];
+  });
+}
+function remoteDeleteSlot(slotId){
+  const cfg = remoteSaveConfig();
+  if(!cfg.endpoint || !slotId) return Promise.resolve(false);
+  return remoteFetch('/saves/'+encodeURIComponent(slotId)+'?playerId='+encodeURIComponent(cfg.playerId), {method:'DELETE'});
+}
+function mergeRemoteSaveSlots(remoteSlots){
+  let imported = 0;
+  (remoteSlots || []).forEach(item=>{
+    if(!item) return;
+    const snapshot = item.snapshot || item.json || item.data || (item.meta && item.meta.snapshot);
+    const baseMeta = item.meta || item;
+    const slotId = baseMeta.id || item.id || makeSaveSlotId();
+    let meta = snapshot ? getSaveMetaFromJson(snapshot, slotId) : Object.assign({}, baseMeta, {id:slotId});
+    meta = Object.assign({}, meta, baseMeta, {id:slotId});
+    if(snapshot) meta.snapshot = snapshot;
+    setSlotMeta(meta);
+    if(snapshot){
+      imported++;
+      if(hasIndexedDb()) saveSlotToIndexedDb(snapshot, meta);
+    }
+  });
+  const active = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0];
+  if(active){
+    currentSaveSlotId = active.id;
+    if(active.snapshot) savedGameSnapshot = active.snapshot;
+  }
+  return imported;
+}
+function setRemoteStatus(text){
+  const el = document.getElementById('remote-save-status');
+  if(el) el.textContent = text || '';
+}
+function renderSaveManager(){
+  const list = document.getElementById('save-manager-list');
+  if(!list) return;
+  if(!saveSlots.length){
+    list.innerHTML = '<div class="disclaimer">Сохранений пока нет. Нажмите «Сохранить сейчас» во время игры.</div>';
+  } else {
+    list.innerHTML = saveSlots.map(slot=>{
+      const date = slot.updatedAt ? new Date(slot.updatedAt).toLocaleString('ru-RU') : '';
+      const active = slot.id===currentSaveSlotId ? ' · текущий слот' : '';
+      return `
+        <div class="save-slot-row">
+          <div class="save-slot-info">
+            <b>${slot.title || 'Сохранение'}</b>
+            <span>${slot.raceName || 'Фракция'} · день ${slot.day || 1}${active}</span>
+            <span>${date}</span>
+          </div>
+          <div class="save-slot-actions">
+            <button onclick="loadSaveSlot('${slot.id}')">играть</button>
+            <button onclick="deleteSaveSlot('${slot.id}')">Удалить</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  setRemoteStatus(remoteSaveConfigured()
+    ? '☁️ Облачные сохранения включены.'
+    : 'Сервер не подключён. Слоты пока хранятся в базе сайта этого браузера.');
+}
+function openSaveManager(){
+  const cfg = remoteSaveConfig();
+  const endpointInput = document.getElementById('remote-save-endpoint');
+  const playerInput = document.getElementById('remote-save-player');
+  const tokenInput = document.getElementById('remote-save-token');
+  if(endpointInput) endpointInput.value = cfg.endpoint;
+  if(playerInput) playerInput.value = cfg.playerId;
+  if(tokenInput) tokenInput.value = cfg.token;
+  if(playerInput) playerInput.disabled = cfg.playerId.startsWith('tg_');
+  renderSaveManager();
+  openModal('modal-save-manager');
+}
+function saveRemoteConfigFromModal(){
+  const endpoint = ((document.getElementById('remote-save-endpoint')?.value || '').trim() || DEFAULT_REMOTE_SAVE_ENDPOINT).replace(/\/+$/, '');
+  const playerIdInput = document.getElementById('remote-save-player');
+  const cfg = remoteSaveConfig();
+  const playerId = (playerIdInput && !playerIdInput.disabled && playerIdInput.value.trim()) ? playerIdInput.value.trim() : cfg.playerId;
+  const token = (document.getElementById('remote-save-token')?.value || '').trim();
+  if(endpoint && endpoint !== DEFAULT_REMOTE_SAVE_ENDPOINT) lsSet(REMOTE_CFG_ENDPOINT_KEY, endpoint);
+  else lsRemove(REMOTE_CFG_ENDPOINT_KEY);
+  if(!playerId.startsWith('tg_')) lsSet(REMOTE_CFG_PLAYER_KEY, playerId);
+  if(token) lsSet(REMOTE_CFG_TOKEN_KEY, token); else lsRemove(REMOTE_CFG_TOKEN_KEY);
+  renderSaveManager();
+  setRemoteStatus('☁️ Облачные сохранения включены.');
+}
+function resetRemoteProfile(){
+  if(!confirm('Сбросить локальный ID профиля? Старые браузерные облачные слоты останутся на сервере, но этот браузер начнёт новый профиль.')) return;
+  lsRemove(REMOTE_CFG_ENDPOINT_KEY);
+  lsRemove(REMOTE_CFG_PLAYER_KEY);
+  lsRemove(REMOTE_CFG_TOKEN_KEY);
+  const playerInput = document.getElementById('remote-save-player');
+  if(playerInput) playerInput.disabled = false;
+  renderSaveManager();
+  setRemoteStatus('Профиль сброшен. Для браузера будет создан новый ID; в Telegram используется Telegram ID.');
+}
+function syncServerSavesNow(){
+  if(isTelegramEnv() && hasCloudStorage()){
+    if(state) forceSaveNow();
+    else flushPendingCloudSave();
+    updateMainMenuState();
+    renderSaveManager();
+    setRemoteStatus('☁️ Telegram CloudStorage обновлён.');
+    return;
+  }
+  saveRemoteConfigFromModal();
+  if(!remoteSaveConfigured()){
+    setRemoteStatus('Укажите URL API сервера сохранений.');
+    return;
+  }
+  if(state) forceSaveNow();
+  setRemoteStatus('☁️ Синхронизация с сервером...');
+  remoteListSaves().then(slots=>{
+    const imported = mergeRemoteSaveSlots(slots);
+    updateMainMenuState();
+    renderSaveManager();
+    setRemoteStatus(`☁️ Синхронизация завершена. Слотов в облаке: ${slots.length}. Загружено: ${imported}.`);
+  }).catch(err=>{
+    console.warn('Remote sync failed:', err);
+    setRemoteStatus('⚠️ Не удалось синхронизироваться: '+(err && err.message ? err.message : err));
+  });
+}
+function syncRemoteSavesOnStartup(){
+  if(!remoteSaveConfigured()) return Promise.resolve(false);
+  return remoteListSaves().then(slots=>{
+    if(slots && slots.length){
+      mergeRemoteSaveSlots(slots);
+      const active = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0];
+      if(active) saveTelegramRemotePointer(active);
+      updateMainMenuState();
+    }
+    return true;
+  }).catch(err=>{
+    console.warn('Remote startup sync failed:', err);
+    return false;
+  });
+}
+function saveIndexToCloud(committedMeta){
   if(!(isTelegramEnv() && hasCloudStorage())) return;
-  const slotsForCloud = saveSlots.map(s=>{
+  let slotsForCloud = saveSlots.map(s=>{
     const copy = Object.assign({}, s);
     delete copy.snapshot; // keep the cloud index small; full saves live in chunked slot keys
     return copy;
   });
-  TG.CloudStorage.setItem(SAVE_INDEX_KEY, JSON.stringify({activeSlotId:currentSaveSlotId, slots:slotsForCloud}), err=>{
+  if(committedMeta && committedMeta.id){
+    const cleanCommitted = Object.assign({}, committedMeta);
+    delete cleanCommitted.snapshot;
+    const existing = slotsForCloud.findIndex(s=>s.id===cleanCommitted.id);
+    if(existing>=0) slotsForCloud[existing] = Object.assign({}, slotsForCloud[existing], cleanCommitted);
+    else slotsForCloud.unshift(cleanCommitted);
+    slotsForCloud.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    slotsForCloud = slotsForCloud.slice(0, MAX_SAVE_SLOTS);
+  }
+  const activeSlotId = committedMeta && committedMeta.id ? committedMeta.id : currentSaveSlotId;
+  TG.CloudStorage.setItem(SAVE_INDEX_KEY, JSON.stringify({activeSlotId, slots:slotsForCloud}), err=>{
     if(err) console.error('Telegram CloudStorage index save error:', err);
+  });
+}
+function saveTelegramRemotePointer(meta){
+  if(!(isTelegramEnv() && hasCloudStorage())) return;
+  const cfg = remoteSaveConfig();
+  const payload = {
+    v:1,
+    playerId:cfg.playerId,
+    endpoint:cfg.endpoint,
+    activeSlotId:currentSaveSlotId,
+    updatedAt:Date.now(),
+    slot: meta ? {
+      id:meta.id,
+      title:meta.title,
+      raceName:meta.raceName,
+      day:meta.day,
+      updatedAt:meta.updatedAt
+    } : null
+  };
+  TG.CloudStorage.setItem(TELEGRAM_REMOTE_POINTER_KEY, JSON.stringify(payload), err=>{
+    if(err) console.warn('Telegram remote pointer save error:', err);
+  });
+}
+function loadTelegramRemotePointer(cb){
+  if(!(isTelegramEnv() && hasCloudStorage())){ cb(null); return; }
+  TG.CloudStorage.getItem(TELEGRAM_REMOTE_POINTER_KEY, (err, raw)=>{
+    if(err || !raw){ cb(null); return; }
+    try{ cb(JSON.parse(raw)); }catch(e){ cb(null); }
   });
 }
 function cloudRemoveKeys(keys, callback){
@@ -1686,8 +2555,12 @@ function createSaveSlotForCurrentGame(){
     const json = JSON.stringify(state);
     savedGameSnapshot = json;
     const meta = getSaveMetaFromJson(json, currentSaveSlotId);
+    if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
     meta.snapshot = json;
     setSlotMeta(meta);
+    if(hasIndexedDb()) saveSlotToIndexedDb(json, meta);
+    if(isTelegramEnv() && hasCloudStorage()) requestCloudSave(json, meta.cloudBaseKey, true, meta);
+    else requestRemoteSave(json, meta, true);
     updateMainMenuState();
   }catch(e){}
 }
@@ -1750,11 +2623,11 @@ function cloudLoadChunked(callback, baseKey){
   });
 }
 
-function requestCloudSave(json, baseKey, force){
+function requestCloudSave(json, baseKey, force, meta){
   if(!(isTelegramEnv() && hasCloudStorage())) return;
   const now = Date.now();
   const wait = Math.max(0, CLOUD_SAVE_MIN_INTERVAL - (now - lastCloudSaveAt));
-  const payload = {json, baseKey:baseKey || activeCloudKey()};
+  const payload = {json, baseKey:baseKey || activeCloudKey(), meta:meta || null};
   if(!force && wait>0){
     cloudSavePending = payload;
     clearTimeout(cloudSaveFlushTimer);
@@ -1773,12 +2646,12 @@ function startCloudSave(payload){
   cloudSaveChunked(payload.json, (err)=>{
     cloudSaveInFlight = false;
     if(err) console.error('Telegram CloudStorage save error:', err);
-    else saveIndexToCloud();
+    else saveIndexToCloud(payload.meta);
     if(cloudSavePending){
       const next = cloudSavePending;
       cloudSavePending = null;
       clearTimeout(cloudSaveFlushTimer);
-      requestCloudSave(next.json, next.baseKey, true);
+      requestCloudSave(next.json, next.baseKey, true, next.meta);
     }
   }, payload.baseKey);
 }
@@ -1786,7 +2659,7 @@ function flushPendingCloudSave(){
   if(!cloudSavePending) return;
   const next = cloudSavePending;
   cloudSavePending = null;
-  requestCloudSave(next.json, next.baseKey, true);
+  requestCloudSave(next.json, next.baseKey, true, next.meta);
 }
 
 function saveGame(){
@@ -1796,11 +2669,15 @@ function saveGame(){
   savedGameSnapshot = json;
   if(!currentSaveSlotId) currentSaveSlotId = makeSaveSlotId();
   const meta = getSaveMetaFromJson(json, currentSaveSlotId);
+  if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
   meta.snapshot = json;
   setSlotMeta(meta);
   if(isTelegramEnv() && hasCloudStorage()){
     clearCloudSavesDeletedMarker();
-    requestCloudSave(json, activeCloudKey(), false);
+    requestCloudSave(json, meta.cloudBaseKey, false, meta);
+  } else if(hasIndexedDb()){
+    saveSlotToIndexedDb(json, meta);
+    requestRemoteSave(json, meta, false);
   }
   updateMainMenuState();
 }
@@ -1811,10 +2688,16 @@ function forceSaveNow(){
   savedGameSnapshot = json;
   if(!currentSaveSlotId) currentSaveSlotId = makeSaveSlotId();
   const meta = getSaveMetaFromJson(json, currentSaveSlotId);
+  if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
   meta.snapshot = json;
   setSlotMeta(meta);
-  if(isTelegramEnv() && hasCloudStorage()) clearCloudSavesDeletedMarker();
-  requestCloudSave(json, activeCloudKey(), true);
+  if(isTelegramEnv() && hasCloudStorage()){
+    clearCloudSavesDeletedMarker();
+    requestCloudSave(json, meta.cloudBaseKey, true, meta);
+  } else {
+    if(hasIndexedDb()) saveSlotToIndexedDb(json, meta);
+    requestRemoteSave(json, meta, true);
+  }
   updateMainMenuState();
 } // bypasses debounce, used before leaving/closing
 function manualAutosave(){
@@ -1823,6 +2706,29 @@ function manualAutosave(){
   forceSaveNow();
   if(document.getElementById('screen-worldmap').classList.contains('active')) flashWorldMsg('Игра сохранена.');
   else if(document.getElementById('screen-village').classList.contains('active')) renderVillage();
+  renderSaveManager();
+}
+
+function currentRaceDefById(id){ return RACES.find(r=>r.id===normalizeRaceId(id)) || RACES[0]; }
+function migrateRaceState(){
+  if(!state) return;
+  const raceId = normalizeRaceId(state.race && state.race.id);
+  state.race = Object.assign({}, currentRaceDefById(raceId), {id: raceId});
+  if(state.hero){
+    state.hero.diplomacyBase = state.hero.diplomacyBase ?? (state.race.diplomacyBase || 0);
+    state.hero.sorceryBase = state.hero.sorceryBase ?? (state.race.sorceryBase || 0);
+    state.hero.raidBase = state.hero.raidBase ?? (state.race.raidBase || 0);
+    state.hero.necromancyBase = state.hero.necromancyBase ?? (state.race.necromancyBase || 0);
+  }
+  if(state.garrisonHero){
+    state.garrisonHero.sorceryBase = state.garrisonHero.sorceryBase ?? (state.race.sorceryBase || 0);
+    state.garrisonHero.necromancyBase = state.garrisonHero.necromancyBase ?? (state.race.necromancyBase || 0);
+  }
+  (state.camps||[]).forEach(c=>{ if(c.def && c.def.race) c.def.race = normalizeRaceId(c.def.race); });
+  (state.forts||[]).forEach(f=>{ if(f.def && f.def.race) f.def.race = normalizeRaceId(f.def.race); });
+  (state.auxArmy||[]).forEach(u=>{ if(u.raceId) u.raceId = normalizeRaceId(u.raceId); });
+  if(state.rivalHero && state.rivalHero.raceId) state.rivalHero.raceId = normalizeRaceId(state.rivalHero.raceId);
+  (state.leaderboard||[]).forEach(row=>{ if(row.race) row.race = normalizeRaceId(row.race); });
 }
 
 function loadGame(snapshotJson){
@@ -1830,6 +2736,7 @@ function loadGame(snapshotJson){
     const parsed = JSON.parse(snapshotJson);
     if(!parsed || !parsed.race || !parsed.res) return false;
     state = parsed;
+    migrateRaceState();
     const mapMismatch = !state.worldMap || state.worldMap.length!==WORLD_ROWS || state.worldMap.some(row=>row.length!==WORLD_COLS);
     const mapOutdated = state.worldMapVersion !== WORLD_MAP_VERSION;
     if(mapMismatch || mapOutdated){
@@ -1875,10 +2782,20 @@ function loadGame(snapshotJson){
     state.unlockedHeroes.push(state.heroId); // grandfather in whichever named hero an old save already had active
     }
     state.heroId = HERO_DEFS.some(h=>h.id===state.heroId && !h.locked) ? state.heroId : 'default';
-    state.heroTalents = state.heroTalents || {};
-    state.pendingTalentChoices = Array.isArray(state.pendingTalentChoices) ? state.pendingTalentChoices : null;
+    state.garrisonHeroId = state.garrisonHeroId || GARRISON_HERO_DEF.id;
+    state.hero.talents = state.hero.talents || state.heroTalents || {};
+    state.hero.pendingTalentChoices = Array.isArray(state.hero.pendingTalentChoices) ? state.hero.pendingTalentChoices : (Array.isArray(state.pendingTalentChoices) ? state.pendingTalentChoices : null);
+    state.heroTalents = state.hero.talents; // legacy mirror for older helper paths that may still read it
+    state.pendingTalentChoices = null;
     state.weeklyRecruitUsed = state.weeklyRecruitUsed || {};
     state.auxArmy = Array.isArray(state.auxArmy) ? state.auxArmy : [];
+    state.hero.inventory = Array.isArray(state.hero.inventory) ? state.hero.inventory : [];
+    state.hero.spellbook = Array.isArray(state.hero.spellbook) ? state.hero.spellbook : ['bolt','fireball','chain'];
+    state.garrisonHero = state.garrisonHero || createHeroState(state.race || RACES[0], 'garrison');
+    state.garrisonHero.inventory = Array.isArray(state.garrisonHero.inventory) ? state.garrisonHero.inventory : [];
+    state.garrisonHero.spellbook = Array.isArray(state.garrisonHero.spellbook) ? state.garrisonHero.spellbook : ['bolt','heal'];
+    state.garrisonHero.talents = state.garrisonHero.talents || {};
+    state.garrisonHero.pendingTalentChoices = Array.isArray(state.garrisonHero.pendingTalentChoices) ? state.garrisonHero.pendingTalentChoices : null;
     state.hero.diplomacyBase = state.hero.diplomacyBase ?? (state.race && state.race.diplomacyBase) ?? 0;
     state.hero.sorceryBase = state.hero.sorceryBase ?? (state.race && state.race.sorceryBase) ?? 0;
     state.hero.raidBase = state.hero.raidBase ?? (state.race && state.race.raidBase) ?? 0;
@@ -1914,9 +2831,34 @@ function loadSlotSnapshot(slotId, cb){
   const meta = saveSlots.find(s=>s.id===slotId);
   if(!meta){ cb(null); return; }
   const memorySnapshot = meta.snapshot || (slotId===currentSaveSlotId ? savedGameSnapshot : null);
-  if(memorySnapshot){ cb(memorySnapshot); return; }
+  if(memorySnapshot && saveSnapshotMatchesMeta(memorySnapshot, meta)){ cb(memorySnapshot); return; }
   if(isTelegramEnv() && hasCloudStorage()){
-    cloudLoadChunked(json=>cb(json || null), SAVE_SLOT_PREFIX+slotId);
+    const baseKey = cloudBaseForSlot(meta);
+    cloudLoadChunked(json=>{
+      if(json && saveSnapshotMatchesMeta(json, meta)){ cb(json); return; }
+      const legacyBase = SAVE_SLOT_PREFIX+slotId;
+      if(baseKey !== legacyBase){
+        cloudLoadChunked(legacyJson=>cb(legacyJson && saveSnapshotMatchesMeta(legacyJson, meta) ? legacyJson : null), legacyBase);
+      } else {
+        cb(null);
+      }
+    }, baseKey);
+  } else if(remoteSaveConfigured()){
+    remoteListSaves().then(slots=>{
+      const found = (slots || []).find(item=>{
+        const m = item && (item.meta || item);
+        return m && (m.id===slotId || item.id===slotId);
+      });
+      const snapshot = found && (found.snapshot || found.json || found.data || (found.meta && found.meta.snapshot));
+      if(snapshot && saveSnapshotMatchesMeta(snapshot, meta)){ cb(snapshot); return; }
+      if(hasIndexedDb()) loadSlotFromIndexedDb(slotId).then(json=>cb(json && saveSnapshotMatchesMeta(json, meta) ? json : null));
+      else cb(null);
+    }).catch(()=>{
+      if(hasIndexedDb()) loadSlotFromIndexedDb(slotId).then(json=>cb(json && saveSnapshotMatchesMeta(json, meta) ? json : null));
+      else cb(null);
+    });
+  } else if(hasIndexedDb()){
+    loadSlotFromIndexedDb(slotId).then(json=>cb(json && saveSnapshotMatchesMeta(json, meta) ? json : null));
   } else {
     cb(null);
   }
@@ -1924,7 +2866,7 @@ function loadSlotSnapshot(slotId, cb){
 function loadSaveSlot(slotId){
   loadSlotSnapshot(slotId, snapshot=>{
     if(!snapshot){
-      alert('Не удалось загрузить это сохранение. Попробуйте открыть его ещё раз через пару секунд: Telegram мог не успеть синхронизировать слот.');
+      alert('Не удалось загрузить это сохранение: Telegram вернул пустой или устаревший снимок слота. Игра не будет откатывать прогресс на старый день.');
       updateMainMenuState();
       return;
     }
@@ -1934,10 +2876,12 @@ function loadSaveSlot(slotId){
       const meta = getSaveMetaFromJson(snapshot, slotId);
       meta.snapshot = snapshot;
       setSlotMeta(meta);
-      saveIndexToCloud();
+      if(isTelegramEnv() && hasCloudStorage()) saveIndexToCloud(meta);
+      else if(hasIndexedDb()) saveSlotToIndexedDb(snapshot, meta);
       updateMainMenuState();
       addLog('Правление продолжается — казна и войско там же, где вы их оставили.', 'event');
       showScreen('screen-village');
+      closeModal('modal-save-manager');
       renderVillage();
     }
   });
@@ -1953,6 +2897,10 @@ function deleteSaveSlot(slotId){
     state = null;
   }
   if(isTelegramEnv() && hasCloudStorage()){
+    const nextMeta = saveSlots.find(s=>s.id===currentSaveSlotId) || saveSlots[0] || null;
+    saveIndexToCloud(nextMeta);
+  }
+  if(isTelegramEnv() && hasCloudStorage()){
     const baseKey = SAVE_SLOT_PREFIX+slotId;
     const keys = cloudChunkKeys(baseKey, (slot.chunks || 1) + 8);
     if(saveSlots.length){
@@ -1965,8 +2913,19 @@ function deleteSaveSlot(slotId){
       saveIndexToCloud();
       clearLegacyCloudSaves([slot], ()=>markCloudSavesDeleted(()=>updateMainMenuState()));
     }
+  } else if(hasIndexedDb()){
+    deleteSlotFromIndexedDb(slotId).then(()=>updateMainMenuState());
+  }
+  if(remoteSaveConfigured()){
+    remoteDeleteSlot(slotId).then(()=>{
+      setRemoteStatus('☁️ Слот удалён на сервере.');
+    }).catch(err=>{
+      console.warn('Remote delete failed:', err);
+      setRemoteStatus('⚠️ Локально слот удалён, но сервер не ответил: '+(err && err.message ? err.message : err));
+    });
   }
   renderSaveSlotsPanel();
+  renderSaveManager();
   updateMainMenuState();
 }
 function toggleSaveSlots(){
@@ -1998,6 +2957,7 @@ function renderSaveSlotsPanel(){
         </div>
       </div>`;
   }).join('');
+  renderSaveManager();
 }
 function updateMainMenuState(){
   const btn = document.getElementById('continue-btn');
@@ -2007,14 +2967,17 @@ function updateMainMenuState(){
   if(!btn) return;
   const hasSave = saveSlots.length>0 || !!savedGameSnapshot;
   const cloudActive = isTelegramEnv() && hasCloudStorage();
+  const siteDbActive = hasIndexedDb() && !indexedDbFailed;
   btn.disabled = !hasSave;
   if(loadBtn) loadBtn.disabled = !hasSave;
-  if(fileRow) fileRow.style.display = cloudActive ? 'none' : ''; // file save/load is only needed as a fallback
+  if(fileRow) fileRow.style.display = cloudActive ? 'none' : ''; // file save/load is still useful as a portable backup on web
   if(note) note.textContent = cloudActive
-    ? (hasSave ? `☁️ Сохранений в Telegram: ${saveSlots.length}. «Продолжить» откроет последнее.` : 'Сохранений в облаке Telegram пока нет — начните новую игру.')
+    ? (hasSave ? `☁️ Облачных сохранений: ${saveSlots.length}. «Продолжить» откроет последнее.` : 'Облачных сохранений пока нет — начните новую игру.')
     : isTelegramEnv()
       ? 'Облачное хранилище Telegram недоступно в этой версии клиента — используйте «Сохранить в файл».'
-      : (hasSave ? `Сохранений в текущей вкладке: ${saveSlots.length}. Для переноса между сессиями используйте файл.` : 'Автосохранение работает только в пределах текущей вкладки браузера. Для сохранения между сессиями используйте «Сохранить в файл».');
+      : siteDbActive
+        ? (hasSave ? `💾 Сохранений в базе сайта: ${saveSlots.length}. Они сохраняются в этом браузере после закрытия страницы.` : 'Сохранений в базе сайта пока нет — начните новую игру.')
+        : (hasSave ? `Сохранений в текущей вкладке: ${saveSlots.length}. IndexedDB недоступен, используйте файл как резерв.` : 'База сайта недоступна в этом браузере. Для сохранения между сессиями используйте «Сохранить в файл».');
   renderSaveSlotsPanel();
 }
 function exportSaveToFile(){
@@ -2041,6 +3004,7 @@ function importSaveFromFile(evt){
       const meta = getSaveMetaFromJson(reader.result, currentSaveSlotId);
       meta.snapshot = reader.result;
       setSlotMeta(meta);
+      if(hasIndexedDb()) saveSlotToIndexedDb(reader.result, meta);
       updateMainMenuState();
       addLog('Сохранение загружено из файла.', 'event');
       showScreen('screen-village');
@@ -2053,8 +3017,43 @@ function importSaveFromFile(evt){
   evt.target.value = '';
 }
 
-/* Pulls any existing Telegram CloudStorage save on startup so "Продолжить" is correctly enabled
-   before the player does anything. No-op (and instant) outside Telegram. */
+function migrateOldTelegramCloudSavesToVersionedCloud(){
+  return new Promise(resolve=>{
+    if(!(isTelegramEnv() && hasCloudStorage())){ resolve(false); return; }
+    function finishWithSnapshot(json, slotId){
+      if(!json){ resolve(false); return; }
+      currentSaveSlotId = slotId || currentSaveSlotId || makeSaveSlotId();
+      savedGameSnapshot = json;
+      const meta = getSaveMetaFromJson(json, currentSaveSlotId);
+      meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
+      meta.snapshot = json;
+      setSlotMeta(meta);
+      requestCloudSave(json, meta.cloudBaseKey, true, meta);
+      resolve(true);
+    }
+    TG.CloudStorage.getItem(SAVE_INDEX_KEY, (indexErr, indexValue)=>{
+      const index = !indexErr ? normalizeSaveIndex(indexValue) : {activeSlotId:null, slots:[]};
+      const active = (index.slots || []).find(s=>s.id===index.activeSlotId) || (index.slots || [])[0];
+      if(active && active.id){
+        cloudLoadChunked(json=>finishWithSnapshot(json, active.id), SAVE_SLOT_PREFIX+active.id);
+        return;
+      }
+      TG.CloudStorage.getItem(SAVE_DELETED_MARKER_KEY, (deletedErr, deletedMarker)=>{
+        if(!deletedErr && deletedMarker){ resolve(false); return; }
+        cloudLoadChunked(json=>{
+          if(json){ finishWithSnapshot(json, makeSaveSlotId()); return; }
+          TG.CloudStorage.getItem(SAVE_LEGACY_KEY, (err, legacyJson)=>{
+            if(!err && legacyJson) finishWithSnapshot(legacyJson, makeSaveSlotId());
+            else resolve(false);
+          });
+        });
+      });
+    });
+  });
+}
+
+/* Telegram build uses Telegram CloudStorage as the source of truth in this variant.
+   Saves are written as versioned chunk groups; the index points only to a fully committed group. */
 function initSaveSystem(){
   if(isTelegramEnv() && hasCloudStorage()){
     try{ TG.ready(); TG.expand(); }catch(e){}
@@ -2066,50 +3065,22 @@ function initSaveSystem(){
       if(active){
         currentSaveSlotId = active.id;
         cloudLoadChunked(json=>{
-          if(json){
+          if(json && saveSnapshotMatchesMeta(json, active)){
+            const meta = normalizeMetaAgainstSnapshot(json, active, active.id);
+            meta.cloudBaseKey = active.cloudBaseKey || cloudBaseForSlot(active);
             savedGameSnapshot = json;
-            active.snapshot = json;
+            setSlotMeta(meta);
           }
           updateMainMenuState();
-        }, SAVE_SLOT_PREFIX+active.id);
+        }, cloudBaseForSlot(active));
         return;
       }
-
-      TG.CloudStorage.getItem(SAVE_DELETED_MARKER_KEY, (deletedErr, deletedMarker)=>{
-        if(!deletedErr && deletedMarker){
-          currentSaveSlotId = null;
-          savedGameSnapshot = null;
-          saveSlots = [];
-          updateMainMenuState();
-          return;
-        }
-        cloudLoadChunked(json=>{
-          if(json){
-            currentSaveSlotId = makeSaveSlotId();
-            savedGameSnapshot = json;
-            const meta = getSaveMetaFromJson(json, currentSaveSlotId);
-            meta.snapshot = json;
-            setSlotMeta(meta);
-            cloudSaveChunked(json, (err)=>{ if(!err) saveIndexToCloud(); }, SAVE_SLOT_PREFIX+currentSaveSlotId);
-            updateMainMenuState();
-            return;
-          }
-          TG.CloudStorage.getItem(SAVE_LEGACY_KEY, (err, legacyJson)=>{
-            if(!err && legacyJson){
-              currentSaveSlotId = makeSaveSlotId();
-              savedGameSnapshot = legacyJson;
-              const meta = getSaveMetaFromJson(legacyJson, currentSaveSlotId);
-              meta.snapshot = legacyJson;
-              setSlotMeta(meta);
-              cloudSaveChunked(legacyJson, (saveErr)=>{ if(!saveErr) saveIndexToCloud(); }, SAVE_SLOT_PREFIX+currentSaveSlotId);
-            }
-            updateMainMenuState();
-          });
-        });
-      });
+      migrateOldTelegramCloudSavesToVersionedCloud().then(()=>updateMainMenuState());
     });
   } else {
-    updateMainMenuState();
+    loadIndexedDbState()
+      .then(()=>syncRemoteSavesOnStartup())
+      .then(()=>updateMainMenuState());
   }
 }
 
@@ -2656,9 +3627,9 @@ function upgradeBuilding(key){
 /* ---- Building descriptions (right-click / context menu on a building tile) ---- */
 const BUILDING_INFO = {
   townhall: (b)=> `Сердце поселения — усиливает всё войско сразу. Сейчас: −${Math.round((1-unitCostMultiplier())*100)}% к цене найма, недельный лимит найма ${unitCapPerTier(1)} бойцов на каждый уровень отряда 1–3 (казармы добавляют недельный лимит для старших), +${townStatBonus()} к атаке и защите всех ваших отрядов в бою. Сама армия общего потолка больше не имеет.`,
-  farm: (b)=> `Даёт дерево каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('wood')*productionMultiplier('wood'))} за ход. Нужно для построек и найма войск.`,
+  farm: (b)=> `Даёт дерево каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('wood')*productionMultiplier('wood'))} за ход. Нужно для построек и снаряжения дорогих отрядов.`,
   mine: (b)=> `Даёт золото каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('gold')*productionMultiplier('gold'))} за ход. Основа казны: без золота не нанять бойцов и не отстроиться.`,
-  quarry: (b)=> `Даёт камень каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('stone')*productionMultiplier('stone'))} за ход. Нужен для построек и снаряжения тяжёлых отрядов.`,
+  quarry: (b)=> `Даёт камень каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('stone')*productionMultiplier('stone'))} за ход. Нужен для построек и снаряжения дорогих тяжёлых отрядов.`,
   crystalcave: (b)=> `Даёт кристаллы каждый ход — сейчас +${Math.round(b.base*b.level*raceMod('crystal')*productionMultiplier('crystal'))} за ход. Редкий ресурс для найма старших отрядов и рыночных сделок.`,
   tower: (b)=> {
     const nextUnlock = SPELLS.filter(sp=>sp.unlockLevel>b.level).sort((a,c)=>a.unlockLevel-c.unlockLevel)[0];
@@ -2712,11 +3683,27 @@ function recordWeeklyRecruit(tier, qty){
 }
 function resetWeeklyRecruitLimits(){ state.weeklyRecruitUsed = {}; }
 function townStatBonus(){ return Math.floor((townHallLevel()-1)/2) + talentLevel('tactics'); }
-function getMaxMana(){ return Math.round((state.hero.maxManaBase + (mageTowerLevel()-1)*4 + crystalFortManaBonus()) * heroManaMult()); }
+function battleTownStatBonus(role){ return Math.floor((townHallLevel()-1)/2) + talentLevelForRole(role || (battleUsesGarrisonHero() ? 'garrison' : 'field'), 'tactics'); }
+function getMaxManaFor(hero, def){
+  hero = hero || state.hero;
+  def = def || currentHeroDef();
+  return Math.round((hero.maxManaBase + (mageTowerLevel()-1)*4 + crystalFortManaBonus()) * ((def.bonuses && def.bonuses.manaMult) || 1));
+}
+function getMaxMana(){ return getMaxManaFor(state.hero, currentHeroDef()); }
 // Mage tower spell-power bonus: +3% at level 1, +5% at level 2, +7% at 3, ...(+2% per level thereafter).
 function mageTowerSpellBonusPct(){ return 2*mageTowerLevel()+1 + crystalFortSpellBonusPct(); }
 function spellPowerMult(){ return 1 + mageTowerSpellBonusPct()/100 + ((state.hero && state.hero.sorceryBase) || 0) + 0.05*talentLevel('sorcery'); }
 function spellUnlockedByTower(sp){ return mageTowerLevel() >= (sp.unlockLevel||1); }
+function battleUsesGarrisonHero(){
+  return !!(battle && battle.meta && (battle.meta.source==='siege' || battle.meta.source==='quick_siege'));
+}
+function activeBattleHero(){ return battleUsesGarrisonHero() ? state.garrisonHero : state.hero; }
+function activeBattleHeroDef(){ return battleUsesGarrisonHero() ? currentGarrisonHeroDef() : currentHeroDef(); }
+function activeBattleMaxMana(){ return getMaxManaFor(activeBattleHero(), activeBattleHeroDef()); }
+function activeBattleSpellPowerMult(){
+  const h = activeBattleHero();
+  return 1 + mageTowerSpellBonusPct()/100 + ((h && h.sorceryBase) || 0) + 0.05*battleTalentLevel('sorcery');
+}
 
 function barracksLevel(){ const b = state.buildings.find(x=>x.key==='barracks'); return b ? b.level : 1; }
 
@@ -2752,12 +3739,19 @@ const HERO_DEFS = [
     desc:'Будущий герой для карты, движения и добычи.',
     bonusText:'План: поиск пути, налёт и разведка. Пока недоступно.', bonuses:{}},
 ];
+const GARRISON_HERO_DEF = {
+  id:'garrison_captain', name:'Капитан гарнизона', icon:'🛡️',
+  desc:'Защищает город, пока походный герой странствует по карте.',
+  bonusText:'Отдельные статы, книга магии и инвентарь для обороны.', bonuses:{},
+};
 // The default hero's icon follows the player's race (close-to-medieval, race-flavored look), same
 // emoji each race originally used for its generic hero.
 function defaultHeroIcon(){ return (state.race && state.race.heroEmoji) || '🤺'; }
+function heroDefById(id){ return HERO_DEFS.find(h=>h.id===id) || (id===GARRISON_HERO_DEF.id ? GARRISON_HERO_DEF : HERO_DEFS[0]); }
 function heroDefIcon(h){ return h.id==='default' ? defaultHeroIcon() : h.icon; }
 function isHeroUnlocked(h){ return h.id==='default' || h.free || (state.unlockedHeroes||[]).includes(h.id); }
-function currentHeroDef(){ return HERO_DEFS.find(h=>h.id===state.heroId) || HERO_DEFS[0]; }
+function currentHeroDef(){ return heroDefById(state.heroId); }
+function currentGarrisonHeroDef(){ return heroDefById(state.garrisonHeroId || GARRISON_HERO_DEF.id); }
 function heroManaMult(){ return currentHeroDef().bonuses.manaMult || 1; }
 function heroXpMult(){ return currentHeroDef().bonuses.xpMult || 1; }
 function heroRangedDmgMult(){ return currentHeroDef().bonuses.rangedDmgMult || 1; }
@@ -2774,8 +3768,13 @@ const TALENT_DEFS = [
   {id:'politics', icon:'🏛️', name:'Политика', desc:'Указы дешевле на 10% за уровень.'},
   {id:'pathfinding', icon:'🧭', name:'Поиск пути', desc:'+1 очко хода на карте за уровень.'},
 ];
-function talentLevel(id){ return Math.max(0, Math.min(3, (state && state.heroTalents && state.heroTalents[id]) || 0)); }
-function learnedTalentCount(){ return Object.values(state.heroTalents || {}).filter(v=>v>0).length; }
+function heroForRole(role){ return role==='garrison' ? state.garrisonHero : state.hero; }
+function talentLevelForHero(hero, id){ return Math.max(0, Math.min(3, (hero && hero.talents && hero.talents[id]) || 0)); }
+function talentLevelForRole(role, id){ return talentLevelForHero(heroForRole(role), id); }
+function talentLevel(id){ return talentLevelForRole('field', id); }
+function battleTalentLevel(id){ return talentLevelForHero(activeBattleHero(), id); }
+function learnedTalentCountForHero(hero){ return Object.values((hero && hero.talents) || {}).filter(v=>v>0).length; }
+function learnedTalentCount(){ return learnedTalentCountForHero(state.hero); }
 function edictCost(e){ return Math.max(0, Math.round((e.cost||0) * (1 - 0.10*talentLevel('politics')))); }
 function raidLootMult(){ return 1 + ((state.hero && state.hero.raidBase) || 0) + 0.10*talentLevel('raid'); }
 function necromancyRate(){
@@ -2813,6 +3812,7 @@ function selectHero(id){
   if(document.getElementById('screen-worldmap').classList.contains('active')) renderWorldMap();
   else renderVillage();
   renderTavern();
+  closeModal('modal-tavern');
 }
 function heroRosterCardHtml(h, opts){
   opts = opts || {};
@@ -2836,6 +3836,14 @@ function heroRosterCardHtml(h, opts){
   const ownedTag = (!h.free && unlocked) ? '<small>Уже нанят</small>' : '';
   const priceTag = (!unlocked && !opts.compact && !needsTavern) ? `<small>Цена: ${CONFIG_HERO_PRICE.gold}💰 ${CONFIG_HERO_PRICE.crystal}💎</small>` : '';
   const tavernTag = needsTavern ? '<small>Постройте таверну, чтобы открыть найм.</small>' : '';
+  if(opts.compact){
+    return `<div class="hero-roster-card ${active?'active':''} ${canAfford?'':'disabled'}" style="min-height:104px;" onclick="${canSelect?`selectHero('${h.id}')`:''}">
+      <div class="emoji">${icon}</div>
+      <b>${h.name}${active?' ✓':''}</b>
+      <small class="hero-bonus">${h.bonusText}</small>
+      <button ${canSelect?'':'disabled'} onclick="event.stopPropagation();${canSelect?`selectHero('${h.id}')`:''}">${action}</button>
+    </div>`;
+  }
   return `<div class="hero-roster-card ${active?'active':''} ${canAfford?'':'disabled'}" onclick="${canSelect?`selectHero('${h.id}')`:''}">
     <div class="emoji">${icon}</div>
     <b>${h.name}${active?' ✓':''}</b>
@@ -2954,25 +3962,44 @@ function plural(n, one, few, many){
 
 function unitCost(tier){
   const mult = unitCostMultiplier();
+  const raceMult = unitBalanceMod(state && state.race ? state.race.id : 'humans', tier).costMult || 1;
+  const base = {
+    1:{gold:8, wood:0, stone:0, crystal:0},
+    2:{gold:24, wood:0, stone:0, crystal:0},
+    3:{gold:52, wood:0, stone:0, crystal:0},
+    4:{gold:95, wood:6, stone:6, crystal:0},
+    5:{gold:155, wood:10, stone:10, crystal:2},
+    6:{gold:245, wood:14, stone:14, crystal:5},
+  }[tier] || {gold:10*tier*tier, wood:0, stone:0, crystal:0};
+  const scaled = value => value > 0 ? Math.ceil(value*mult*raceMult) : 0;
   return {
-    gold: Math.round((tier===1 ? 7 : 10*tier*tier)*mult),
-    wood: Math.round((tier===1 ? 2 : 4*tier)*mult),
-    stone: Math.round((tier===1 ? 2 : 4*tier)*mult),
-    crystal: tier>=5 ? Math.round(3*(tier-4)*mult) : 0,
+    gold: scaled(base.gold),
+    wood: scaled(base.wood),
+    stone: scaled(base.stone),
+    crystal: scaled(base.crystal),
   };
 }
 function raceUnitAtk(tier, raceObj){
   const base = tier===1 ? 2 : 3*tier;
-  return base + Math.round(base*((raceObj&&raceObj.atkBonus)||0));
+  const mod = unitBalanceMod(raceObj && raceObj.id, tier);
+  const tuned = base + (mod.atkFlat || 0);
+  return Math.max(1, tuned + Math.round(tuned*((raceObj&&raceObj.atkBonus)||0)));
 }
 function raceUnitDef(tier, raceObj){
   const base = tier===1 ? 1 : 2*tier;
-  return base + Math.round(base*((raceObj&&raceObj.defBonus)||0));
+  const mod = unitBalanceMod(raceObj && raceObj.id, tier);
+  const tuned = base + (mod.defFlat || 0);
+  return Math.max(0, tuned + Math.round(tuned*((raceObj&&raceObj.defBonus)||0)));
 }
 function unitAtk(tier){ return raceUnitAtk(tier, state.race) + townStatBonus(); }
 function unitDef(tier){ return raceUnitDef(tier, state.race) + townStatBonus(); }
-function unitDefGarrison(tier){ return unitDef(tier) + garrisonDefBonus(); } // walls only protect troops standing in garrison
-function unitHp(tier){ return tier===1 ? 7 : 10*tier; }
+function unitAtkGarrison(tier){ return raceUnitAtk(tier, state.race) + battleTownStatBonus('garrison'); }
+function unitDefGarrison(tier){ return raceUnitDef(tier, state.race) + battleTownStatBonus('garrison') + garrisonDefBonus(); } // walls only protect troops standing in garrison
+function unitHp(tier, raceObj){
+  const base = tier===1 ? 7 : 10*tier;
+  const mod = unitBalanceMod(raceObj ? raceObj.id : (state && state.race ? state.race.id : 'humans'), tier);
+  return Math.max(1, Math.round((base + (mod.hpFlat || 0)) * (mod.hpMult || 1)));
+}
 function resName(type){ return {gold:'золота', wood:'дерева', stone:'камня', crystal:'кристаллов', chest:'сундук'}[type]; }
 function troopInfoFor(slot, raceId){
   if(slot && slot.neutralId) return {name:slot.name, icon:slot.icon, ranged:!!slot.ranged, atk:slot.atk, def:slot.def};
@@ -3134,7 +4161,7 @@ function renderGarrison(){
       <div class="unit-ico">${info.icon}</div>
       <div class="unit-info">
         <b>Ур.${u.tier} ${info.name}${info.ranged?' 🏹':''}</b>
-        <span>в гарнизоне: x${u.count} • атк ${unitAtk(u.tier)} / защ ${unitDefGarrison(u.tier)}${garrisonDefBonus()>0?' (+'+garrisonDefBonus()+' от стен)':''} • найм недели ${used}/${cap}</span>
+        <span>в гарнизоне: x${u.count} • атк ${unitAtkGarrison(u.tier)} / защ ${unitDefGarrison(u.tier)}${garrisonDefBonus()>0?' (+'+garrisonDefBonus()+' от стен)':''} • найм недели ${used}/${cap}</span>
       </div>
       <button class="recruit-btn" ${canBuy?'':'disabled'} onclick="recruit(${u.tier})">${btnLabel}</button>
       <button class="recruit-btn" ${u.count>0?'':'disabled'} onclick="deployToField(${u.tier})" style="background:var(--royal);">➡ В поход</button>
@@ -3187,8 +4214,8 @@ function renderWorldHeroPanel(){
   const armyEl = document.getElementById('world-army-strip');
   if(!heroEl || !armyEl || !state) return;
   const def = currentHeroDef();
-  heroEl.onclick = openHeroChoice;
-  heroEl.title = 'Выбрать или нанять героя';
+  heroEl.onclick = ()=>{ selectedHeroRole = 'field'; openHeroSwitch(); };
+  heroEl.title = 'Открыть выбор активного героя';
   heroEl.innerHTML = `<div class="emoji">${heroDefIcon(def)}</div>
     <div>
       <b>${def.name}</b>
@@ -3204,6 +4231,184 @@ function renderWorldHeroPanel(){
     <b>${u.count}</b>
     <small>${u.aux?'II':'ур.'+u.tier}</small>
   </div>`).join('');
+}
+
+let selectedHeroRole = 'field';
+function heroRoleData(role){
+  const isGarrison = role==='garrison';
+  const hero = isGarrison ? state.garrisonHero : state.hero;
+  const def = isGarrison ? currentGarrisonHeroDef() : currentHeroDef();
+  return {role, hero, def, title:isGarrison?'Гарнизонный герой':'Походный герой'};
+}
+function inventoryHtml(hero){
+  const items = Array.isArray(hero.inventory) ? hero.inventory : [];
+  return Array.from({length:6}).map((_,i)=>{
+    const item = items[i];
+    return `<div class="inventory-slot">
+      <span class="ico">${item ? (item.icon||'🎒') : '＋'}</span>
+      <span>${item ? escHtml(item.name||'Предмет') : ['Артефакт','Зелье','Книга','Реликвия','Свиток','Трофей'][i]}</span>
+    </div>`;
+  }).join('');
+}
+function spellbookHtml(hero){
+  const ids = Array.isArray(hero.spellbook) ? hero.spellbook : ['bolt'];
+  const spells = ids.map(id=>SPELLS.find(s=>s.id===id)).filter(Boolean);
+  if(!spells.length) return '<p class="market-note">Книга пуста.</p>';
+  return `<div class="spell-chip-row">${spells.map(s=>`<span class="spell-chip">${s.icon} ${s.name}</span>`).join('')}</div>`;
+}
+function heroSheetCard(role){
+  const data = heroRoleData(role);
+  const maxMana = getMaxManaFor(data.hero, data.def);
+  const talents = TALENT_DEFS.filter(t=>talentLevelForHero(data.hero, t.id)>0).map(t=>`${t.icon}${talentLevelForHero(data.hero, t.id)}`).join(' ') || 'нет';
+  return `<div class="hero-sheet-card">
+    <h3>${heroDefIcon(data.def)} ${data.title}</h3>
+    <div class="stat-row"><span>Имя</span><span>${escHtml(data.def.name)}</span></div>
+    <div class="stat-row"><span>Уровень</span><span>${data.hero.level}/25</span></div>
+    <div class="stat-row"><span>Опыт</span><span>${data.hero.xp}/${data.hero.xpNeeded}</span></div>
+    <div class="stat-row"><span>⚔️ Атака</span><span>${data.hero.atk}</span></div>
+    <div class="stat-row"><span>🛡️ Защита</span><span>${data.hero.def}</span></div>
+    <div class="stat-row"><span>✨ Сила магии</span><span>${data.hero.sp}</span></div>
+    <div class="stat-row"><span>💠 Мана</span><span>${data.hero.mana}/${maxMana}</span></div>
+    <div class="stat-row"><span>⭐ Таланты</span><span>${talents}</span></div>
+    <h3>📖 Книга магии</h3>
+    ${spellbookHtml(data.hero)}
+    <h3 style="margin-top:10px;">🎒 Инвентарь</h3>
+    <div class="inventory-grid">${inventoryHtml(data.hero)}</div>
+  </div>`;
+}
+function heroInventoryPanel(role){
+  const data = heroRoleData(role || selectedHeroRole || 'field');
+  const maxMana = getMaxManaFor(data.hero, data.def);
+  const talents = TALENT_DEFS.filter(t=>talentLevelForHero(data.hero, t.id)>0).map(t=>`${t.icon}${talentLevelForHero(data.hero, t.id)}`).join(' ') || 'нет';
+  return `<div class="hero-inventory-head">
+    <div class="emoji">${heroDefIcon(data.def)}</div>
+    <div style="flex:1;">
+      <b>${data.title}: ${escHtml(data.def.name)}</b>
+      <div class="stat-row"><span>Ур. ${data.hero.level} • XP ${data.hero.xp}/${data.hero.xpNeeded}</span><span>⚔️ ${data.hero.atk} • 🛡️ ${data.hero.def} • ✨ ${data.hero.sp} • 💠 ${data.hero.mana}/${maxMana}</span></div>
+      <div class="stat-row"><span>⭐ Таланты</span><span>${talents}</span></div>
+    </div>
+  </div>
+  <div class="hero-sheet-card">
+    <h3>📖 Книга магии</h3>
+    ${spellbookHtml(data.hero)}
+    <h3 style="margin-top:10px;">🎒 Инвентарь</h3>
+    <div class="inventory-grid">${inventoryHtml(data.hero)}</div>
+  </div>`;
+}
+function heroSwitchCard(role){
+  const data = heroRoleData(role);
+  const active = selectedHeroRole===role;
+  return `<div class="hero-switch-card ${active?'active':''}" onclick="selectedHeroRole='${role}';renderHeroSheet('switch')">
+    <div class="emoji">${heroDefIcon(data.def)}</div>
+    <div>
+      <b>${data.title}</b>
+      <span>${escHtml(data.def.name)}</span>
+      <span>Ур. ${data.hero.level} • ⚔️ ${data.hero.atk} • 🛡️ ${data.hero.def}</span>
+    </div>
+  </div>`;
+}
+function transferRowsHtml(){
+  return [1,2,3,4,5,6].map(tier=>{
+    const g = state.garrison.find(x=>x.tier===tier);
+    const a = state.army.find(x=>x.tier===tier);
+    if(a.neutralId) return '';
+    const total = (g?g.count:0) + (a?a.count:0);
+    const info = unitInfo(state.race.id, tier);
+    return `<div class="transfer-row">
+      <span style="min-width:78px;">${info.icon} Ур.${tier}</span>
+      <span id="transfer-left-${tier}" style="min-width:46px;">🏰 ${g?g.count:0}</span>
+      <input type="range" min="0" max="${total}" value="${a?a.count:0}" ${total?'':'disabled'} oninput="previewHeroArmyTransfer(${tier}, this.value)" onchange="setHeroArmyTransfer(${tier}, this.value)">
+      <span id="transfer-right-${tier}" style="min-width:46px;">⚔️ ${a?a.count:0}</span>
+    </div>`;
+  }).join('');
+}
+function previewHeroArmyTransfer(tier, value){
+  const total = (state.garrison.find(x=>x.tier===tier)?.count || 0) + (state.army.find(x=>x.tier===tier)?.count || 0);
+  const armyCount = Math.max(0, Math.min(total, Number(value)||0));
+  const left = document.getElementById(`transfer-left-${tier}`);
+  const right = document.getElementById(`transfer-right-${tier}`);
+  if(left) left.textContent = `🏰 ${total-armyCount}`;
+  if(right) right.textContent = `⚔️ ${armyCount}`;
+}
+function setHeroArmyTransfer(tier, value){
+  const g = state.garrison.find(x=>x.tier===tier);
+  const a = state.army.find(x=>x.tier===tier);
+  if(!g || !a || a.neutralId) return;
+  const total = g.count + a.count;
+  const armyCount = Math.max(0, Math.min(total, Number(value)||0));
+  a.count = armyCount;
+  g.count = total - armyCount;
+  renderHeroArmyMini();
+  if(document.getElementById('screen-worldmap').classList.contains('active')) renderWorldHeroPanel();
+  else renderVillage();
+}
+function swapFieldAndGarrisonHeroes(){
+  const oldHero = state.hero;
+  state.hero = state.garrisonHero;
+  state.garrisonHero = oldHero;
+  const oldId = state.heroId || 'default';
+  state.heroId = state.garrisonHeroId || GARRISON_HERO_DEF.id;
+  state.garrisonHeroId = oldId;
+  state.heroTalents = state.hero.talents || {};
+  state.maxMovePoints = state.devUnlimitedMove ? 999 : currentMaxMovePoints();
+  state.movePoints = Math.min(state.movePoints || state.maxMovePoints, state.maxMovePoints);
+  addLog('🔁 Походный и гарнизонный герои поменялись местами. Их статы, книги и инвентари остались при них.', 'event');
+  selectedHeroRole = 'field';
+  renderHeroSheet('switch');
+  if(document.getElementById('screen-worldmap').classList.contains('active')) renderWorldMap();
+  else renderVillage();
+}
+function openHeroSheet(role){ selectedHeroRole = role || selectedHeroRole || 'field'; openHeroInventory(role); }
+function openHeroSwitch(){
+  renderHeroSheet('switch');
+  openModal('modal-hero-sheet');
+}
+function openHeroInventory(role){
+  selectedHeroRole = role || selectedHeroRole || 'field';
+  renderHeroSheet('inventory');
+  openModal('modal-hero-sheet');
+}
+function openArmyTransfer(){
+  renderHeroSheet('transfer');
+  openModal('modal-hero-sheet');
+}
+function renderHeroSheet(mode){
+  mode = mode || 'switch';
+  const title = document.getElementById('hero-sheet-title');
+  const body = document.getElementById('hero-sheet-body');
+  if(!title || !body || !state) return;
+  const focus = heroRoleData(selectedHeroRole || 'field');
+  if(mode==='inventory'){
+    title.textContent = `🎒 Инвентарь: ${focus.title}`;
+    body.innerHTML = `
+      <div class="tab-switch">
+        <button class="tab-btn ${selectedHeroRole==='field'?'active':''}" onclick="selectedHeroRole='field';renderHeroSheet('inventory')">⚔️ Походный</button>
+        <button class="tab-btn ${selectedHeroRole==='garrison'?'active':''}" onclick="selectedHeroRole='garrison';renderHeroSheet('inventory')">🏰 Гарнизонный</button>
+      </div>
+      ${heroInventoryPanel(selectedHeroRole)}`;
+    return;
+  }
+  if(mode==='transfer'){
+    title.textContent = '⚖️ Передача армии';
+    body.innerHTML = `
+      <div class="hero-switch-grid">${heroSwitchCard('field')}${heroSwitchCard('garrison')}</div>
+      <div class="hero-sheet-card" style="margin-top:8px;">
+        <h3>⚖️ Армия между героями</h3>
+        <p class="market-note">Ползунок слева оставляет бойцов в гарнизоне, справа отправляет их с походным героем. Нейтральные наёмники остаются только в походе.</p>
+        ${transferRowsHtml()}
+      </div>`;
+    return;
+  }
+  title.textContent = '🧙 Герои';
+  body.innerHTML = `
+    <div class="hero-switch-grid">${heroSwitchCard('field')}${heroSwitchCard('garrison')}</div>
+    <div class="world-action-row">
+      <button class="mini-btn" onclick="swapFieldAndGarrisonHeroes()">🔁 Поменять местами</button>
+      <button class="mini-btn" onclick="openHeroChoice()">🧙 Выбрать походного</button>
+      <button class="mini-btn" onclick="renderHeroSheet('inventory')">🎒 Инвентарь</button>
+      <button class="mini-btn" onclick="renderHeroSheet('transfer')">⚖️ Армия</button>
+    </div>
+    <p class="market-note">Выберите карточку героя, чтобы кнопка инвентаря открывала именно его. Походный герой ходит по карте, гарнизонный защищает город.</p>`;
 }
 
 /* ---- Compact 6-cell overview of all tiers (garrison vs marching counts at a glance) ---- */
@@ -3341,11 +4546,12 @@ function openTavern(){
   openModal('modal-tavern');
 }
 function openHeroChoice(){
+  closeModal('modal-hero-sheet');
   const title = document.getElementById('hero-choice-title');
   const note = document.getElementById('hero-choice-note');
   if(title) title.textContent = '🧙 Выбор героя';
-  if(note) note.textContent = `Текущий герой сохраняет общий уровень, опыт и характеристики. Доступно ходов: ${state.movePoints}/${state.maxMovePoints}. Новых героев всё ещё нужно нанимать через таверну.`;
-  renderTavern();
+  if(note) note.textContent = `Выберите походного героя. Новых героев можно нанять здесь же, если построена таверна.`;
+  renderHeroRoster('tavern-hero-list', {compact:true});
   openModal('modal-tavern');
 }
 function renderTavern(){
@@ -3478,7 +4684,7 @@ function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function capturedForts(){ return (state.forts||[]).filter(f=>f.captured); }
 function buildingLevel(key){ const b = state.buildings.find(x=>x.key===key); return b ? b.level : 0; }
 function unitNameByTier(tier){
-  const raceId = state && state.race ? (RACES.find(r=>r.name===state.race.name)?.id || 'humans') : 'humans';
+  const raceId = state && state.race ? normalizeRaceId(state.race.id) : 'humans';
   const list = UNIT_DATA[raceId] || UNIT_DATA.humans;
   return (list[tier-1] && list[tier-1].name) || `${tier} ур.`;
 }
@@ -3679,6 +4885,9 @@ function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
   // mana: full instant refill if resting in the castle, otherwise gradual regen on the road
   if(wasInVillage){ s.hero.mana = getMaxMana(); }
   else { s.hero.mana = Math.min(getMaxMana(), s.hero.mana + CONFIG.MANA_REGEN_PER_DAY + talentLevel('mysticism')); }
+  if(s.garrisonHero){
+    s.garrisonHero.mana = Math.min(getMaxManaFor(s.garrisonHero, currentGarrisonHeroDef()), (s.garrisonHero.mana || 0) + CONFIG.MANA_REGEN_PER_DAY + 1);
+  }
 
   // floating market prices: small random walk within configured bounds
   driftMarketRates();
@@ -3715,59 +4924,75 @@ function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
   }, flushEndTurnPopupsAfterPlayerPhase);
 }
 
-// All XP awards should route through here (not state.hero.xp += ... directly) so the active
-// tavern hero's XP passive (if any) is never accidentally skipped at some call site.
-function grantXp(amount){
-  state.hero.xp += Math.round(amount * heroXpMult());
-  tryLevelUp();
+// All XP awards should route through here (not hero.xp += ... directly) so the marching and
+// garrison heroes grow independently and keep their own talent queues.
+function heroXpMultForRole(role){ return role==='garrison' ? 1 : heroXpMult(); }
+function heroRoleTitle(role){ return role==='garrison' ? 'Гарнизонный герой' : 'Походный герой'; }
+function grantXp(amount, role){
+  role = role || 'field';
+  const h = heroForRole(role);
+  if(!h) return;
+  h.xp += Math.round(amount * heroXpMultForRole(role));
+  tryLevelUp(role);
 }
-function tryLevelUp(){
-  const h = state.hero;
+function grantBattleXp(amount){
+  grantXp(amount, battleUsesGarrisonHero() ? 'garrison' : 'field');
+}
+function tryLevelUp(role){
+  role = role || 'field';
+  const h = heroForRole(role);
+  if(!h) return;
   let leveled = false;
   while(h.xp >= h.xpNeeded && h.level < 25){
     h.xp -= h.xpNeeded;
     h.level++;
     leveled = true;
-    h.atk += 1; h.def += 1; h.sp += 1; h.maxManaBase += 2; h.mana = Math.min(getMaxMana(), h.mana+2);
+    h.atk += 1; h.def += 1; h.sp += 1; h.maxManaBase += 2; h.mana = Math.min(getMaxManaFor(h, role==='garrison' ? currentGarrisonHeroDef() : currentHeroDef()), h.mana+2);
     h.xpNeeded = Math.round(h.xpNeeded * 1.12);
-    addLog(`⭐ Герой достиг ${h.level} уровня! Статы подросли, эго — тоже.`, 'event');
+    addLog(`⭐ ${heroRoleTitle(role)} достиг ${h.level} уровня! Статы подросли, эго — тоже.`, 'event');
     if(h.level>=2) unlockEdict('drill', 'Герой доказал, что способен пережить серьёзные учения.');
   }
-  if(leveled) queueTalentChoice();
+  if(leveled) queueTalentChoice(role);
 }
 
-function eligibleTalentDefs(){
-  const learned = learnedTalentCount();
+function eligibleTalentDefs(role){
+  role = role || 'field';
+  const hero = heroForRole(role);
+  const learned = learnedTalentCountForHero(hero);
   return TALENT_DEFS.filter(t=>{
     if(t.id==='necromancy' && state.race.id!=='undead') return false;
-    const lvl = talentLevel(t.id);
+    const lvl = talentLevelForHero(hero, t.id);
     if(lvl>=3) return false;
     return lvl>0 || learned<6;
   });
 }
-function rollTalentChoices(){
-  const pool = eligibleTalentDefs();
+function rollTalentChoices(role){
+  const pool = eligibleTalentDefs(role);
   for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
   return pool.slice(0, Math.min(2, pool.length)).map(t=>t.id);
 }
-function queueTalentChoice(){
+function queueTalentChoice(role){
+  role = role || 'field';
   if(!state) return;
-  if(state.pendingTalentChoices && state.pendingTalentChoices.length) return;
-  const choices = rollTalentChoices();
+  const hero = heroForRole(role);
+  if(!hero || (hero.pendingTalentChoices && hero.pendingTalentChoices.length)) return;
+  const choices = rollTalentChoices(role);
   if(!choices.length) return;
-  state.pendingTalentChoices = choices;
-  setTimeout(showTalentChoiceModal, 0);
+  hero.pendingTalentChoices = choices;
+  setTimeout(()=>showTalentChoiceModal(role), 0);
 }
-function showTalentChoiceModal(){
-  if(!state || !state.pendingTalentChoices || !state.pendingTalentChoices.length) return;
+function showTalentChoiceModal(role){
+  role = role || 'field';
+  const hero = heroForRole(role);
+  if(!state || !hero || !hero.pendingTalentChoices || !hero.pendingTalentChoices.length) return;
   const text = document.getElementById('talent-text');
   const list = document.getElementById('talent-choices');
   if(!text || !list) return;
-  text.textContent = `Герой ${state.hero.level} уровня может выбрать один талант. Изучено разных навыков: ${learnedTalentCount()}/6.`;
-  list.innerHTML = state.pendingTalentChoices.map(id=>{
+  text.textContent = `${heroRoleTitle(role)} ${hero.level} уровня может выбрать один талант. Изучено разных навыков: ${learnedTalentCountForHero(hero)}/6.`;
+  list.innerHTML = hero.pendingTalentChoices.map(id=>{
     const t = TALENT_DEFS.find(x=>x.id===id);
-    const lvl = talentLevel(id);
-    return `<button class="mode-card talent-card" onclick="chooseTalent('${id}')">
+    const lvl = talentLevelForHero(hero, id);
+    return `<button class="mode-card talent-card" onclick="chooseTalent('${id}','${role}')">
       <div class="ico">${t.icon}</div>
       <b>${t.name}</b>
       <div class="lvl">Уровень ${lvl} → ${lvl+1}</div>
@@ -3776,13 +5001,16 @@ function showTalentChoiceModal(){
   }).join('');
   openModal('modal-talent');
 }
-function chooseTalent(id){
+function chooseTalent(id, role){
+  role = role || 'field';
+  const hero = heroForRole(role);
   const t = TALENT_DEFS.find(x=>x.id===id);
-  if(!t || !state.pendingTalentChoices || !state.pendingTalentChoices.includes(id)) return;
-  state.heroTalents = state.heroTalents || {};
-  state.heroTalents[id] = talentLevel(id) + 1;
-  state.pendingTalentChoices = null;
-  addLog(`⭐ Герой изучил талант «${t.name}» ${state.heroTalents[id]}/3.`, 'event');
+  if(!t || !hero || !hero.pendingTalentChoices || !hero.pendingTalentChoices.includes(id)) return;
+  hero.talents = hero.talents || {};
+  hero.talents[id] = talentLevelForHero(hero, id) + 1;
+  hero.pendingTalentChoices = null;
+  if(role==='field') state.heroTalents = hero.talents;
+  addLog(`⭐ ${heroRoleTitle(role)} изучил талант «${t.name}» ${hero.talents[id]}/3.`, 'event');
   closeModal('modal-talent');
   state.maxMovePoints = state.devUnlimitedMove ? 999 : currentMaxMovePoints();
   state.movePoints = state.devUnlimitedMove ? 999 : Math.min(state.movePoints || state.maxMovePoints, state.maxMovePoints);
@@ -3950,11 +5178,36 @@ function terrainClass(ch){
   if(ch==='d') return 't-desert';
   if(ch==='m') return 't-mountain';
   if(ch==='w') return 't-water';
+  if(ch==='r') return 't-grass';
   if(ch==='H') return 't-home';
+  if(ch==='V') return 't-hellgate';
   return 't-grass';
 }
+function inferredBiomeClassAt(x, y, template){
+  template = template || (state && state.worldMap) || WORLD_TEMPLATE;
+  const ch = template[y] && template[y][x];
+  if(ch==='s') return 't-snow';
+  if(ch==='d') return 't-desert';
+  const counts = {s:0, d:0};
+  for(let dy=-1; dy<=1; dy++){
+    for(let dx=-1; dx<=1; dx++){
+      if(dx===0 && dy===0) continue;
+      const row = template[y+dy];
+      const around = row && row[x+dx];
+      if(around==='s') counts.s++;
+      if(around==='d') counts.d++;
+    }
+  }
+  if(counts.s >= 2 && counts.s >= counts.d) return 't-snow';
+  if(counts.d >= 2 && counts.d > counts.s) return 't-desert';
+  return null;
+}
 function terrainClassAt(x, y, ch){
-  if(ch==='m' || ch==='w' || ch==='H' || ch==='f') return terrainClass(ch);
+  if(ch==='m' || ch==='w' || ch==='H' || ch==='V' || ch==='f') return terrainClass(ch);
+  if(CAMP_MARKER_CHARS.includes(ch) || ch==='r'){
+    const inferred = inferredBiomeClassAt(x, y);
+    if(inferred) return inferred;
+  }
   const region = worldRegionAt(x, y);
   if(region.id==='winter') return 't-snow';
   if(region.id==='desert') return 't-desert';
@@ -3966,7 +5219,9 @@ function terrainIcon(ch){
   if(ch==='d') return '';
   if(ch==='m') return '⛰️';
   if(ch==='w') return '🌊';
+  if(ch==='r') return '🛤️';
   if(ch==='H') return '🏰';
+  if(ch==='V') return '🔥';
   return '';
 }
 
@@ -4047,9 +5302,14 @@ function describeWorldTile(x,y){
   if(ch==='H'){
     return {icon:'🏰', title:'Родной замок', text:'Ваше поселение. Наступите на клетку, чтобы вернуться и управлять городом.'};
   }
+  if(ch==='V'){
+    return {icon:'🔥', title:'Врата ада',
+      text:'Древний проход в нижний мир. В будущем здесь герой сможет спуститься на отдельную карту подземелья с новыми боями, добычей и рисками. Сейчас активность в разработке.'};
+  }
+  if(ch==='r') return {icon:'🛤️', title:'Дорожный узел', text:'Намеченный тракт. Он помогает карте строить более понятные дороги и позже пригодится ИИ как ориентир для движения.'};
   if(ch==='m') return {icon:'⛰️', title:'Горы', text:'Непроходимая местность — обойдите стороной.'};
   if(ch==='w') return {icon:'🌊', title:'Вода', text:'Непроходимая местность — обойдите стороной.'};
-  if(ch==='f') return {icon:'🌲', title:'Лес', text:'Проходимая местность без построек. Иногда в лесах прячутся находки или засады.'};
+  if(ch==='f') return {icon:'🌲', title:'Густой лес', text:'Непроходимая чаща. Такие леса режут карту на проходы и скрытые долины; ищите тропы, дороги и просветы между деревьями.'};
   if(ch==='s') return {icon:'❄️', title:'Зимний биом', text:'Холодные земли. Здесь чаще встречаются камень, кристаллы и суровые отряды.'};
   if(ch==='d') return {icon:'🏜️', title:'Песчаный биом', text:'Сухие земли дальних переходов. В песках чаще находят золото, но и угрозы здесь злее.'};
   return {icon:'🌾', title:'Пустошь', text:'Обычная проходимая клетка — ничего примечательного.'};
@@ -4088,19 +5348,151 @@ function reachableWorldTiles(){
   return out;
 }
 
-// A subtle Heroes III-style hint: the worn path from the castle to each fort. It's still ordinary
-// terrain underneath, so fog of war applies exactly like anything else — you only see the trail
-// where you've already explored, and following it nudges you toward ground you haven't scouted yet.
+// A subtle Heroes III-style hint: roads are stable map infrastructure.
+// They only depend on permanent map landmarks, not on defeated camps, picked resources or weekly spawns.
+function uniqueRoadPoints(points){
+  const seen = new Set();
+  return (points||[]).filter(p=>{
+    if(!p || p.x==null || p.y==null) return false;
+    const x = Math.max(0, Math.min(WORLD_COLS-1, p.x));
+    const y = Math.max(0, Math.min(WORLD_ROWS-1, p.y));
+    const ch = state.worldMap && state.worldMap[y] ? state.worldMap[y][x] : null;
+    if(!ch || !isPassableChar(ch)) return false;
+    const key = x+','+y;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    p.x = x; p.y = y;
+    return true;
+  });
+}
+function takeSpacedRoadTargets(points, limit, minDist, seed){
+  const selected = [];
+  uniqueRoadPoints(points).forEach(p=>{
+    if(selected.length >= limit) return;
+    if(selected.some(s=>tileDistance(s,p) < minDist)) return;
+    selected.push(p);
+  });
+  if(seed && selected.length < limit){
+    uniqueRoadPoints(points)
+      .map(p=>Object.assign({dist:tileDistance(seed,p)}, p))
+      .sort((a,b)=>b.dist-a.dist)
+      .forEach(p=>{
+        if(selected.length >= limit) return;
+        if(selected.some(s=>s.x===p.x && s.y===p.y)) return;
+        if(selected.some(s=>tileDistance(s,p) < Math.max(3, minDist-2))) return;
+        selected.push({x:p.x,y:p.y});
+      });
+  }
+  return selected;
+}
+function worldRoadTargets(){
+  return uniqueRoadPoints([
+    ...(state.forts||[]),
+    ...findAllCharPositionsOf(state.worldMap || WORLD_TEMPLATE, 'r'),
+    ...findAllCharPositionsOf(state.worldMap || WORLD_TEMPLATE, 'V'),
+    ...WORLD_ROAD_EXIT_POINTS,
+  ]);
+}
+function pathRoadCrowdingCost(path, road, endpointKeys){
+  if(!path) return Infinity;
+  let cost = path.length;
+  path.forEach(p=>{
+    const key = p.x+','+p.y;
+    if(endpointKeys && endpointKeys.has(key)) return;
+    if(road.has(key)) cost += 9;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      if(road.has((p.x+dx)+','+(p.y+dy))) cost += 3;
+    }
+  });
+  return cost;
+}
+function pathByAxis(from, to, axisFirst){
+  const path = [];
+  let x = from.x, y = from.y;
+  const stepX = Math.sign(to.x - x);
+  const stepY = Math.sign(to.y - y);
+  const moveX = ()=>{
+    while(x !== to.x){
+      x += stepX;
+      if(!isPassableChar(state.worldMap[y][x])) return false;
+      path.push({x,y});
+    }
+    return true;
+  };
+  const moveY = ()=>{
+    while(y !== to.y){
+      y += stepY;
+      if(!isPassableChar(state.worldMap[y][x])) return false;
+      path.push({x,y});
+    }
+    return true;
+  };
+  const ok = axisFirst === 'x' ? (moveX() && moveY()) : (moveY() && moveX());
+  return ok ? path : null;
+}
+function stairRoadPath(from, to){
+  const path = [];
+  let x = from.x, y = from.y;
+  let preferX = Math.abs(to.x-from.x) >= Math.abs(to.y-from.y);
+  let guard = WORLD_COLS*WORLD_ROWS;
+  while((x !== to.x || y !== to.y) && guard-- > 0){
+    const options = [];
+    if(x !== to.x) options.push({x:x+Math.sign(to.x-x), y, axis:'x'});
+    if(y !== to.y) options.push({x, y:y+Math.sign(to.y-y), axis:'y'});
+    options.sort((a,b)=>{
+      if(a.axis === (preferX ? 'x' : 'y')) return -1;
+      if(b.axis === (preferX ? 'x' : 'y')) return 1;
+      return 0;
+    });
+    const next = options.find(p=>state.worldMap[p.y] && isPassableChar(state.worldMap[p.y][p.x]));
+    if(!next) return null;
+    x = next.x; y = next.y;
+    path.push({x,y});
+    preferX = !preferX;
+  }
+  return x===to.x && y===to.y ? path : null;
+}
+function straightishRoadPath(from, to, road){
+  const first = Math.abs(to.x-from.x) >= Math.abs(to.y-from.y) ? 'x' : 'y';
+  const endpoints = new Set([from.x+','+from.y, to.x+','+to.y]);
+  const candidates = [
+    pathByAxis(from, to, first),
+    stairRoadPath(from, to),
+    pathByAxis(from, to, first==='x' ? 'y' : 'x'),
+    bfsPath(from, to),
+  ].filter(Boolean);
+  candidates.sort((a,b)=>pathRoadCrowdingCost(a, road || new Set(), endpoints)-pathRoadCrowdingCost(b, road || new Set(), endpoints));
+  return candidates[0] || null;
+}
+function addRoadPath(road, from, to){
+  const path = straightishRoadPath(from, to, road);
+  if(!path) return;
+  path.forEach(p=> road.add(p.x+','+p.y));
+  road.add(from.x+','+from.y);
+  road.add(to.x+','+to.y);
+}
 function computeRoadTiles(){
   const home = findCharPos(state.worldMap, 'H');
   const road = new Set();
-  (state.forts||[]).forEach(f=>{
-    const path = bfsPath(home, {x:f.x, y:f.y});
-    if(!path) return;
-    path.forEach(p=>{
-      if(p.x===f.x && p.y===f.y) return; // leave the fort's own tile showing just its icon, no overlay
-      road.add(p.x+','+p.y);
-    });
+  const forts = uniqueRoadPoints(state.forts||[]);
+  const primaryTargets = uniqueRoadPoints([...forts, ...findAllCharPositionsOf(state.worldMap || WORLD_TEMPLATE, 'V')]);
+  primaryTargets.forEach(target=>{
+    addRoadPath(road, home, target);
+  });
+  const anchors = uniqueRoadPoints([home, ...forts, ...primaryTargets]);
+  const secondaryTargets = takeSpacedRoadTargets([
+    ...findAllCharPositionsOf(state.worldMap || WORLD_TEMPLATE, 'r'),
+    ...WORLD_ROAD_EXIT_POINTS,
+  ], 8, 6, home);
+  secondaryTargets
+    .map(t=>Object.assign({distFromHome:tileDistance(home,t)}, t))
+    .sort((a,b)=>b.distFromHome-a.distFromHome)
+    .forEach(target=>{
+      const from = anchors
+        .filter(a=>a.x!==target.x || a.y!==target.y)
+        .map(a=>Object.assign({dist:tileDistance(a,target)}, a))
+        .sort((a,b)=>a.dist-b.dist)[0] || home;
+      addRoadPath(road, from, target);
   });
   return road;
 }
@@ -4155,6 +5547,26 @@ function clearEnemyTurnReveal(){
 let devFowDisabled = false;
 let enemyTurnReveal = null;
 let devCheatBuffer = '';
+let globalDevCheatBuffer = '';
+function isTypingInEditable(target){
+  if(!target) return false;
+  const tag = String(target.tagName || '').toLowerCase();
+  return tag==='input' || tag==='textarea' || target.isContentEditable;
+}
+function bindGlobalDevCodes(){
+  if(document.body.dataset.globalDevCodesBound) return;
+  document.body.dataset.globalDevCodesBound = '1';
+  document.addEventListener('keydown', (e)=>{
+    if(isTypingInEditable(e.target)) return;
+    if(!e.key || e.key.length!==1) return;
+    globalDevCheatBuffer = (globalDevCheatBuffer + e.key.toLowerCase()).slice(-16);
+    if(globalDevCheatBuffer.endsWith('develop') || globalDevCheatBuffer.endsWith('вумудщз')){
+      e.preventDefault();
+      globalDevCheatBuffer = '';
+      unlockMapEditorDev();
+    }
+  });
+}
 function toggleDevFogOfWar(){
   devFowDisabled = !devFowDisabled;
   if(document.getElementById('screen-worldmap').classList.contains('active')){
@@ -4235,13 +5647,41 @@ let worldCameraSmoothTimer = null;
 let worldWidgetOpen = {minimap:false, scout:false, loot:false, log:false, overview:false};
 let lastWorldVisible = new Set(), lastWorldExplored = new Set(), lastWorldViewport = {w:0,h:0};
 let showMinimapViewport = false; // the yellow "what's on screen" outline is opt-in, not always-on
+let worldRoutePreview = null;
+let worldInspectedTile = null;
+let worldMoveMaskedTiles = new Set();
+let worldOverviewFilter = 'all';
 function toggleWorldWidget(name){
+  Object.keys(worldWidgetOpen).forEach(k=>{
+    if(k!==name) worldWidgetOpen[k] = false;
+  });
   worldWidgetOpen[name] = !worldWidgetOpen[name];
-  const panel = document.getElementById('widget-'+name);
-  const btn = document.getElementById('wmtoggle-'+name);
-  if(panel) panel.style.display = worldWidgetOpen[name] ? '' : 'none';
-  if(btn) btn.classList.toggle('active', worldWidgetOpen[name]);
+  Object.keys(worldWidgetOpen).forEach(k=>{
+    const panel = document.getElementById('widget-'+k);
+    const btn = document.getElementById('wmtoggle-'+k);
+    if(panel) panel.style.display = worldWidgetOpen[k] ? '' : 'none';
+    if(btn) btn.classList.toggle('active', worldWidgetOpen[k]);
+  });
   if(worldWidgetOpen[name]) renderOpenWorldWidgets();
+}
+function openWorldOverview(){
+  if(!Object.values(worldWidgetOpen).some(Boolean)) worldWidgetOpen.minimap = true;
+  Object.keys(worldWidgetOpen).forEach(k=>{
+    const panel = document.getElementById('widget-'+k);
+    const btn = document.getElementById('wmtoggle-'+k);
+    if(panel) panel.style.display = worldWidgetOpen[k] ? '' : 'none';
+    if(btn) btn.classList.toggle('active', worldWidgetOpen[k]);
+  });
+  renderOpenWorldWidgets();
+  openModal('modal-world-overview');
+}
+function setWorldOverviewFilter(filter){
+  worldOverviewFilter = filter || 'all';
+  if(filter==='threats') worldWidgetOpen = {minimap:false, scout:true, loot:false, log:false, overview:false};
+  else if(filter==='loot') worldWidgetOpen = {minimap:false, scout:false, loot:true, log:false, overview:false};
+  else if(filter==='events') worldWidgetOpen = {minimap:false, scout:false, loot:false, log:true, overview:false};
+  else worldWidgetOpen = {minimap:true, scout:false, loot:false, log:false, overview:false};
+  openWorldOverview();
 }
 function renderOpenWorldWidgets(){
   if(!state) return;
@@ -4381,8 +5821,9 @@ function panWorldCameraIfChanged(dx, dy){
   worldCamera.y = (worldCamera.y || 0) + dy;
   clampWorldCamera();
   if(worldCameraKey() !== before){
-    markWorldCameraSnap();
     renderWorldMap();
+    const wrap = document.querySelector('.worldmap-wrap');
+    if(wrap && worldDrag && worldDrag.moved) wrap.classList.add('dragging');
   }
 }
 function beginWorldDrag(e){
@@ -4404,11 +5845,14 @@ function moveWorldDrag(e){
     worldDrag.el.classList.add('dragging');
     try{ worldDrag.el.setPointerCapture(e.pointerId); worldDrag.captured = true; }catch(err){}
   }
+  if(worldDrag.moved) e.preventDefault();
   let panX = 0, panY = 0;
-  while(worldDrag.accX >= worldDrag.tileW){ panX--; worldDrag.accX -= worldDrag.tileW; }
-  while(worldDrag.accX <= -worldDrag.tileW){ panX++; worldDrag.accX += worldDrag.tileW; }
-  while(worldDrag.accY >= worldDrag.tileH){ panY--; worldDrag.accY -= worldDrag.tileH; }
-  while(worldDrag.accY <= -worldDrag.tileH){ panY++; worldDrag.accY += worldDrag.tileH; }
+  const thresholdX = Math.max(18, worldDrag.tileW * 0.42);
+  const thresholdY = Math.max(18, worldDrag.tileH * 0.42);
+  while(worldDrag.accX >= thresholdX){ panX--; worldDrag.accX -= thresholdX; }
+  while(worldDrag.accX <= -thresholdX){ panX++; worldDrag.accX += thresholdX; }
+  while(worldDrag.accY >= thresholdY){ panY--; worldDrag.accY -= thresholdY; }
+  while(worldDrag.accY <= -thresholdY){ panY++; worldDrag.accY += thresholdY; }
   if(panX || panY) panWorldCameraIfChanged(panX, panY);
 }
 function endWorldDrag(e){
@@ -4592,13 +6036,20 @@ function renderWorldMap(){
   const reachable = reachableWorldTiles();
   const {visible, explored} = refreshFogOfWar();
   const roads = computeRoadTiles();
+  const routeKeys = new Set((worldRoutePreview && worldRoutePreview.path ? worldRoutePreview.path : []).map(p=>p.x+','+p.y));
+  const targetKey = worldRoutePreview ? worldRoutePreview.x+','+worldRoutePreview.y : null;
+  const inspectedKey = worldInspectedTile ? worldInspectedTile.x+','+worldInspectedTile.y : null;
   let html = '';
   for(let y=worldCamera.y;y<worldCamera.y+viewport.h;y++){
     for(let x=worldCamera.x;x<worldCamera.x+viewport.w;x++){
       const key = x+','+y;
       if(!explored.has(key)){
         // Never-seen tile: no terrain, no camps/loot/rival leaked — just fog, still clickable to walk into.
-        html += `<div class="wtile wtile-unexplored" onclick="handleWorldClick(${x},${y})">?</div>`;
+        let fogClass = '';
+        if(routeKeys.has(key)) fogClass += ' wtile-route';
+        if(targetKey===key) fogClass += ' wtile-target';
+        if(inspectedKey===key) fogClass += ' wtile-inspected';
+        html += `<div class="wtile wtile-unexplored${fogClass}" onclick="handleWorldClick(${x},${y})">?</div>`;
         continue;
       }
       const ch = state.worldMap[y][x];
@@ -4644,8 +6095,17 @@ function renderWorldMap(){
         }
       }
       const isHeroTile = state.heroPos.x===x && state.heroPos.y===y;
+      const isMoveMaskedTile = worldMoveMaskedTiles && worldMoveMaskedTiles.has(key);
+      if(isHeroTile || isMoveMaskedTile){
+        inner = '';
+        badge = '';
+        extraClass = extraClass.replace(/ wtile-(guarded|merc|mapsite|mapsite-income|mapsite-utility|rival|fort|fort-captured|fort-enemy)/g, '');
+      }
       if(isHeroTile && state.worldHeroSelected) extraClass += ' wtile-hero-selected';
       else if(reachable.has(key)) extraClass += ' wtile-reachable';
+      if(routeKeys.has(key)) extraClass += ' wtile-route';
+      if(targetKey===key) extraClass += ' wtile-target';
+      if(inspectedKey===key) extraClass += ' wtile-inspected';
       if(!visible.has(key)) extraClass += ' wtile-explored-dim';
       if(enemyTurnReveal && tileDistance({x,y}, enemyTurnReveal)<=enemyTurnReveal.r) extraClass += ' wtile-enemy-turn-reveal';
       if(roads.has(key) && !camp && !dragon && !fort && !rival && !merc && !site) extraClass += ' wtile-road';
@@ -4655,6 +6115,7 @@ function renderWorldMap(){
   grid.innerHTML = html;
   document.getElementById('hero-token').textContent = heroDefIcon(currentHeroDef());
   renderWorldHeroPanel();
+  renderWorldTargetPanel();
   updateHeroTokenPosition();
   renderMiniMap(visible, explored, viewport);
   renderWorldIntel(visible, explored);
@@ -4669,6 +6130,11 @@ function updateWorldTopbar(){
     <div class="res">💎 ${Math.floor(state.res.crystal)}</div>
   `;
   document.getElementById('day-pill-world').textContent = `📅 День ${state.day} • 🥾 Ходов: ${state.movePoints}/${state.maxMovePoints}`;
+  const endBtn = document.getElementById('world-end-turn-btn');
+  if(endBtn){
+    const turn = Math.max(1, state.day || 1);
+    endBtn.innerHTML = `<b class="turn-cost">${turn}</b><span>ход</span>`;
+  }
 }
 
 function updateHeroTokenPosition(){
@@ -4697,7 +6163,52 @@ function flashWorldMsg(text){
   setTimeout(()=>{ if(el.textContent===text) el.textContent=''; }, 2200);
 }
 
-function isPassableChar(ch){ return ch!=='m' && ch!=='w'; }
+function renderWorldTargetPanel(){
+  const el = document.getElementById('world-target-panel');
+  if(!el) return;
+  const tile = worldRoutePreview || worldInspectedTile;
+  if(!tile){
+    el.classList.remove('active');
+    el.innerHTML = '';
+    return;
+  }
+  const d = describeWorldTile(tile.x, tile.y);
+  const ch = state.worldMap[tile.y] && state.worldMap[tile.y][tile.x];
+  const passable = ch && isPassableChar(ch);
+  const path = tile.path || (passable ? bfsPath(state.heroPos, {x:tile.x,y:tile.y}) : null);
+  const steps = path ? path.length : 0;
+  const isHeroTile = state.heroPos.x===tile.x && state.heroPos.y===tile.y;
+  const ok = !!path && steps <= state.movePoints && !isHeroTile;
+  const region = worldRegionAt(tile.x, tile.y);
+  const meta = [
+    `${region.icon} ${region.name}`,
+    passable ? (isHeroTile ? 'Герой здесь' : `${steps} ${plural(steps,'шаг','шага','шагов')}`) : 'Непроходимо',
+    ok ? `Можно дойти сейчас` : (passable && !isHeroTile ? `Ходов: ${state.movePoints}/${state.maxMovePoints}` : '')
+  ].filter(Boolean).map(t=>`<span class="world-target-chip">${t}</span>`).join('');
+  const text = d.text.length > 190 ? d.text.slice(0, 187).trim() + '...' : d.text;
+  el.classList.add('active');
+  el.innerHTML = `<b>${d.icon} ${d.title}</b><br>
+    <div class="world-target-text">${escHtml(text)}</div>
+    <div class="world-target-meta">${meta}</div>
+    <div class="world-target-actions">
+      <button class="mini-btn" onclick="showTileInfoModal(${tile.x},${tile.y})">Подробнее</button>
+      <button class="mini-btn" onclick="clearWorldInspector()">Скрыть</button>
+    </div>`;
+}
+
+function inspectWorldTile(x,y,path){
+  worldInspectedTile = {x,y,path:path||null};
+  worldRoutePreview = path ? {x,y,path} : null;
+  renderWorldMap();
+}
+
+function clearWorldInspector(){
+  worldInspectedTile = null;
+  worldRoutePreview = null;
+  renderWorldMap();
+}
+
+function isPassableChar(ch){ return ch!=='m' && ch!=='w' && ch!=='f'; }
 
 function bfsPath(start, target){
   const grid = state.worldMap;
@@ -4724,7 +6235,8 @@ function bfsPath(start, target){
 }
 
 function stackListPower(list){
-  return (list||[]).reduce((sum,u)=>sum + (u.count||0)*unitPowerValue(u.tier||1), 0);
+  const fallbackRaceId = state && state.race ? state.race.id : 'humans';
+  return (list||[]).reduce((sum,u)=>sum + (u.count||0)*unitPowerValueFor(u.raceId || (u.raceObj && u.raceObj.id) || fallbackRaceId, u.tier||1), 0);
 }
 function playerTotalPower(){
   return stackListPower(state.army) + stackListPower(state.garrison) + state.hero.level*12 + state.hero.atk + state.hero.def;
@@ -4735,13 +6247,13 @@ function makeRivalArmy(raceObj){
   let budget = Math.min(maxBudget, 45 + (state.rivalRaidCount||0)*28 + state.day*3);
   const tiers = budget>160 ? [1,2,3,4] : [1,2,3];
   const army = [];
-  while(budget >= unitPowerValue(1) && army.length < 24){
-    const affordable = tiers.filter(t=>unitPowerValue(t) <= budget);
+  while(budget >= unitPowerValueFor(raceObj.id, 1) && army.length < 24){
+    const affordable = tiers.filter(t=>unitPowerValueFor(raceObj.id, t) <= budget);
     const tier = affordable[Math.floor(Math.random()*affordable.length)] || 1;
     const stack = army.find(u=>u.tier===tier);
     if(stack) stack.count++;
     else army.push({tier, count:1, raceObj});
-    budget -= unitPowerValue(tier);
+    budget -= unitPowerValueFor(raceObj.id, tier);
   }
   return army.length ? army : [{tier:1, count:2, raceObj}];
 }
@@ -4880,11 +6392,13 @@ function damageRivalArmy(budget){
   if(!rival || budget<=0) return 0;
   let lost = 0;
   const army = rival.army.slice().sort((a,b)=>b.tier-a.tier);
+  const raceId = rival.raceId || 'humans';
   for(const stack of army){
-    while(stack.count>0 && budget >= unitPowerValue(stack.tier)*0.6){
+    const value = unitPowerValueFor(stack.raceId || raceId, stack.tier);
+    while(stack.count>0 && budget >= value*0.6){
       stack.count--;
       lost++;
-      budget -= unitPowerValue(stack.tier);
+      budget -= value;
     }
   }
   rival.army = rival.army.filter(u=>u.count>0);
@@ -5003,17 +6517,22 @@ function handleWorldClick(x,y){
   if(state.moveAnimating) return;
   if(state.heroPos.x===x && state.heroPos.y===y){
     state.worldHeroSelected = !state.worldHeroSelected;
+    worldRoutePreview = null;
+    worldInspectedTile = {x,y,path:null};
     renderWorldMap();
     flashWorldMsg(state.worldHeroSelected ? 'Герой выбран. Подсвечены клетки, куда он может дойти.' : '');
     return;
   }
-  if(!state.worldHeroSelected){ showTileInfoModal(x,y); return; }
+  if(!state.worldHeroSelected){ inspectWorldTile(x,y); return; }
   const ch = state.worldMap[y][x];
-  if(!isPassableChar(ch)){ flashWorldMsg('Туда не пройти — местность непроходима.'); return; }
+  if(!isPassableChar(ch)){ inspectWorldTile(x,y); flashWorldMsg('Туда не пройти — местность непроходима.'); return; }
   const path = bfsPath(state.heroPos, {x,y});
-  if(path===null){ flashWorldMsg('Путь не найден.'); return; }
+  if(path===null){ inspectWorldTile(x,y); flashWorldMsg('Путь не найден.'); return; }
   if(path.length===0) return;
-  if(path.length > state.movePoints){ flashWorldMsg('Слишком далеко для текущего запаса хода. Выберите подсвеченную клетку.'); return; }
+  if(path.length > state.movePoints){ inspectWorldTile(x,y,path); flashWorldMsg('Слишком далеко для текущего запаса хода. Выберите подсвеченную клетку.'); return; }
+  worldInspectedTile = {x,y,path};
+  worldRoutePreview = {x,y,path};
+  renderWorldMap();
   animatePath(path);
 }
 
@@ -5021,10 +6540,13 @@ function animatePath(path){
   stopWorldCameraSmooth();
   state.moveAnimating = true;
   state.worldHeroSelected = false;
+  worldRoutePreview = null;
+  worldMoveMaskedTiles = new Set([state.heroPos.x+','+state.heroPos.y]);
   renderWorldMap();
   let i = 0;
   function finishMove(after){
     centerWorldCameraOnHeroIfFar();
+    worldMoveMaskedTiles = new Set();
     renderWorldMap();
     state.moveAnimating = false;
     saveGame();
@@ -5036,7 +6558,9 @@ function animatePath(path){
       return;
     }
     const p = path[i];
+    const prev = {x:state.heroPos.x, y:state.heroPos.y};
     state.heroPos = {x:p.x, y:p.y};
+    worldMoveMaskedTiles = new Set([prev.x+','+prev.y, p.x+','+p.y]);
     if(!state.devUnlimitedMove) state.movePoints--;
     else state.movePoints = state.maxMovePoints = 999;
     // Full re-render on every step: this is what makes fog of war reveal tile-by-tile as the hero
@@ -5060,6 +6584,7 @@ function animatePath(path){
     const pickup = state.resourcePickups.find(r=>r.x===p.x && r.y===p.y && !r.collected);
     if(pickup){ finishMove(()=>triggerResourceEvent(pickup)); return; }
     if(ch==='H'){ finishMove(()=>{ showScreen('screen-village'); renderVillage(); }); return; }
+    if(ch==='V'){ finishMove(()=>triggerHellGate()); return; }
     setTimeout(step, 260);
   }
   step();
@@ -5086,6 +6611,15 @@ function triggerDragonEncounter(lairId){
     onYes: ()=>{ startDragonBattle(lair); },
     onNo: ()=>{ addLog(`Герой решил не тревожить логово «${lair.def.label}» — целее будет.`, 'event'); },
   });
+}
+function triggerHellGate(){
+  showEventModal2({
+    icon:'🔥',
+    title:'Врата ада',
+    text:'Из разлома тянет жаром и серой. Это будущий вход в отдельную подземную карту: герой сможет спускаться вниз, искать редкие сокровища и сражаться с более опасными врагами. Пока проход запечатан и находится в разработке.',
+    buttonLabel:'Отойти от врат',
+  });
+  addLog('🔥 Герой нашёл Врата ада. Подземелье пока в разработке, но дорога к нему уже отмечена на карте.', 'event');
 }
 function startDragonBattle(lair){
   const defs = [{tier:DRAGON_TIER, count:lair.count, name:'Дракон', icon:lair.def.icon, atk:38, def:26, unitHp:90}];
@@ -5406,7 +6940,7 @@ function canOfferDiplomacy(enemyDefs, meta){
   return Math.random() < diplomacyDialogChance();
 }
 function diplomacyContractCost(enemyDefs){
-  const power = enemyDefs.reduce((sum,e)=>sum + (e.count||0)*unitPowerValue(e.tier||1), 0);
+  const power = enemyDefs.reduce((sum,e)=>sum + (e.count||0)*unitPowerValueFor(e.raceObj ? e.raceObj.id : (state.race && state.race.id), e.tier||1), 0);
   return Math.max(25, Math.round(power * (2.2 - 0.2*talentLevel('diplomacy'))));
 }
 function diplomacyOfferText(enemyDefs, cost){
@@ -5530,18 +7064,19 @@ function buildStack(id, side, tier, count, opts){
   const info = raceObj ? unitInfo(raceObj.id, tier) : null;
   const name = opts.name || (info ? info.name : `Тварь ур.${tier}`);
   const icon = opts.icon || (info ? info.icon : '👹');
-  const hpEach = opts.unitHp || unitHp(tier);
-  const bonus = side==='player' ? townStatBonus() : 0;
+  const hpEach = opts.unitHp || unitHp(tier, raceObj);
+  const bonus = side==='player' ? (opts.statBonus ?? townStatBonus()) : 0;
   const wallBonus = opts.wallBonus || 0; // only set for garrison defenders in a siege
   const stackAtk = opts.atk ?? (raceUnitAtk(tier, raceObj) + bonus);
   const stackDef = opts.def ?? (raceUnitDef(tier, raceObj) + bonus + wallBonus);
+  const speedMod = unitBalanceMod(raceObj && raceObj.id, tier).speedFlat || 0;
   return {
     id, side, tier, name, icon, count, originalCount: count,
     raceId: raceObj ? raceObj.id : null,
     temporary: !!opts.temporary,
     unitHpVal: hpEach, hp: count*hpEach,
     atk: stackAtk, def: stackDef,
-    speed: 3 + Math.floor(tier/3),
+    speed: Math.max(1, 3 + Math.floor(tier/3) + speedMod),
     ranged: opts.ranged ?? (info ? info.ranged : false),
     x:0, y:0, acted:false, alive:true, fx:null,
   };
@@ -5607,9 +7142,10 @@ function startTacticalBattle(enemyDefs, meta){
   const sourceTroops = isSiege ? state.garrison : (isVassalRaid ? (meta.defenderTroops || []) : state.army);
   const raidFort = isVassalRaid ? (state.forts||[]).find(f=>f.id===meta.fortId) : null;
   const wallBonus = isSiege ? garrisonDefBonus() : (isVassalRaid ? fortTownhallDefBonus(raidFort) : 0);
+  const playerStatBonus = isSiege ? battleTownStatBonus('garrison') : battleTownStatBonus('field');
   const playerStacks = sourceTroops.filter(u=>u.count>0).map(u=> buildStack('p'+u.tier, 'player', u.tier, u.count, u.neutralId
-    ? {wallBonus, name:u.name, icon:u.icon, atk:u.atk, def:u.def, unitHp:u.unitHp, ranged:u.ranged}
-    : {raceObj: state.race, wallBonus}));
+    ? {wallBonus, statBonus:playerStatBonus, name:u.name, icon:u.icon, atk:u.atk, def:u.def, unitHp:u.unitHp, ranged:u.ranged}
+    : {raceObj: state.race, wallBonus, statBonus:playerStatBonus}));
   const auxStacks = (!isSiege && !isVassalRaid ? (state.auxArmy||[]) : []).filter(u=>u.count>0).map((u,i)=>{
     const raceObj = RACES.find(r=>r.id===u.raceId) || state.race;
     return buildStack('a'+i, 'player', u.tier, u.count, {raceObj, name:u.name, icon:u.icon, ranged:u.ranged});
@@ -5625,12 +7161,12 @@ function startTacticalBattle(enemyDefs, meta){
         existing.originalCount += u.count;
         existing.hp += u.count * existing.unitHpVal;
       } else {
-        playerStacks.push(buildStack('w'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus, temporary:true, name:`Сторожка ур.${u.tier}`}));
+        playerStacks.push(buildStack('w'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus, statBonus:playerStatBonus, temporary:true, name:`Сторожка ур.${u.tier}`}));
       }
     });
   }
   playerStacks.push(...auxStacks);
-  if(playerStacks.length===0) playerStacks.push(buildStack('p1','player',1,1,{raceObj: state.race, wallBonus}));
+  if(playerStacks.length===0) playerStacks.push(buildStack('p1','player',1,1,{raceObj: state.race, wallBonus, statBonus:playerStatBonus}));
   assignPositions(playerStacks, 0, rows);
   auxStacks.forEach((s,i)=>{ s.x = Math.min(1, cols-2); s.y = Math.min(rows-1, i); });
 
@@ -5653,7 +7189,8 @@ function startTacticalBattle(enemyDefs, meta){
     cols, rows, round:1, phase:'player', obstacles, siegeLayout,
     stacks:[...playerStacks, ...enemyStacks],
     selectedId:null, reachable:null, attackable:null, attackableIds:null,
-    magicMode:false, magicUsedThisRound:false, spellMenuOpen:false, selectedSpell:null,
+    magicMode:false, magicUsedThisRound:false, spellMenuOpen:false, selectedSpell:null, spellTab:'damage',
+    autoBattle:false, autoBattleRunning:false,
     over:false, meta,
   };
 
@@ -5723,6 +7260,7 @@ function renderBattleField(){
           if(isValidTarget) extra += ' bf-magic-target';
         } else if(battle.attackableIds && battle.attackableIds.has(stack.id)) extra += ' bf-attackable';
         if(stack.acted) extra += ' bf-acted-mark';
+        if(stack.waited) extra += ' bf-waited';
         if(stack.blindTurns>0) extra += ' bf-blinded';
         if(stack.fx) extra += ' fx-'+stack.fx;
         const rangedMark = stack.ranged ? '<span class="bf-ranged-mark">🏹</span>' : '';
@@ -5740,7 +7278,22 @@ function renderBattleField(){
   html += `</div>`;
   wrap.innerHTML = html;
   updateBattleTopbar();
+  renderBattleTurnQueue();
   renderSelectedUnitInfo();
+}
+
+function renderBattleTurnQueue(){
+  const el = document.getElementById('battle-turn-queue');
+  if(!el || !battle) return;
+  const order = battle.stacks
+    .filter(s=>s.alive && !s.isStructure)
+    .slice()
+    .sort((a,b)=>{
+      if(a.side!==b.side) return a.side==='player' ? -1 : 1;
+      if(a.acted!==b.acted) return a.acted ? 1 : -1;
+      return b.speed-a.speed;
+    });
+  el.innerHTML = order.map(s=>`<span class="turn-chip ${s.id===battle.selectedId?'active':''} ${s.waited?'waited':''}" onclick="handleStackClick('${s.id}')">${s.icon} ${s.count}${s.waited?' ⏳':(s.acted?' ✓':'')}</span>`).join('');
 }
 
 function updateBattleTopbar(){
@@ -5754,6 +7307,11 @@ function updateBattleTopbar(){
     magicBtn.disabled = used;
     magicBtn.style.opacity = used ? '.5' : '';
     magicBtn.style.cursor = used ? 'not-allowed' : '';
+  }
+  const autoBtn = document.getElementById('battle-auto-btn');
+  if(autoBtn){
+    autoBtn.textContent = battle.autoBattle ? '⏸ Остановить автобой' : '🤖 Автобой';
+    autoBtn.classList.toggle('active', !!battle.autoBattle);
   }
 }
 
@@ -5777,6 +7335,17 @@ function renderSelectedUnitInfo(){
   const hpPct = maxHp>0 ? Math.max(0, Math.min(100, Math.round((stack.hp/maxHp)*100))) : 0;
   const hpCls = hpPct>60 ? 'hp-high' : (hpPct>30 ? 'hp-mid' : 'hp-low');
   const sideLabel = stack.side==='player' ? 'Ваш отряд' : 'Противник';
+  let preview = '';
+  if(battle.magicMode && battle.selectedSpell){
+    preview = spellPreviewForTarget(battle.selectedSpell, stack);
+  } else if(stack.side==='enemy' && battle.selectedId && battle.attackableIds && battle.attackableIds.has(stack.id)){
+    const attacker = battle.stacks.find(s=>s.id===battle.selectedId);
+    const p = estimateCombat(attacker, stack);
+    if(p) preview = `<div class="attack-preview">🎯 Прогноз: ${p.min}-${p.max} урона, потери цели ~${p.killsMin}-${p.killsMax}. ${p.canRetaliate?'Ответит контратакой.':'Без контратаки.'}${p.rangedPenalty?' Дальняя дистанция: штраф урона.':''}</div>`;
+  } else if(stack.side==='player' && battle.selectedId===stack.id){
+    const targets = battle.attackableIds ? battle.attackableIds.size : 0;
+    preview = `<div class="attack-preview">${targets ? `Может атаковать целей: ${targets}.` : 'Целей в досягаемости нет, можно сменить позицию.'}</div>`;
+  }
   box.style.display = 'flex';
   box.innerHTML = `
     <div class="bf-si-icon">${stack.icon}</div>
@@ -5789,6 +7358,7 @@ function renderSelectedUnitInfo(){
         ${stack.acted?'<span>✓ уже походил</span>':''}
       </div>
       <div class="bf-si-hpbar"><div class="bf-si-hpbar-fill ${hpCls}" style="width:${hpPct}%"></div></div>
+      ${preview}
     </div>`;
 }
 
@@ -5850,7 +7420,7 @@ function handleCellClick(x,y){
   if(!battle || battle.over || battle.phase!=='player') return;
   const stack = battle.stacks.find(s=>s.alive && s.x===x && s.y===y);
   if(stack){ handleStackClick(stack.id); return; }
-  if(battle.magicMode){ flashBattleMsg('Выбери отряд-цель для заклинания.'); return; }
+  if(battle.magicMode){ flashBattleMsg('Выбери подсвеченный отряд-цель для заклинания.'); renderBattleField(); return; }
   if(!battle.selectedId) return;
   const key = terrainKey(x,y);
   if(battle.reachable && battle.reachable.has(key)){
@@ -5874,6 +7444,7 @@ function handleStackClick(id){
     if((wantsOwn && stack.side==='player') || (!wantsOwn && stack.side==='enemy')){
       castSpellOn(sp, stack);
     } else {
+      renderBattleField();
       flashBattleMsg(wantsOwn ? 'Эту магию нужно направить на свой отряд.' : 'Эту магию нужно направить на врага.');
     }
     return;
@@ -5903,13 +7474,37 @@ function afterPlayerAction(){
   renderBattleField();
   if(battle.over) return;
   const remaining = battle.stacks.filter(s=>s.side==='player' && s.alive && !s.acted);
-  if(remaining.length===0) setTimeout(endPlayerPhase, 500);
+  if(remaining.length===0){
+    const waited = battle.stacks.filter(s=>s.side==='player' && s.alive && s.waited);
+    if(waited.length){
+      waited.forEach(s=>{ s.acted=false; s.waited=false; });
+      logBattle('⏳ Ожидавшие отряды получают ход в конце фазы.');
+      renderBattleField();
+      return;
+    }
+    setTimeout(endPlayerPhase, 500);
+  }
+}
+
+function waitSelected(){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  if(!battle.selectedId){ flashBattleMsg('Сначала выбери отряд.'); return; }
+  const stack = battle.stacks.find(s=>s.id===battle.selectedId);
+  if(!stack || stack.side!=='player' || stack.acted){ flashBattleMsg('Этот отряд сейчас не может ждать.'); return; }
+  if(stack.waitedDone){ flashBattleMsg('Этот отряд уже выжидал в этом раунде.'); return; }
+  stack.waited = true;
+  stack.waitedDone = true;
+  stack.acted = true;
+  logBattle(`${stack.icon} ${stack.name} выжидает лучший момент для хода.`);
+  deselectStack();
+  afterPlayerAction();
 }
 
 function skipSelected(){
   if(!battle || battle.over || battle.phase!=='player') return;
   if(!battle.selectedId){ flashBattleMsg('Сначала выбери отряд.'); return; }
   const stack = battle.stacks.find(s=>s.id===battle.selectedId);
+  stack.waited = false;
   stack.acted = true;
   logBattle(`${stack.icon} ${stack.name} пропускает ход, разглядывая облака.`);
   deselectStack();
@@ -5918,9 +7513,58 @@ function skipSelected(){
 
 function endPlayerPhaseBtn(){
   if(!battle || battle.over || battle.phase!=='player') return;
-  battle.stacks.filter(s=>s.side==='player' && s.alive).forEach(s=>s.acted=true);
+  battle.stacks.filter(s=>s.side==='player' && s.alive).forEach(s=>{ s.acted=true; s.waited=false; s.waitedDone=false; });
   deselectStack();
   endPlayerPhase();
+}
+
+function toggleAutoBattleFull(){
+  if(!battle || battle.over) return;
+  battle.autoBattle = !battle.autoBattle;
+  updateBattleTopbar();
+  flashBattleMsg(battle.autoBattle ? 'Автобой включён до конца боя. Нажмите ещё раз, чтобы остановить.' : 'Автобой остановлен.');
+  if(battle.autoBattle && battle.phase==='player') setTimeout(()=>autoBattlePlayerTurn(), 120);
+}
+
+function autoBattlePlayerTurn(){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  if(battle.autoBattleRunning) return;
+  battle.autoBattleRunning = true;
+  battle.spellMenuOpen = false; battle.magicMode = false; battle.selectedSpell = null;
+  deselectStack();
+  const actors = battle.stacks.filter(s=>s.side==='player' && s.alive && !s.acted);
+  let idx = 0;
+  function next(){
+    if(!battle || battle.over){ if(battle) battle.autoBattleRunning = false; return; }
+    if(!battle.autoBattle){ battle.autoBattleRunning = false; renderBattleField(); return; }
+    if(idx>=actors.length){ battle.autoBattleRunning = false; afterPlayerAction(); return; }
+    const actor = actors[idx++];
+    if(!actor.alive || actor.acted){ next(); return; }
+    const enemies = battle.stacks.filter(s=>s.side==='enemy' && s.alive);
+    if(!enemies.length){ next(); return; }
+    enemies.sort((a,b)=>manhattan(actor,a)-manhattan(actor,b));
+    const target = enemies[0];
+    if(actor.ranged || isAdjacent8(actor,target)){
+      resolveCombat(actor, target);
+      actor.acted = true;
+      renderBattleField();
+      setTimeout(next, 450);
+      return;
+    }
+    const reach = reachableCells({x:actor.x,y:actor.y}, actor.speed, actor.id);
+    let best=null, bestScore=manhattan(actor,target);
+    for(const [k] of reach){
+      const [cx,cy] = k.split(',').map(Number);
+      if(cx===actor.x && cy===actor.y) continue;
+      const score = manhattan({x:cx,y:cy}, target);
+      if(score<bestScore){ bestScore=score; best={x:cx,y:cy}; }
+    }
+    if(best){ actor.x=best.x; actor.y=best.y; logBattle(`${actor.icon} ${actor.name} идёт в автобою ближе к цели.`); }
+    actor.acted = true;
+    renderBattleField();
+    setTimeout(next, 350);
+  }
+  next();
 }
 
 function endPlayerPhase(){
@@ -6018,21 +7662,21 @@ const UNIT_JOKES = {
     5: ['Паладин бьёт врага и одновременно читает короткую морализаторскую речь.', 'Свет правосудия слепит противника — или просто солнце удачно светит.'],
     6: ['Гвардеец бьёт строго по уставу — импровизация не поощряется.', 'Королевский гвардеец скучает по параду, но и бой сойдёт.'],
   },
-  elves: {
-    1: ['Разведчик бьёт из тени и тут же снова в ней растворяется.', 'Лесной разведчик двигается тише, чем его собственная стрела.'],
-    2: ['Эльфийская стрела находит щель в доспехе. Как обычно.', 'Стрелок-эльф бьёт без промаха — годы тренировок не пропали даром.'],
-    3: ['Друид насылает шипастые корни прямо под ноги врагу.', 'Друид что-то шепчет дереву — и оно определённо помогает.'],
-    4: ['Олень скачет с достоинством, всадник — с яростью.', 'Копыта оленя стучат в ритм атаки всадника.'],
-    5: ['Клинок мастера мелькает быстрее, чем противник успевает моргнуть.', 'Мастер клинка бьёт с изяществом, будто это балет, а не бой.'],
-    6: ['Архимаг рощи вплетает в удар отголосок древней магии леса.', 'Листья кружатся вокруг архимага — эффектно, но чисто декоративно.'],
+  forestfolk: {
+    1: ['Гном-пехотинец врезается щитом так, будто спорит с дверью.', 'Гном держит строй, и строй явно боится его подвести.'],
+    2: ['Эльф-разведчик бьёт из тени и делает вид, что его тут не было.', 'Разведчик двигается тихо, зато результат звучит громко.'],
+    3: ['Топорщик отправляет топор в полёт с пугающим спокойствием.', 'Гномский топор летит по короткому, но убедительному маршруту.'],
+    4: ['Эльф-маг вплетает в удар лесной разряд.', 'Магия рощи звучит красиво, если слушать не со стороны цели.'],
+    5: ['Энт бьёт ветвью, и аргументы врага становятся значительно короче.', 'Древний ствол двигается медленно, но спорить с ним поздно.'],
+    6: ['Подземный змей вырывается снизу и портит врагу планы вместе с построением.', 'Змей уходит под землю, а противник внезапно теряет уверенность в полу.'],
   },
-  dwarves: {
-    1: ['Щитоносец бьёт щитом — тот факт, что это не меч, его не смущает.', 'Гномий щит впечатывается в противника с гулким "бумс".'],
-    2: ['Топор метателя летит с гулким свистом и почти не задевает своих.', 'Метатель топоров подмигивает — топор уже летит куда надо.'],
-    3: ['Молот опускается с грохотом, достойным кузницы.', 'Гном орёт боевую кричалку про пиво — противник в замешательстве.'],
-    4: ['Арбалетный болт бьёт точно и без лишней сентиментальности.', 'Арбалетчик перезаряжается быстрее, чем противник успевает обидеться.'],
-    5: ['Рунный страж бьёт, и рунные узоры на броне вспыхивают от натуги.', 'Древние руны на щите гудят перед самым ударом.'],
-    6: ['Повелитель кузни бьёт молотом, будто кует врага заново — не очень удачно для врага.', 'Наковальня плачет от зависти, глядя на этот удар.'],
+  orcs: {
+    1: ['Гоблин-резак бросается вперёд с энтузиазмом и сомнительной техникой.', 'Гоблин орёт так громко, что удар кажется сильнее.'],
+    2: ['Орк-дуболом решает проблему прямым ударом.', 'Дубина орка объясняет тактику без лишних слов.'],
+    3: ['Пращник запускает камень и сам удивляется, что попал.', 'Гоблинский камень летит туда, где противнику уже неприятно.'],
+    4: ['Берсерк несётся вперёд, потому что тормоза в комплект не входили.', 'Орк-берсерк бьёт так, будто спор уже проигран, но враг ещё не понял.'],
+    5: ['Шаман орды шепчет проклятие, похожее на плохой совет.', 'Шаман бьёт магией, пахнущей дымом и дурными решениями.'],
+    6: ['Вождь на варге врывается в строй, оставляя дисциплину где-то позади.', 'Варг рычит, вождь орёт, враг пытается выбрать, кого бояться первым.'],
   },
   undead: {
     1: ['Скелет спотыкается о собственные ноги, но упорно наступает.', 'Кости скелета дребезжат при каждом взмахе — а как иначе.'],
@@ -6043,6 +7687,8 @@ const UNIT_JOKES = {
     6: ['Лич бьёт с холодным расчётом — эмоции ему чужды.', 'Лич взмахивает посохом, и мгла соткается вокруг удара.'],
   },
 };
+UNIT_JOKES.elves = UNIT_JOKES.forestfolk;
+UNIT_JOKES.dwarves = UNIT_JOKES.forestfolk;
 // wild ambush critters (no race) get their own flavor instead of falling back to a random race's joke
 const CREATURE_JOKES = {
   'Скелет-старик': ['Скелет-старик замахивается с кряхтением — годы (точнее, века) берут своё.', 'Старые кости скрипят, но целятся на удивление точно.'],
@@ -6067,9 +7713,29 @@ function pickCombatJoke(attacker, isRangedShot){
   const pool = isRangedShot ? GENERIC_RANGED_JOKES : GENERIC_JOKES;
   return pool[Math.floor(Math.random()*pool.length)];
 }
+function estimateCombat(attacker, defender){
+  if(!attacker || !defender) return null;
+  const battleHero = activeBattleHero();
+  const heroAtkBonus = attacker.side==='player' ? Math.round(battleHero.atk/2) : 0;
+  const heroDefBonus = defender.side==='player' ? Math.round(battleHero.def/2) : 0;
+  const adjacent = isAdjacent8(attacker, defender);
+  const isRangedShot = attacker.ranged && !adjacent;
+  const power = (attacker.atk+heroAtkBonus) * attacker.count;
+  const resist = (defender.def+heroDefBonus) * defender.count * 0.3;
+  let avg = Math.max(3, Math.round(power*0.55 - resist));
+  if(attacker.side==='player' && attacker.ranged) avg = Math.round(avg * heroRangedDmgMult());
+  if(isRangedShot && chebyshev(attacker, defender) > RANGED_FULL_RANGE) avg = Math.max(2, Math.round(avg*0.5));
+  const min = Math.max(1, Math.round(avg*0.8));
+  const max = Math.max(min, Math.round(avg*1.2));
+  const killsMin = Math.min(defender.count, Math.floor(min / defender.unitHpVal));
+  const killsMax = Math.min(defender.count, Math.ceil(max / defender.unitHpVal));
+  const canRetaliate = defender.alive && defender.count>0 && (adjacent || (isRangedShot && defender.ranged));
+  return {min, max, killsMin, killsMax, canRetaliate, rangedPenalty:isRangedShot && chebyshev(attacker, defender) > RANGED_FULL_RANGE};
+}
 function resolveCombat(attacker, defender){
-  const heroAtkBonus = attacker.side==='player' ? Math.round(state.hero.atk/2) : 0;
-  const heroDefBonus = defender.side==='player' ? Math.round(state.hero.def/2) : 0;
+  const battleHero = activeBattleHero();
+  const heroAtkBonus = attacker.side==='player' ? Math.round(battleHero.atk/2) : 0;
+  const heroDefBonus = defender.side==='player' ? Math.round(battleHero.def/2) : 0;
   const power = (attacker.atk+heroAtkBonus) * attacker.count;
   const resist = (defender.def+heroDefBonus) * defender.count * 0.3;
   let dmg = Math.max(3, Math.round(power*0.55*(0.8+Math.random()*0.4) - resist));
@@ -6093,8 +7759,8 @@ function resolveCombat(attacker, defender){
   // no way to strike back across the map, so it simply doesn't retaliate in that case.
   const canRetaliate = defender.alive && defender.count>0 && (adjacent || (isRangedShot && defender.ranged));
   if(canRetaliate){
-    const retalPower = (defender.atk + (defender.side==='player'?Math.round(state.hero.atk/2):0)) * defender.count;
-    const retalResist = (attacker.def + (attacker.side==='player'?Math.round(state.hero.def/2):0)) * attacker.count * 0.3;
+    const retalPower = (defender.atk + (defender.side==='player'?Math.round(battleHero.atk/2):0)) * defender.count;
+    const retalResist = (attacker.def + (attacker.side==='player'?Math.round(battleHero.def/2):0)) * attacker.count * 0.3;
     const retalDmg = Math.max(1, Math.round(retalPower*0.35 - retalResist));
     applyStackDamage(attacker, retalDmg);
     logBattle(`${defender.icon} ${defender.name} огрызается в ответ на ${retalDmg}. ${pickCombatJoke(defender, false)}`);
@@ -6120,6 +7786,8 @@ function checkBattleEnd(){
   const enemyAlive = battle.stacks.some(s=>s.side==='enemy' && s.alive);
   if(!playerAlive || !enemyAlive){
     battle.over = true;
+    battle.autoBattle = false;
+    battle.autoBattleRunning = false;
     const result = (!enemyAlive && playerAlive) ? 'win' : (!playerAlive ? 'lose' : 'draw');
     finishTacticalBattle(result);
   }
@@ -6128,12 +7796,13 @@ function checkBattleEnd(){
 function startNewRound(){
   if(battle.over) return;
   battle.round++;
-  battle.stacks.forEach(s=>{ if(s.alive) s.acted=false; });
+  battle.stacks.forEach(s=>{ if(s.alive){ s.acted=false; s.waited=false; s.waitedDone=false; } });
   battle.magicUsedThisRound = false;
   battle.phase = 'player';
   logBattle(`— Раунд ${battle.round} —`);
   applyMoatHazard();
   renderBattleField();
+  if(battle.autoBattle && !battle.over) setTimeout(()=>autoBattlePlayerTurn(), 450);
 }
 function applyMoatHazard(){
   if(battle.over || !battle.siegeLayout || !battle.siegeLayout.moatHasStakes) return;
@@ -6174,6 +7843,76 @@ const SPELL_JOKES = {
   meteor: ['Камни с неба? Камни с неба!!!.', 'Метеорологи говорят, что погода сегодня просто огнище.'],
 };
 
+function spellCategory(sp){
+  if(['damage','chain','meteor'].includes(sp.type)) return 'damage';
+  if(sp.type==='heal') return 'support';
+  return 'control';
+}
+function spellTargetText(sp){
+  if(sp.type==='heal') return 'Цель: свой отряд';
+  if(sp.type==='meteor') return 'Цель: враг, область 3×3';
+  if(sp.type==='chain') return 'Цель: враг + 2 перескока';
+  return 'Цель: враг';
+}
+function spellTacticalNote(sp){
+  if(sp.type==='heal') return 'Лечит выбранный свой отряд до максимума его текущего размера. Лучше применять по дорогим или сильно раненым войскам.';
+  if(sp.type==='meteor') return 'Бьёт клетку цели и соседние клетки. Враги получают полный урон, свои в зоне удара получают половину.';
+  if(sp.type==='chain') return 'Первый враг получает полный урон, затем молния перескакивает на двух ближайших врагов: 50% и примерно 33% от основного удара.';
+  if(sp.type==='blind') return 'Ослепляет вражеский отряд на 2 его хода. Хорошо против сильных стрелков и тяжёлых стеков.';
+  if(sp.id==='bolt') return 'Быстрый дешёвый удар по одной цели. Удобен для добивания и экономии маны.';
+  if(sp.id==='fireball') return 'Сильный удар по одной цели без риска задеть своих. Хорош для снятия опасного отряда.';
+  return 'Применяется сразу по выбранной цели.';
+}
+function spellBaseRange(sp){
+  const caster = activeBattleHero();
+  if(sp.type==='heal'){
+    const min = Math.round((sp.healMin + caster.sp*1.5) * activeBattleSpellPowerMult());
+    const max = Math.round((sp.healMax + caster.sp*1.5) * activeBattleSpellPowerMult());
+    return `${min}-${max} HP`;
+  }
+  if(sp.dmgMin){
+    const mult = sp.type==='chain' && !battleUsesGarrisonHero() ? activeBattleSpellPowerMult() * heroChainDmgMult() : activeBattleSpellPowerMult();
+    const casterScale = sp.type==='meteor' ? 1.8 : 1.3;
+    const min = Math.round((sp.dmgMin + caster.sp*casterScale) * mult);
+    const max = Math.round((sp.dmgMax + caster.sp*casterScale) * mult);
+    return `${min}-${max} урона`;
+  }
+  if(sp.type==='blind') return '2 хода';
+  return 'эффект зависит от цели';
+}
+function spellPreviewForTarget(sp, target){
+  if(!sp || !target) return '';
+  const caster = activeBattleHero();
+  const valid = sp.type==='heal' ? target.side==='player' : target.side==='enemy';
+  if(!valid) return `<div class="attack-preview">✨ ${sp.name}: эта цель не подходит.</div>`;
+  if(sp.type==='heal'){
+    const maxHp = target.originalCount * target.unitHpVal;
+    const missing = Math.max(0, maxHp-target.hp);
+    return `<div class="attack-preview">✨ ${sp.name}: восстановит ${spellBaseRange(sp)}. Сейчас ранено: ${missing} HP.</div>`;
+  }
+  if(sp.type==='blind'){
+    return `<div class="attack-preview">✨ ${sp.name}: цель пропустит 2 своих хода.</div>`;
+  }
+  if(sp.type==='chain'){
+    const base = Math.round(((sp.dmgMin+sp.dmgMax)/2 + caster.sp*1.3) * activeBattleSpellPowerMult() * (battleUsesGarrisonHero() ? 1 : heroChainDmgMult()));
+    const jumps = battle.stacks
+      .filter(s=>s.alive && s.side==='enemy' && s.id!==target.id)
+      .sort((a,b)=> manhattan(a,target)-manhattan(b,target))
+      .slice(0, 2);
+    const jumpText = jumps.length ? ` Перескоки: ${jumps.map((s,i)=>`${s.icon} ${s.name} ~${Math.max(1, Math.round(base/(i===0?2:3)))} урона`).join(', ')}.` : ' Перескоков рядом нет.';
+    return `<div class="attack-preview">✨ ${sp.name}: первая цель ~${base} урона.${jumpText}</div>`;
+  }
+  if(sp.type==='meteor'){
+    const base = Math.round(((sp.dmgMin+sp.dmgMax)/2 + caster.sp*1.8) * activeBattleSpellPowerMult());
+    const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, target)<=1);
+    const enemies = victims.filter(s=>s.side==='enemy').length;
+    const allies = victims.filter(s=>s.side==='player').length;
+    return `<div class="attack-preview">✨ ${sp.name}: область 3×3, враги ~${base} урона (${enemies}), свои ~${Math.max(1,Math.round(base/2))} (${allies}).</div>`;
+  }
+  const avg = Math.round(((sp.dmgMin+sp.dmgMax)/2 + caster.sp*1.3) * activeBattleSpellPowerMult());
+  return `<div class="attack-preview">✨ ${sp.name}: примерно ${avg} урона.</div>`;
+}
+
 function toggleMagic(){
   if(!battle || battle.over || battle.phase!=='player') return;
   if(battle.magicUsedThisRound){ flashBattleMsg('Магия уже использована в этом раунде.'); return; }
@@ -6187,36 +7926,60 @@ function renderMagicPanel(){
   if(!el) return;
   if(!battle || !battle.spellMenuOpen){ el.style.display='none'; el.innerHTML=''; return; }
   el.style.display='flex';
-  const manaHeader = `<div class="spell-mana-header">💠 Мана героя: ${state.hero.mana}/${getMaxMana()} • 🔮 Сила заклинаний +${mageTowerSpellBonusPct()}%</div>`;
-  const cards = SPELLS.map(sp=>{
+  const caster = activeBattleHero();
+  const book = Array.isArray(caster.spellbook) ? caster.spellbook : SPELLS.map(sp=>sp.id);
+  const manaHeader = `<div class="spell-mana-header">💠 Мана героя: ${caster.mana}/${activeBattleMaxMana()} • 🔮 Сила заклинаний +${mageTowerSpellBonusPct()}%</div>`;
+  const spellCard = sp=>{
     const locked = !spellUnlockedByTower(sp);
-    const disabled = locked || state.hero.mana < sp.cost;
+    const disabled = locked || caster.mana < sp.cost;
     const desc = locked ? `Требуется башня мага ур. ${sp.unlockLevel}.` : sp.desc;
     return `<div class="spell-card ${disabled?'disabled':''}" onclick="${disabled?'':`chooseSpell('${sp.id}')`}">
       <div class="spell-ico">${locked?'🔒':sp.icon}</div>
       <b>${sp.name}</b>
       <span>${sp.cost}💠 маны</span>
-      <small>${desc}</small>
+      <span class="spell-target">${spellTargetText(sp)} • ${spellBaseRange(sp)}</span>
+      <small>${desc}<br>${spellTacticalNote(sp)}</small>
     </div>`;
-  }).join('');
+  };
+  const availableSpells = SPELLS.filter(sp=>book.includes(sp.id));
+  const tabs = [
+    {key:'damage', label:'Урон', items:availableSpells.filter(sp=>spellCategory(sp)==='damage')},
+    {key:'support', label:'Поддержка', items:availableSpells.filter(sp=>spellCategory(sp)==='support')},
+    {key:'control', label:'Контроль', items:availableSpells.filter(sp=>spellCategory(sp)==='control')},
+  ].filter(t=>t.items.length);
+  if(!tabs.some(t=>t.key===battle.spellTab)) battle.spellTab = tabs[0] ? tabs[0].key : 'damage';
+  const activeTab = tabs.find(t=>t.key===battle.spellTab) || tabs[0];
+  const tabButtons = tabs.map(t=>`<button class="mini-btn spell-tab-btn ${t.key===battle.spellTab?'active':''}" onclick="setSpellTab('${t.key}')">${t.label}</button>`).join('');
+  const cards = activeTab ? `<div class="spell-book-grid">${activeTab.items.map(spellCard).join('')}</div>` : '<p class="worldmap-hint">В книге героя пока нет заклинаний.</p>';
   el.innerHTML = `<div class="spell-book">
     <div class="spell-book-head">
       <div><div class="spell-book-title">Книга магии</div>${manaHeader}</div>
       <button class="mini-btn" onclick="cancelMagic()">✖ Закрыть</button>
     </div>
-    <div class="spell-book-grid">${cards}</div>
+    <div class="spell-tab-row">${tabButtons}</div>
+    ${cards}
+    <div class="spell-aim-note">Выбери заклинание, затем нажми подсвеченную цель на поле боя. Свои подсвечиваются для лечения и поддержки, враги — для атаки и контроля.</div>
   </div>`;
+}
+function setSpellTab(key){
+  if(!battle) return;
+  battle.spellTab = key;
+  renderMagicPanel();
 }
 function chooseSpell(id){
   const sp = SPELLS.find(s=>s.id===id);
+  const caster = activeBattleHero();
+  const book = Array.isArray(caster.spellbook) ? caster.spellbook : SPELLS.map(x=>x.id);
+  if(!book.includes(id)){ flashBattleMsg('В книге этого героя нет такого заклинания.'); return; }
   if(!spellUnlockedByTower(sp)){ flashBattleMsg(`Заклинание требует башню мага ${sp.unlockLevel} уровня.`); return; }
-  if(state.hero.mana < sp.cost){ flashBattleMsg('Не хватает маны для этого заклинания.'); return; }
+  if(caster.mana < sp.cost){ flashBattleMsg('Не хватает маны для этого заклинания.'); return; }
   battle.selectedSpell = sp;
   battle.magicMode = true;
   battle.spellMenuOpen = false;
   renderMagicPanel();
   renderBattleField();
   updateBattleTopbar();
+  flashBattleMsg(`${sp.icon} ${sp.name}: нажми подсвеченную цель.`);
 }
 function cancelMagic(){
   battle.spellMenuOpen = false; battle.magicMode = false; battle.selectedSpell = null;
@@ -6231,12 +7994,13 @@ function playFx(stack, fxName){
   setTimeout(()=>{ stack.fx=null; if(!battle.over) renderBattleField(); }, 650);
 }
 function castSpellOn(sp, target){
-  state.hero.mana -= sp.cost;
+  const caster = activeBattleHero();
+  caster.mana -= sp.cost;
   battle.magicUsedThisRound = true;
   battle.magicMode = false;
   battle.selectedSpell = null;
   if(sp.type==='damage'){
-    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3) * spellPowerMult());
+    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + caster.sp*1.3) * activeBattleSpellPowerMult());
     applyStackDamage(target, dmg);
     logBattle(`${sp.icon} ${sp.name} обрушивается на ${target.icon} ${target.name}: ${dmg} урона! ${spellJoke(sp.id)}`);
     playFx(target, sp.id==='bolt' ? 'chain' : 'fireball');
@@ -6245,7 +8009,7 @@ function castSpellOn(sp, target){
     logBattle(`${sp.icon} ${sp.name} накрывает ${target.icon} ${target.name}: отряд ослеплён на 2 хода. ${spellJoke(sp.id)}`);
     playFx(target, 'blind');
   } else if(sp.type==='chain'){
-    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.3) * spellPowerMult() * heroChainDmgMult());
+    const dmg = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + caster.sp*1.3) * activeBattleSpellPowerMult() * (battleUsesGarrisonHero() ? 1 : heroChainDmgMult()));
     applyStackDamage(target, dmg);
     logBattle(`${sp.icon} ${sp.name} бьёт в ${target.icon} ${target.name}: ${dmg} урона!`);
     playFx(target, 'chain');
@@ -6263,7 +8027,7 @@ function castSpellOn(sp, target){
     });
   } else if(sp.type==='meteor'){
     const center = {x:target.x, y:target.y};
-    const base = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + state.hero.sp*1.8) * spellPowerMult());
+    const base = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + caster.sp*1.8) * activeBattleSpellPowerMult());
     const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, center)<=1);
     victims.forEach(v=>{
       const dmg = v.side==='player' ? Math.max(1, Math.round(base/2)) : base;
@@ -6273,7 +8037,7 @@ function castSpellOn(sp, target){
     });
     logBattle(`${spellJoke(sp.id)} Область удара: клетка цели и соседние клетки.`);
   } else if(sp.type==='heal'){
-    const heal = Math.round((sp.healMin + Math.random()*(sp.healMax-sp.healMin) + state.hero.sp*1.5) * spellPowerMult());
+    const heal = Math.round((sp.healMin + Math.random()*(sp.healMax-sp.healMin) + caster.sp*1.5) * activeBattleSpellPowerMult());
     const maxHp = target.originalCount * target.unitHpVal;
     target.hp = Math.min(maxHp, target.hp + heal);
     target.count = Math.max(target.count, Math.ceil(target.hp/target.unitHpVal));
@@ -6437,7 +8201,7 @@ function finishTacticalBattle(result){
     if(result==='win'){
       const loot = {gold: 15+state.day*2, wood:5, stone:5, crystal:0};
       Object.entries(loot).forEach(([k,v])=>{ if(v>0) addRes(k,v); });
-      grantXp(15);
+      grantXp(15, 'garrison');
       const lootHtml = Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>`<span class="loot-chip">+${v}${iconOf(k)}</span>`).join('') + `<span class="loot-chip">+15✨XP</span>`;
       logBattle('<b>🎉 Гарнизон отбил набег!</b> Трофеи с разбитых налётчиков достались защитникам.');
       addLog('Гарнизон успешно отразил набег на поселение.', 'combat');
@@ -6516,7 +8280,7 @@ function finishTacticalBattle(result){
     let lootOverflowed = false;
     Object.entries(loot).forEach(([k,v])=>{ if(addRes(k,v) < v) lootOverflowed = true; });
     const xp = battle.meta.source==='dragon' ? 120 : (battle.meta.source==='fort' ? 60 : (battle.meta.source==='rival' ? 70 : 35));
-    grantXp(xp);
+    grantXp(xp, 'field');
     const raised = raiseNecromancyAfterWin();
     const necroHtml = raised>0 ? `<span class="loot-chip">+${raised}💀</span>` : '';
     const lootHtml = Object.entries(loot).filter(([k,v])=>v>0).map(([k,v])=>`<span class="loot-chip">+${v}${iconOf(k)}</span>`).join('') + `<span class="loot-chip">+${xp}✨XP</span>` + necroHtml;
@@ -6614,6 +8378,7 @@ function openModal(id){ document.getElementById(id).classList.add('active'); }
 function closeModal(id){ document.getElementById(id).classList.remove('active'); }
 
 /* ===================== INIT ===================== */
+bindGlobalDevCodes();
 renderMenu();
 initSaveSystem();
 setInterval(()=>{ if(state) saveGame(); }, 3000); // safety-net autosave, e.g. mid-movement on the world map
