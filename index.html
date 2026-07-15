@@ -320,6 +320,14 @@
     box-shadow: inset 0 0 0 3px #f0c419, 0 0 8px rgba(240,196,25,.7);
     cursor: pointer;
   }
+  @media(max-width:520px){
+    .bf-wrap{ aspect-ratio:8/5.6; }
+    .bf-stack{ font-size:1.05em; border-radius:7px; }
+    .bf-selected-info{ padding:7px 9px; margin-bottom:6px; font-size:.78em; }
+    .battle-turn-queue{ margin:4px 0 6px; }
+    .battle-quickbar{ gap:6px; margin-top:7px; }
+    .battle-quickbar .mini-btn{ padding:9px 8px; }
+  }
   .fx-hit{ animation:fx-hit .4s ease; }
   .fx-strike{ animation:fx-strike .3s ease; }
   .fx-blind{ animation:fx-hit .55s ease; }
@@ -370,6 +378,29 @@
   .spell-card .spell-target{ display:block; margin-top:3px; color:#6b4b21; font-size:.72em; font-weight:800; }
   .spell-mana-header{ font-weight:800; font-size:.85em; color:var(--ink-soft); background:#e9dcb9; border:2px dashed var(--parchment-dark); border-radius:8px; padding:4px 8px; }
   .spell-aim-note{ margin-top:8px; padding:7px 9px; border-radius:8px; background:#e9dcb9; color:var(--ink-soft); font-size:.82em; font-weight:700; }
+  @media(max-width:520px){
+    .spell-menu{
+      position:fixed; inset:0; z-index:80; padding:10px; align-items:flex-start;
+      background:rgba(20,14,8,.64); overflow:auto;
+    }
+    .spell-book{
+      width:100%; max-height:calc(100vh - 24px); margin:2px auto; padding:10px;
+      border-width:3px; overflow:auto;
+    }
+    .spell-book-head{ align-items:flex-start; gap:8px; }
+    .spell-book-title{ font-size:1.18em; }
+    .spell-book-head .mini-btn{ min-width:88px; padding:8px 10px; }
+    .spell-mana-header{ font-size:.78em; padding:5px 7px; }
+    .spell-tab-row{ margin:7px 0; gap:5px; }
+    .spell-tab-btn{ min-width:0; padding:8px 6px; font-size:.78em; }
+    .spell-book-grid{ grid-template-columns:1fr; gap:6px; }
+    .spell-card{ padding:7px 8px; display:grid; grid-template-columns:38px 1fr; text-align:left; align-items:center; column-gap:8px; }
+    .spell-card .spell-ico{ grid-row:1 / span 4; font-size:1.45em; text-align:center; }
+    .spell-card b{ margin:0; font-size:.82em; }
+    .spell-card span{ font-size:.72em; }
+    .spell-card small{ font-size:.66em; line-height:1.18; }
+    .spell-aim-note{ display:none; }
+  }
 
   .fx-fireball{ animation:fx-fire .6s ease; }
   .fx-chain{ animation:fx-chain .6s ease; }
@@ -436,18 +467,13 @@
   .world-field-btn.end-turn-near-map{ background:linear-gradient(180deg,#d8b842,#a58222); color:#2c1f0a; }
   .world-field-btn .turn-cost{ display:block; font-size:1.16em; letter-spacing:0; }
   .world-field-btn span{ display:block; font-size:.72em; margin-top:2px; }
-  .world-target-panel{
-    position:fixed; left:50%; bottom:12px; width:min(560px, calc(100vw - 24px)); max-height:42vh; overflow:auto;
-    background:#f4ecd4; border:2px solid #c7ae7d; border-radius:12px 12px 10px 10px; padding:10px;
-    font-size:.82em; z-index:45; box-shadow:0 10px 28px rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,255,255,.35);
-    transform:translate(-50%, calc(100% + 24px)); opacity:0; pointer-events:none; transition:transform .22s ease, opacity .18s ease;
-  }
-  .world-target-panel.active{ transform:translate(-50%, 0); opacity:1; pointer-events:auto; }
-  .world-target-panel b{ font-size:1.03em; }
-  .world-target-text{ margin-top:4px; color:var(--ink-soft); line-height:1.32; }
-  .world-target-meta{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
-  .world-target-chip{ background:#e9dcb9; border:1px solid #c7ae7d; border-radius:999px; padding:2px 7px; font-weight:800; color:var(--ink); }
-  .world-target-actions{ display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
+  .world-target-panel{ display:none; }
+  .world-target-panel.active{ display:none; }
+  .world-target-panel b{ font-size:.98em; }
+  .world-target-text{ margin-top:2px; color:var(--ink-soft); line-height:1.18; }
+  .world-target-meta{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+  .world-target-chip{ background:#e9dcb9; border:1px solid #c7ae7d; border-radius:999px; padding:1px 6px; font-weight:800; color:var(--ink); }
+  .world-target-actions{ display:none; }
   .overview-filter-row{ display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
   .world-hero-strip{
     display:grid; grid-template-columns:minmax(140px,.85fr) minmax(0,1.6fr); gap:8px; align-items:stretch;
@@ -606,13 +632,12 @@
   <div class="menu-btn-col">
     <button class="big-btn" onclick="openModeSelect()">🆕 Новая игра</button>
     <button class="big-btn" id="continue-btn" onclick="continueGame()" disabled>▶️ Продолжить</button>
-    <button class="big-btn" id="load-slots-btn" onclick="toggleSaveSlots()" disabled>📚 Загрузить</button>
+    <button class="big-btn" id="load-slots-btn" onclick="openSaveManager()" disabled>📚 Загрузить</button>
     <button class="big-btn" id="map-editor-menu-btn" style="display:none;" onclick="openMapEditor()">🧭 Редактор карт</button>
     <button class="big-btn" disabled title="Пока недоступно">⚙️ Настройки</button>
     <button class="big-btn" disabled title="Пока недоступно">🛒 Магазин</button>
   </div>
   <div class="disclaimer" id="menu-save-note"></div>
-  <div class="save-slots-list" id="save-slots-panel" style="display:none;"></div>
   <div class="menu-link-row" id="menu-file-save-row">
     <button class="menu-link-btn" onclick="exportSaveToFile()">💾 Сохранить в файл</button>
     <label class="menu-link-btn" style="display:inline-block;">
@@ -813,7 +838,6 @@
       <div class="world-hero-summary" id="world-hero-summary"></div>
       <div class="world-army-strip" id="world-army-strip"></div>
     </div>
-    <div class="world-target-panel" id="world-target-panel"></div>
     <div class="worldmap-nav">
       <button class="mini-btn" onclick="panWorldCamera(0,-1)">↑</button>
       <button class="mini-btn" onclick="panWorldCamera(-1,0)">←</button>
@@ -829,6 +853,7 @@
       <div class="world-field-actions">
         <button class="world-field-btn end-turn-near-map" id="world-end-turn-btn" title="Завершить текущий ход" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();endTurn()"><b class="turn-cost">...</b><span>ход</span></button>
       </div>
+      <div class="world-target-panel" id="world-target-panel"></div>
     </div>
     <div class="worldmap-underbar">
       <button class="mini-btn" onclick="openWorldOverview()">🗺️ Обзор карты</button>
@@ -931,7 +956,7 @@
 <div class="modal-bg" id="modal-save-manager">
   <div class="modal">
     <h2>📚 Сохранения</h2>
-    <p class="market-note">Слоты сохраняются локально и в облаке Вальдора. В Telegram профиль привязывается к вашему Telegram ID.</p>
+    <p class="market-note">Выберите слот для продолжения партии или сохраните текущую игру вручную.</p>
     <div class="save-manager-actions">
       <button class="mini-btn" onclick="manualAutosave(); renderSaveManager()">💾 Сохранить сейчас</button>
       <button class="mini-btn" onclick="syncServerSavesNow()">☁️ Синхронизировать</button>
@@ -2141,6 +2166,12 @@ function normalizeMetaAgainstSnapshot(json, meta, slotId){
 function cloudVersionedSlotKey(slotId, updatedAt){
   return SAVE_SLOT_PREFIX + slotId + '_v' + (updatedAt || Date.now());
 }
+function cloudStableSlotKey(slotId){
+  return SAVE_SLOT_PREFIX + slotId;
+}
+function cloudStagingSlotKey(slotId){
+  return SAVE_SLOT_PREFIX + slotId + '_stage';
+}
 function cloudBaseForSlot(slot){
   return (slot && slot.cloudBaseKey) || (slot && slot.id ? SAVE_SLOT_PREFIX+slot.id : activeCloudKey());
 }
@@ -2578,7 +2609,7 @@ function createSaveSlotForCurrentGame(){
     const json = JSON.stringify(state);
     savedGameSnapshot = json;
     const meta = getSaveMetaFromJson(json, currentSaveSlotId);
-    if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
+    if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudStableSlotKey(currentSaveSlotId);
     meta.snapshot = json;
     setSlotMeta(meta);
     if(hasIndexedDb()) saveSlotToIndexedDb(json, meta);
@@ -2671,22 +2702,45 @@ function requestCloudSave(json, baseKey, force, meta){
 function startCloudSave(payload){
   cloudSaveInFlight = true;
   lastCloudSaveAt = Date.now();
+  const finalBaseKey = payload.baseKey;
+  const stageBaseKey = payload.meta && payload.meta.id ? cloudStagingSlotKey(payload.meta.id) : finalBaseKey+'_stage';
   cloudSaveChunked(payload.json, (err)=>{
-    cloudSaveInFlight = false;
     if(err){
-      console.error('Telegram CloudStorage save error:', err);
+      cloudSaveInFlight = false;
+      console.error('Telegram CloudStorage stage save error:', err);
       setRemoteStatus('⚠️ Telegram не принял сохранение: '+(err.message || err));
-    } else {
-      saveIndexToCloud(payload.meta);
-      setRemoteStatus('☁️ Telegram-сохранение обновлено.');
+      flushNextCloudSaveIfNeeded();
+      return;
     }
-    if(cloudSavePending){
-      const next = cloudSavePending;
-      cloudSavePending = null;
-      clearTimeout(cloudSaveFlushTimer);
-      requestCloudSave(next.json, next.baseKey, true, next.meta);
-    }
-  }, payload.baseKey);
+    cloudLoadChunked(stageJson=>{
+      if(!stageJson || !saveSnapshotMatchesMeta(stageJson, payload.meta)){
+        cloudSaveInFlight = false;
+        setRemoteStatus('⚠️ Telegram не подтвердил сохранение. Индекс не обновлён.');
+        flushNextCloudSaveIfNeeded();
+        return;
+      }
+      cloudSaveChunked(stageJson, (commitErr)=>{
+        cloudSaveInFlight = false;
+        if(commitErr){
+          console.error('Telegram CloudStorage commit error:', commitErr);
+          setRemoteStatus('⚠️ Telegram не завершил сохранение: '+(commitErr.message || commitErr));
+        } else {
+          const committedMeta = Object.assign({}, payload.meta, {cloudBaseKey: finalBaseKey});
+          saveIndexToCloud(committedMeta);
+          setRemoteStatus('☁️ Telegram-сохранение обновлено.');
+        }
+        flushNextCloudSaveIfNeeded();
+      }, finalBaseKey);
+    }, stageBaseKey);
+  }, stageBaseKey);
+}
+function flushNextCloudSaveIfNeeded(){
+  if(cloudSavePending){
+    const next = cloudSavePending;
+    cloudSavePending = null;
+    clearTimeout(cloudSaveFlushTimer);
+    requestCloudSave(next.json, next.baseKey, true, next.meta);
+  }
 }
 function flushPendingCloudSave(){
   if(!cloudSavePending) return;
@@ -2702,7 +2756,7 @@ function saveGame(){
   savedGameSnapshot = json;
   if(!currentSaveSlotId) currentSaveSlotId = makeSaveSlotId();
   const meta = getSaveMetaFromJson(json, currentSaveSlotId);
-  if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
+  if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudStableSlotKey(currentSaveSlotId);
   meta.snapshot = json;
   setSlotMeta(meta);
   if(isTelegramEnv() && hasCloudStorage()){
@@ -2721,7 +2775,7 @@ function forceSaveNow(){
   savedGameSnapshot = json;
   if(!currentSaveSlotId) currentSaveSlotId = makeSaveSlotId();
   const meta = getSaveMetaFromJson(json, currentSaveSlotId);
-  if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
+  if(isTelegramEnv() && hasCloudStorage()) meta.cloudBaseKey = cloudStableSlotKey(currentSaveSlotId);
   meta.snapshot = json;
   setSlotMeta(meta);
   if(isTelegramEnv() && hasCloudStorage()){
@@ -2949,8 +3003,12 @@ function deleteSaveSlot(slotId){
     saveIndexToCloud(nextMeta);
   }
   if(isTelegramEnv() && hasCloudStorage()){
-    const baseKey = SAVE_SLOT_PREFIX+slotId;
-    const keys = cloudChunkKeys(baseKey, (slot.chunks || 1) + 8);
+    const baseKey = cloudBaseForSlot(slot);
+    const keys = [
+      ...cloudChunkKeys(baseKey, (slot.chunks || 1) + 8),
+      ...cloudChunkKeys(cloudStagingSlotKey(slotId), (slot.chunks || 1) + 8),
+      ...cloudChunkKeys(SAVE_SLOT_PREFIX+slotId, (slot.chunks || 1) + 8)
+    ];
     if(saveSlots.length){
       cloudRemoveKeys(keys, ()=>{});
       saveIndexToCloud();
@@ -2977,14 +3035,11 @@ function deleteSaveSlot(slotId){
   updateMainMenuState();
 }
 function toggleSaveSlots(){
-  const panel = document.getElementById('save-slots-panel');
-  if(!panel) return;
-  panel.style.display = panel.style.display === 'none' ? '' : 'none';
-  renderSaveSlotsPanel();
+  openSaveManager();
 }
 function renderSaveSlotsPanel(){
   const panel = document.getElementById('save-slots-panel');
-  if(!panel) return;
+  if(!panel){ renderSaveManager(); return; }
   if(!saveSlots.length){
     panel.innerHTML = '<div class="disclaimer">Сохранений пока нет.</div>';
     return;
@@ -3074,7 +3129,7 @@ function migrateOldTelegramCloudSavesToVersionedCloud(){
       currentSaveSlotId = slotId || currentSaveSlotId || makeSaveSlotId();
       savedGameSnapshot = json;
       const meta = getSaveMetaFromJson(json, currentSaveSlotId);
-      meta.cloudBaseKey = cloudVersionedSlotKey(currentSaveSlotId, meta.updatedAt);
+      meta.cloudBaseKey = cloudStableSlotKey(currentSaveSlotId);
       meta.snapshot = json;
       setSlotMeta(meta);
       requestCloudSave(json, meta.cloudBaseKey, true, meta);
@@ -5745,7 +5800,7 @@ function toggleMinimapViewport(){
 }
 function worldViewportSize(){
   const narrow = window.innerWidth <= 640;
-  return {w: Math.min(WORLD_COLS, narrow ? 9 : 13), h: Math.min(WORLD_ROWS, narrow ? 9 : 9)};
+  return {w: Math.min(WORLD_COLS, narrow ? 7 : 13), h: Math.min(WORLD_ROWS, narrow ? 7 : 9)};
 }
 function worldCameraKey(){ return `${worldCamera.x || 0},${worldCamera.y || 0}`; }
 function markWorldCameraSnap(){
@@ -6215,6 +6270,9 @@ function flashWorldMsg(text){
 function renderWorldTargetPanel(){
   const el = document.getElementById('world-target-panel');
   if(!el) return;
+  el.classList.remove('active');
+  el.innerHTML = '';
+  return;
   const tile = worldRoutePreview || worldInspectedTile;
   if(!tile){
     el.classList.remove('active');
@@ -6234,20 +6292,17 @@ function renderWorldTargetPanel(){
     passable ? (isHeroTile ? 'Герой здесь' : `${steps} ${plural(steps,'шаг','шага','шагов')}`) : 'Непроходимо',
     ok ? `Можно дойти сейчас` : (passable && !isHeroTile ? `Ходов: ${state.movePoints}/${state.maxMovePoints}` : '')
   ].filter(Boolean).map(t=>`<span class="world-target-chip">${t}</span>`).join('');
-  const text = d.text.length > 190 ? d.text.slice(0, 187).trim() + '...' : d.text;
+  const text = d.text.length > 82 ? d.text.slice(0, 79).trim() + '...' : d.text;
   el.classList.add('active');
   el.innerHTML = `<b>${d.icon} ${d.title}</b><br>
     <div class="world-target-text">${escHtml(text)}</div>
-    <div class="world-target-meta">${meta}</div>
-    <div class="world-target-actions">
-      <button class="mini-btn" onclick="showTileInfoModal(${tile.x},${tile.y})">Подробнее</button>
-      <button class="mini-btn" onclick="clearWorldInspector()">Скрыть</button>
-    </div>`;
+    <div class="world-target-meta">${meta}</div>`;
 }
 
 function inspectWorldTile(x,y,path){
   worldInspectedTile = {x,y,path:path||null};
   worldRoutePreview = path ? {x,y,path} : null;
+  showTileInfoModal(x,y);
   renderWorldMap();
 }
 
@@ -7870,9 +7925,9 @@ function applyMoatHazard(){
 
 /* ---- Spells ---- */
 const SPELLS = [
-  {id:'bolt', name:'Молния', icon:'⚡', cost:3, type:'damage', dmgMin:6, dmgMax:11, unlockLevel:1,
-    desc:'Дешёвый разряд для экономных магов: урона мало, зато волосы врага встают по стойке смирно.'},
-  {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:12, dmgMax:20, unlockLevel:1,
+  {id:'bolt', name:'Молния', icon:'⚡', cost:3, type:'damage', dmgMin:9, dmgMax:16, unlockLevel:1,
+    desc:'Дешёвый точечный разряд: уже не просто щекочет, а уверенно выбивает слабые отряды из строя.'},
+  {id:'fireball', name:'Огненный шар', icon:'🔥', cost:6, type:'damage', dmgMin:17, dmgMax:29, unlockLevel:1,
     desc:'Классика полевой дипломатии: если переговоры не удались, значит шар был недостаточно огненным.'},
   {id:'chain', name:'Цепная молния', icon:'⚡', cost:12, type:'chain', dmgMin:16, dmgMax:26, unlockLevel:1,
     desc:'Бьёт цель и перескакивает ещё на двух ближайших врагов: половина и треть урона.'},
@@ -7880,7 +7935,7 @@ const SPELLS = [
     desc:'Возвращает бойцов в строй одним ловким движением руки.'},
   {id:'blind', name:'Слепота', icon:'🌫️', cost:5, type:'blind', unlockLevel:3,
     desc:'Противник садится на землю и два своих хода вспоминает, где оставил глаза. Очень неловкое заклинание.'},
-  {id:'meteor', name:'Метеоритный дождь', icon:'☄️', cost:20, type:'meteor', dmgMin:35, dmgMax:62, unlockLevel:5,
+  {id:'meteor', name:'Метеоритный дождь', icon:'☄️', cost:24, type:'meteor', dmgMin:52, dmgMax:88, unlockLevel:5,
     desc:'Самый сильный удар по области. Своих тоже может зацепить половиной урона: надеюсь вы не ссорились с магом до боя.'},
 ];
 const SPELL_JOKES = {
@@ -7899,14 +7954,14 @@ function spellCategory(sp){
 }
 function spellTargetText(sp){
   if(sp.type==='heal') return 'Цель: свой отряд';
-  if(sp.type==='meteor') return 'Цель: враг, область 3×3';
-  if(sp.type==='chain') return 'Цель: враг + 2 перескока';
+  if(sp.type==='meteor') return 'Цель: враг, область 5×5';
+  if(sp.type==='chain') return 'Цель: враг + 2 разряда';
   return 'Цель: враг';
 }
 function spellTacticalNote(sp){
   if(sp.type==='heal') return 'Лечит выбранный свой отряд до максимума его текущего размера. Лучше применять по дорогим или сильно раненым войскам.';
-  if(sp.type==='meteor') return 'Бьёт клетку цели и соседние клетки. Враги получают полный урон, свои в зоне удара получают половину.';
-  if(sp.type==='chain') return 'Первый враг получает полный урон, затем молния перескакивает на двух ближайших врагов: 50% и примерно 33% от основного удара.';
+  if(sp.type==='meteor') return 'Накрывает большую область 5×5. Враги получают полный урон, свои в зоне удара получают половину.';
+  if(sp.type==='chain') return 'Первый враг получает полный урон, затем идут два разряда: 50% и примерно 33%. Если других целей нет, разряды бьют ту же цель.';
   if(sp.type==='blind') return 'Ослепляет вражеский отряд на 2 его хода. Хорошо против сильных стрелков и тяжёлых стеков.';
   if(sp.id==='bolt') return 'Быстрый дешёвый удар по одной цели. Удобен для добивания и экономии маны.';
   if(sp.id==='fireball') return 'Сильный удар по одной цели без риска задеть своих. Хорош для снятия опасного отряда.';
@@ -7948,15 +8003,17 @@ function spellPreviewForTarget(sp, target){
       .filter(s=>s.alive && s.side==='enemy' && s.id!==target.id)
       .sort((a,b)=> manhattan(a,target)-manhattan(b,target))
       .slice(0, 2);
-    const jumpText = jumps.length ? ` Перескоки: ${jumps.map((s,i)=>`${s.icon} ${s.name} ~${Math.max(1, Math.round(base/(i===0?2:3)))} урона`).join(', ')}.` : ' Перескоков рядом нет.';
+    const jumpText = jumps.length
+      ? ` Разряды: ${jumps.map((s,i)=>`${s.icon} ${s.name} ~${Math.max(1, Math.round(base/(i===0?2:3)))} урона`).join(', ')}${jumps.length<2?', остаток вернётся в первую цель.':''}`
+      : ` Остальные разряды вернутся в цель: ~${Math.max(1, Math.round(base/2))} и ~${Math.max(1, Math.round(base/3))}.`;
     return `<div class="attack-preview">✨ ${sp.name}: первая цель ~${base} урона.${jumpText}</div>`;
   }
   if(sp.type==='meteor'){
     const base = Math.round(((sp.dmgMin+sp.dmgMax)/2 + caster.sp*1.8) * activeBattleSpellPowerMult());
-    const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, target)<=1);
+    const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, target)<=2);
     const enemies = victims.filter(s=>s.side==='enemy').length;
     const allies = victims.filter(s=>s.side==='player').length;
-    return `<div class="attack-preview">✨ ${sp.name}: область 3×3, враги ~${base} урона (${enemies}), свои ~${Math.max(1,Math.round(base/2))} (${allies}).</div>`;
+    return `<div class="attack-preview">✨ ${sp.name}: область 5×5, враги ~${base} урона (${enemies}), свои ~${Math.max(1,Math.round(base/2))} (${allies}).</div>`;
   }
   const avg = Math.round(((sp.dmgMin+sp.dmgMax)/2 + caster.sp*1.3) * activeBattleSpellPowerMult());
   return `<div class="attack-preview">✨ ${sp.name}: примерно ${avg} урона.</div>`;
@@ -8066,25 +8123,27 @@ function castSpellOn(sp, target){
       .filter(s=>s.alive && s.side==='enemy' && s.id!==target.id)
       .sort((a,b)=> manhattan(a,target)-manhattan(b,target))
       .slice(0, 2);
+    while(chainTargets.length < 2 && target.alive) chainTargets.push(target);
     chainTargets.forEach((nextTarget, i)=>{
       const divisor = i===0 ? 2 : 3;
       const dmgNext = Math.max(1, Math.round(dmg/divisor));
       applyStackDamage(nextTarget, dmgNext);
       const note = i===0 ? 'половина' : 'треть';
-      logBattle(`⚡ Молния перескакивает на ${nextTarget.icon} ${nextTarget.name}: ${dmgNext} урона (${note}). ${i===0 ? spellJoke(sp.id) : ''}`);
+      const verb = nextTarget.id===target.id ? 'возвращается в' : 'перескакивает на';
+      logBattle(`⚡ Молния ${verb} ${nextTarget.icon} ${nextTarget.name}: ${dmgNext} урона (${note}). ${i===0 ? spellJoke(sp.id) : ''}`);
       setTimeout(()=>{ if(!battle.over) playFx(nextTarget,'chain'); }, 200 + i*180);
     });
   } else if(sp.type==='meteor'){
     const center = {x:target.x, y:target.y};
     const base = Math.round((sp.dmgMin + Math.random()*(sp.dmgMax-sp.dmgMin) + caster.sp*1.8) * activeBattleSpellPowerMult());
-    const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, center)<=1);
+    const victims = battle.stacks.filter(s=>s.alive && chebyshev(s, center)<=2);
     victims.forEach(v=>{
       const dmg = v.side==='player' ? Math.max(1, Math.round(base/2)) : base;
       applyStackDamage(v, dmg);
       logBattle(`${sp.icon} ${sp.name}: ${v.icon} ${v.name} получает ${dmg} урона${v.side==='player'?' (своих задело половиной)':''}.`);
       playFx(v, 'meteor');
     });
-    logBattle(`${spellJoke(sp.id)} Область удара: клетка цели и соседние клетки.`);
+    logBattle(`${spellJoke(sp.id)} Область удара: 5×5 вокруг цели.`);
   } else if(sp.type==='heal'){
     const heal = Math.round((sp.healMin + Math.random()*(sp.healMax-sp.healMin) + caster.sp*1.5) * activeBattleSpellPowerMult());
     const maxHp = target.originalCount * target.unitHpVal;
@@ -8143,6 +8202,14 @@ function prepareQuickBattleForces(){
   };
 }
 
+function empowerQuickBattleHero(hero){
+  if(!hero) return;
+  hero.level = Math.max(hero.level || 1, randomInt(5, 9));
+  hero.sp = Math.max(hero.sp || 0, 9 + randomInt(0, 7));
+  hero.maxManaBase = Math.max(hero.maxManaBase || 0, randomInt(72, 96));
+  hero.spellbook = SPELLS.map(sp=>sp.id);
+}
+
 function startQuickBattleMode(){
   state = newGame(pickedRace, 'quick_battle');
   createSaveSlotForCurrentGame();
@@ -8151,14 +8218,14 @@ function startQuickBattleMode(){
   const enemyRaceObj = RACES.filter(r=>r.id!==pickedRace)[Math.floor(Math.random()*Math.max(1,RACES.length-1))] || RACES[0];
   state.army = forces.playerArmy.map(u=>Object.assign({}, u));
   state.garrison = forces.playerArmy.map(u=>Object.assign({}, u));
-  state.hero.level = randomInt(3, 8);
-  state.hero.sp += randomInt(0, 8);
-  state.hero.maxManaBase = randomInt(14, 34);
-  state.hero.mana = getMaxMana();
   const tower = state.buildings.find(b=>b.key==='tower');
   const walls = state.buildings.find(b=>b.key==='walls');
-  if(tower) tower.level = randomInt(1, 5);
+  if(tower) tower.level = 5;
   if(walls) walls.level = isSiege ? randomInt(2, 5) : randomInt(0, 3);
+  empowerQuickBattleHero(state.hero);
+  empowerQuickBattleHero(state.garrisonHero);
+  state.hero.mana = getMaxManaFor(state.hero, currentHeroDef());
+  state.garrisonHero.mana = getMaxManaFor(state.garrisonHero, currentGarrisonHeroDef());
   garrisonTab = 'garrison';
   addLog(`Быстрый бой: ${isSiege ? 'оборона города' : 'битва в поле'} против народа «${enemyRaceObj.name}».`, 'combat');
   saveGame();
