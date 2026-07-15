@@ -1263,7 +1263,7 @@ const FORT_DEFS = [
   {id:'stone', name:'Каменный форт', icon:'⛏️', resource:'stone', income:4, x:null, y:null},
   {id:'crystal', name:'Кристальный форт', icon:'💎', resource:'crystal', income:4, x:null, y:null},
   {id:'gold', name:'Золотой форт', icon:'🪙', resource:'gold', income:4, x:null, y:null},
-  {id:'northwood', name:'Северный форт', icon:'🪵', resource:'wood', income:4, x:null, y:null},
+  {id:'northwood', name:'Северный форт', icon:'🏰', resource:null, income:0, x:null, y:null, suppliesSoldiers:true},
 ];
 function shuffleArray(arr){
   for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
@@ -1321,6 +1321,7 @@ function rollForts(template){
     return {
       id:def.id, name:def.name, icon:def.icon, resource:def.resource, income:def.income,
       x:spot.x, y:spot.y, captured:false, watchtower:0, lookout:0, townhall:1, garrison:0,
+      suppliesSoldiers: !!def.suppliesSoldiers,
       def:{race:'humans', wallLevel:i===2 ? 5 : 3, armyTiers:[{tier:1,count:count+2},{tier:2,count},{tier, count:Math.max(2, Math.floor(count/2))}]},
     };
   });
@@ -2860,6 +2861,11 @@ function loadGame(snapshotJson){
       f.loyalty = Math.max(0, Math.min(100, Math.round(f.loyalty ?? 70)));
       f.income = f.income || 4;
       f.garrison = f.garrison || watchtowerTotalGarrison(f.watchtower);
+      f.suppliesSoldiers = isSoldierSupplyFort(f);
+      if(isSoldierSupplyFort(f)){
+        f.resource = null;
+        f.income = 0;
+      }
       f.def = f.def || {};
       if(!f.def.wallLevel) f.def.wallLevel = f.resource==='crystal' ? 5 : 3;
     });
@@ -3433,6 +3439,7 @@ function renderPoliticsPanel(){
   const captured = (state.forts||[]).filter(f=>f.captured);
   const avgLoyalty = captured.length ? Math.round(captured.reduce((s,f)=>s+(f.loyalty ?? 70),0)/captured.length) : 0;
   const vassalIncome = captured.reduce((sum,f)=>sum+effectiveFortIncome(f),0);
+  const soldierSupply = captured.reduce((sum,f)=>sum+fortSoldierSupplyAmount(f),0);
   const policy = activePolicy();
   const pending = pendingPolicy();
   const policyCards = POLICIES.map(p=>`
@@ -3446,7 +3453,7 @@ function renderPoliticsPanel(){
   const vassalRows = captured.length ? captured.map(f=>`
     <div class="vassal-politics-row">
       <div class="head"><span>${f.icon} ${f.name}</span><span>${vassalLoyaltyLabel(f)}</span></div>
-      <div class="meta"><span>Доход: +${effectiveFortIncome(f)}${iconOf(f.resource)} / ход</span><span>Ратуша ${fortTownhallLevel(f)}/3</span></div>
+      <div class="meta"><span>${isSoldierSupplyFort(f)?'Поставка':'Доход'}: ${fortIncomeText(f)}</span><span>Ратуша ${fortTownhallLevel(f)}/3</span></div>
     </div>`).join('') : '<p class="market-note">Вассалов пока нет. Захваченные форты появятся здесь как политические владения.</p>';
   el.innerHTML = `
     <div class="politics-summary">
@@ -3455,6 +3462,7 @@ function renderPoliticsPanel(){
       <div class="politics-stat"><span>Стабильность</span><b>${state.politics.stability}/100</b></div>
       <div class="politics-stat"><span>Вассалы</span><b>${captured.length}/${(state.forts||[]).length}</b></div>
       <div class="politics-stat"><span>Подати фортов</span><b>+${vassalIncome} / ход</b></div>
+      <div class="politics-stat"><span>Солдаты фортов</span><b>+${soldierSupply} / день</b></div>
       <div class="politics-stat"><span>Лояльность</span><b>${captured.length?avgLoyalty+'/100':'нет вассалов'}</b></div>
       <div class="politics-stat"><span>Порядок на дорогах</span><b>${Math.round(raidChancePolicyMult()*100)}% риска</b></div>
     </div>
@@ -3468,18 +3476,75 @@ function renderPoliticsPanel(){
 function selectedVassal(){ return (state.forts||[]).find(f=>f.id===state.selectedVassal) || (state.forts||[])[0]; }
 function capturedFortByResource(resource){ return (state.forts||[]).find(f=>f.captured && f.resource===resource); }
 function hasCapturedFortResource(resource){ return !!capturedFortByResource(resource); }
+function fortVisionRadius(f){ return CONFIG.FOG_OF_WAR.visionRadius + (f && f.captured ? (f.lookout || 0) : 0); }
+function fortTownhallLevel(f){ return Math.max(1, Math.min(3, (f && f.townhall) || 1)); }
+function fortIncomeByLevel(level){ return [0,4,8,10][Math.max(1, Math.min(3, level || 1))]; }
+function effectiveFortIncome(f){
+  if(!f || isSoldierSupplyFort(f) || !f.resource) return 0;
+  return Math.max(1, Math.round(fortIncomeByLevel(fortTownhallLevel(f)) * vassalIncomeMultiplier(f)));
+}
+function fortTownhallDefBonus(f){ return Math.max(0, fortTownhallLevel(f)-1) * 2; }
+function isSoldierSupplyFort(f){ return !!(f && (f.suppliesSoldiers || f.id==='northwood' || f.name==='Северный форт')); }
+function fortSoldierSupplyRoster(f){
+  if(!isSoldierSupplyFort(f)) return [];
+  const lvl = fortTownhallLevel(f);
+  if(lvl>=3) return [{tier:1,count:1},{tier:2,count:1}];
+  return [{tier:1,count:lvl}];
+}
+function fortSoldierSupplyAmount(f){ return fortSoldierSupplyRoster(f).reduce((sum,u)=>sum+u.count,0); }
+function fortSoldierSupplyCost(f){ return fortSoldierSupplyAmount(f) * 3; }
+function fortIncomeText(f){
+  if(isSoldierSupplyFort(f)){
+    const roster = fortSoldierSupplyRoster(f);
+    const cost = fortSoldierSupplyCost(f);
+    const troops = roster.map(u=>`+${u.count} ${unitNameByTier(u.tier).toLowerCase()}`).join(', ');
+    return `${troops} в гарнизон / день, −${cost}${iconOf('gold')}`;
+  }
+  return `+${effectiveFortIncome(f)}${iconOf(f.resource)} / ход`;
+}
 function fortPassiveText(f){
   if(!f) return '';
+  if(isSoldierSupplyFort(f)) return `Пассивно: каждый день поставляет бойцов 1 уровня в гарнизон за сниженное содержание.`;
   if(f.resource==='wood') return 'Пассивно: строительство требует на 10% меньше дерева.';
   if(f.resource==='stone') return 'Пассивно: гарнизон поселения получает +1 защиты.';
   if(f.resource==='crystal') return 'Пассивно: +1 максимум маны героя и +3% к силе заклинаний.';
   return 'Пассивно: укрепляет дальний рубеж владений.';
 }
-function fortVisionRadius(f){ return CONFIG.FOG_OF_WAR.visionRadius + (f && f.captured ? (f.lookout || 0) : 0); }
-function fortTownhallLevel(f){ return Math.max(1, Math.min(3, (f && f.townhall) || 1)); }
-function fortIncomeByLevel(level){ return [0,4,8,10][Math.max(1, Math.min(3, level || 1))]; }
-function effectiveFortIncome(f){ return Math.max(1, Math.round(fortIncomeByLevel(fortTownhallLevel(f)) * vassalIncomeMultiplier(f))); }
-function fortTownhallDefBonus(f){ return Math.max(0, fortTownhallLevel(f)-1) * 2; }
+function addPlayerGarrisonUnits(tier, count){
+  count = Math.max(0, Math.floor(count || 0));
+  if(count<=0) return null;
+  state.garrison = Array.isArray(state.garrison) ? state.garrison : [];
+  const stack = state.garrison.find(u=>u.tier===tier && !u.raceId && !u.name);
+  if(stack) stack.count = (stack.count || 0) + count;
+  else state.garrison.push({tier, count});
+  return {tier, count};
+}
+function applyDailyFortSoldierSupplies(){
+  const supplied = [];
+  (state.forts||[]).filter(f=>f.captured && isSoldierSupplyFort(f)).forEach(f=>{
+    const roster = fortSoldierSupplyRoster(f);
+    const wanted = roster.reduce((sum,u)=>sum+u.count,0);
+    const costPerUnit = 3;
+    const affordableCount = Math.min(wanted, Math.floor((state.res.gold || 0) / costPerUnit));
+    if(affordableCount<=0){
+      addLog(`🏰 ${f.name} не смог прислать рекрутов: в казне не хватило золота на содержание.`, 'event');
+      return;
+    }
+    let remaining = affordableCount;
+    const grantedText = [];
+    roster.forEach(u=>{
+      if(remaining<=0) return;
+      const count = Math.min(u.count, remaining);
+      remaining -= count;
+      const granted = addPlayerGarrisonUnits(u.tier, count);
+      if(granted) grantedText.push(`+${count} ${unitNameByTier(u.tier).toLowerCase()}`);
+    });
+    state.res.gold -= affordableCount * costPerUnit;
+    if(grantedText.length) supplied.push(`${f.name}: ${grantedText.join(', ')} в гарнизон, −${affordableCount * costPerUnit}${iconOf('gold')}`);
+  });
+  if(supplied.length) addLog(`🏰 Северный рубеж прислал солдат: ${supplied.join(', ')}.`, 'event');
+  return supplied;
+}
 function woodFortBuildDiscount(){ return hasCapturedFortResource('wood') ? 0.9 : 1; }
 function stoneFortGarrisonBonus(){ return hasCapturedFortResource('stone') ? 1 : 0; }
 function crystalFortManaBonus(){ return hasCapturedFortResource('crystal') ? 1 : 0; }
@@ -3541,7 +3606,7 @@ function watchtowerEffectiveRoster(fort){
 }
 function watchtowerTroopText(stage){
   const roster = watchtowerRoster(stage);
-  return roster.length ? roster.map(u=>`${u.count} ур.${u.tier}`).join(', ') : 'нет';
+  return roster.length ? roster.map(u=>`${u.count} ${unitNameByTier(u.tier).toLowerCase()}`).join(', ') : 'нет';
 }
 function watchtowerCost(fort){
   const next = (fort.watchtower || 0) + 1;
@@ -3598,7 +3663,7 @@ function buildVassalTownhall(id){
   if(!cost || !affordable(cost)) return;
   pay(cost);
   fort.townhall = fortTownhallLevel(fort) + 1;
-  addLog(`🏛️ В вассальном владении «${fort.name}» ратуша форта улучшена до ${fort.townhall}/3. Доход: +${effectiveFortIncome(fort)}${iconOf(fort.resource)} / ход, защита форта +${fortTownhallDefBonus(fort)}.`, 'event');
+  addLog(`🏛️ В вассальном владении «${fort.name}» ратуша форта улучшена до ${fort.townhall}/3. ${isSoldierSupplyFort(fort)?'Поставка':'Доход'}: ${fortIncomeText(fort)}, защита форта +${fortTownhallDefBonus(fort)}.`, 'event');
   renderVillage();
 }
 function fortBuildCostText(cost){ return cost ? Object.entries(cost).map(([k,v])=>v+iconOf(k)).join(' ') : 'максимум'; }
@@ -3614,8 +3679,8 @@ function showFortBuildingInfo(evt, fortId, buildingKey){
     icon = '🏛️';
     title = `Ратуша форта: ${fort.name}`;
     text = locked
-      ? 'После захвата здесь появится ратуша форта. Она управляет податями и укрепляет местную оборону.'
-      : `Ратуша управляет вассальным владением. Сейчас уровень ${lvl}/3: доход +${effectiveFortIncome(fort)}${iconOf(fort.resource)} за ход, защита форта +${fortTownhallDefBonus(fort)}. Следующий уровень: ${next ? fortBuildCostText(next) : 'максимум'}.`;
+      ? 'После захвата здесь появится ратуша форта. Она управляет податями, снабжением и укрепляет местную оборону.'
+      : `Ратуша управляет вассальным владением. Сейчас уровень ${lvl}/3: ${isSoldierSupplyFort(fort)?'поставка':'доход'} ${fortIncomeText(fort)}, защита форта +${fortTownhallDefBonus(fort)}. Следующий уровень: ${next ? fortBuildCostText(next) : 'максимум'}.`;
   } else if(buildingKey==='watchtower'){
     const stage = fort.watchtower || 0;
     const next = watchtowerCost(fort);
@@ -3672,8 +3737,8 @@ function renderVassals(){
       cost:fortTownhallCost,
       canBuild:(fort,cost)=>fortTownhallLevel(fort)<3 && cost && affordable(cost),
       levelText:fort=>`${fortTownhallLevel(fort)}/3`,
-      effectText:fort=>`+${effectiveFortIncome(fort)}${iconOf(fort.resource)} / ход, защита +${fortTownhallDefBonus(fort)}`,
-      lockedText:'Доход и защита после захвата',
+      effectText:fort=>`${fortIncomeText(fort)}, защита +${fortTownhallDefBonus(fort)}`,
+      lockedText:'Доход/снабжение и защита после захвата',
       buttonLabel:fort=>fortTownhallLevel(fort)>1?'Улучшить':'Построить',
     },
     {
@@ -3681,7 +3746,7 @@ function renderVassals(){
       cost:watchtowerCost,
       canBuild:(fort,cost)=>(fort.watchtower||0)<3 && cost && affordable(cost),
       levelText:fort=>`${fort.watchtower||0}/3`,
-      effectText:fort=>watchtowerEffectiveRoster(fort).map(u=>`${u.count} ур.${u.tier}`).join(', ') || 'гарнизона нет',
+      effectText:fort=>watchtowerEffectiveRoster(fort).map(u=>`${u.count} ${unitNameByTier(u.tier).toLowerCase()}`).join(', ') || 'гарнизона нет',
       lockedText:'Местный гарнизон после захвата',
       buttonLabel:fort=>(fort.watchtower||0)>0?'Улучшить':'Построить',
     },
@@ -3698,7 +3763,7 @@ function renderVassals(){
   panel.innerHTML = `<div class="vassal-card">
     <b>${f.icon} ${f.name}</b>
     <div class="stat-row"><span>Статус</span><span>${f.captured?'ваш вассал':'не захвачен'}</span></div>
-    <div class="stat-row"><span>Доход</span><span>${f.captured?`+${effectiveFortIncome(f)}${iconOf(f.resource)} / ход`:'после захвата'}</span></div>
+    <div class="stat-row"><span>${isSoldierSupplyFort(f)?'Поставка':'Доход'}</span><span>${f.captured?fortIncomeText(f):'после захвата'}</span></div>
     <div class="stat-row"><span>Бонус</span><span>${f.captured?fortPassiveText(f):'после захвата'}</span></div>
     <div class="vassal-build-grid">${fortBuildings.map(cfg=>renderFortBuildingTile(f,cfg)).join('')}</div>
   </div>`;
@@ -4745,9 +4810,9 @@ const EVENTS = [
   {id:'good_mage', group:'good', title:'Ночь над башней мага', emoji:'🔮', weight:7, condition:s=>buildingLevel('tower')>=2,
     text:'В башне мага всю ночь светились окна. Утром никто не помнил формулы, зато мана восстановилась лучше обычного.',
     apply:s=>{ const mana=3+buildingLevel('tower'); s.hero.mana=Math.min(getMaxMana(), s.hero.mana+mana); grantXp(10); return `+${mana} маны, +10 опыта`; }},
-  {id:'good_vassal_gift', group:'good', title:'Вассальная посылка', emoji:'🏳️', weight:8, condition:s=>capturedForts().length>0,
+  {id:'good_vassal_gift', group:'good', title:'Вассальная посылка', emoji:'🏳️', weight:8, condition:s=>capturedForts().some(f=>f.resource && !isSoldierSupplyFort(f)),
     text:'Один из вассалов прислал сверхплановые подати и письмо на трёх страницах о собственной незаменимости.',
-    apply:s=>{ const f=randomItem(capturedForts()); const amt=effectiveFortIncome(f)+4+Math.floor(s.day/6); addRes(f.resource, amt); return `+${amt}${iconOf(f.resource)} от «${f.name}»`; }},
+    apply:s=>{ const f=randomItem(capturedForts().filter(x=>x.resource && !isSoldierSupplyFort(x))); const amt=effectiveFortIncome(f)+4+Math.floor(s.day/6); addRes(f.resource, amt); return `+${amt}${iconOf(f.resource)} от «${f.name}»`; }},
   {id:'bad_harvest', group:'bad', immuneBad:true, title:'Неурожай', emoji:'🥀', weight:8,
     text:'Погода решила, что экономика слишком бодрая. Часть дерева ушла на срочный ремонт амбаров, казна тоже просела.',
     apply:s=>{ const wood=loseRes('wood', Math.max(8, Math.round((s.res.wood||0)*0.12))); const gold=loseRes('gold', Math.max(10, Math.round((s.res.gold||0)*0.06))); return `-${wood}🌲, -${gold}💰`; }},
@@ -4886,7 +4951,7 @@ function runEndTurn(){
       if(added < amt) overflowed.add(b.produces);
     }
   });
-  (s.forts||[]).filter(f=>f.captured).forEach(f=>{
+  (s.forts||[]).filter(f=>f.captured && f.resource && !isSoldierSupplyFort(f)).forEach(f=>{
     const income = effectiveFortIncome(f);
     const added = addRes(f.resource, income);
     if(added < income) overflowed.add(f.resource);
@@ -4896,8 +4961,9 @@ function runEndTurn(){
     const added = addRes(site.resource, income);
     if(added < income) overflowed.add(site.resource);
   });
-  const vassalIncome = (s.forts||[]).filter(f=>f.captured).map(f=>`+${effectiveFortIncome(f)}${iconOf(f.resource)} ${f.name}`);
+  const vassalIncome = (s.forts||[]).filter(f=>f.captured && f.resource && !isSoldierSupplyFort(f)).map(f=>`+${effectiveFortIncome(f)}${iconOf(f.resource)} ${f.name}`);
   if(vassalIncome.length) addLog(`🏳️ Вассалы прислали подати: ${vassalIncome.join(', ')}.`, 'event');
+  applyDailyFortSoldierSupplies();
   if(overflowed.size){
     addLog(`📦 Склад переполнен: излишки ${[...overflowed].map(iconOf).join('')} пропали втуне. Стоит достроить склад.`, 'event');
   }
@@ -4971,7 +5037,7 @@ function finishEndTurn(wasInVillage, warnedThisTurn, sieged){
     if(!warnedThisTurn && !sieged){
       showEventModal2({
         icon:'📅', title:`Неделя ${weekNum} началась!`,
-        text:`Недельные лимиты найма обновлены. Гарнизон получил подкрепление (+2/+1 к младшим уровням), зачищенные лагеря ожили под новым флагом${respawned>0?` (${respawned} шт.)`:''}, драконы перебрались на новые земли, а на дорогах опять что-то забыли.`,
+        text:`Недельные лимиты найма обновлены. Гарнизон получил подкрепление (+2/+1 к младшим уровням). Зачищенные лагеря ожили под новым флагом${respawned>0?` (${respawned} шт.)`:''}, драконы перебрались на новые земли, а на дорогах опять что-то забыли.`,
         buttonLabel:'В добрый путь',
       });
     }
@@ -5365,10 +5431,10 @@ function describeWorldTile(x,y){
     if(fort.captured){
       const wt = fort.watchtower||0;
       return {icon:'🚩', title: `${fort.name} (вассал)`,
-        text: `Захваченный форт приносит +${effectiveFortIncome(fort)}${iconOf(fort.resource)} каждый ход. Ратуша форта: ${fortTownhallLevel(fort)}/3, защита форта +${fortTownhallDefBonus(fort)}. Сторожка: ${wt>0?`${wt} этап, гарнизон ${fort.garrison||0} бойцов`:'не построена — вассал беззащитен от рейдов'}.`};
+        text: `Захваченный форт: ${fortIncomeText(fort)}. Ратуша форта: ${fortTownhallLevel(fort)}/3, защита форта +${fortTownhallDefBonus(fort)}. Сторожка: ${wt>0?`${wt} этап, гарнизон ${fort.garrison||0} бойцов`:'не построена — вассал беззащитен от рейдов'}.`};
     }
     return {icon: '🏳️', title: fort.name,
-      text: `Укреплённый форт со стенами и воротами. Гарнизон: ${size} ${plural(size,'боец','бойца','бойцов')}. После захвата станет вассалом и будет давать +${effectiveFortIncome(fort)}${iconOf(fort.resource)} каждый ход.`};
+      text: `Укреплённый форт со стенами и воротами. Гарнизон: ${size} ${plural(size,'боец','бойца','бойцов')}. После захвата станет вассалом: ${fortIncomeText(fort)}.`};
   }
   if(dragon){
     const n = dragon.count;
@@ -5755,6 +5821,13 @@ let worldRoutePreview = null;
 let worldInspectedTile = null;
 let worldMoveMaskedTiles = new Set();
 let worldOverviewFilter = 'all';
+function refreshWorldOverviewSnapshot(){
+  if(!state) return;
+  const snapshot = refreshFogOfWar();
+  lastWorldVisible = new Set(snapshot.visible || []);
+  lastWorldExplored = new Set(snapshot.explored || []);
+  lastWorldViewport = clampWorldCamera();
+}
 function toggleWorldWidget(name){
   Object.keys(worldWidgetOpen).forEach(k=>{
     if(k!==name) worldWidgetOpen[k] = false;
@@ -5769,6 +5842,7 @@ function toggleWorldWidget(name){
   if(worldWidgetOpen[name]) renderOpenWorldWidgets();
 }
 function openWorldOverview(){
+  refreshWorldOverviewSnapshot();
   if(!Object.values(worldWidgetOpen).some(Boolean)) worldWidgetOpen.minimap = true;
   Object.keys(worldWidgetOpen).forEach(k=>{
     const panel = document.getElementById('widget-'+k);
@@ -5789,6 +5863,7 @@ function setWorldOverviewFilter(filter){
 }
 function renderOpenWorldWidgets(){
   if(!state) return;
+  refreshWorldOverviewSnapshot();
   if(worldWidgetOpen.minimap) renderMiniMap(lastWorldVisible, lastWorldExplored, lastWorldViewport);
   if(worldWidgetOpen.scout || worldWidgetOpen.loot || worldWidgetOpen.log || worldWidgetOpen.overview){
     renderWorldIntel(lastWorldVisible, lastWorldExplored);
@@ -5796,6 +5871,7 @@ function renderOpenWorldWidgets(){
 }
 function toggleMinimapViewport(){
   showMinimapViewport = !showMinimapViewport;
+  refreshWorldOverviewSnapshot();
   if(worldWidgetOpen.minimap) renderMiniMap(lastWorldVisible, lastWorldExplored, lastWorldViewport);
 }
 function worldViewportSize(){
@@ -6047,14 +6123,15 @@ function renderMiniMap(visible, explored, viewport){
       const key = x+','+y;
       const ch = state.worldMap[y][x];
       const classes = ['minimap-cell'];
-      if(explored.has(key)) classes.push('seen');
+      const wasExplored = explored.has(key);
+      if(wasExplored) classes.push('seen');
       if(visible.has(key)) classes.push('visible');
-      if(ch==='w') classes.push('water');
-      if(ch==='m') classes.push('mountain');
-      if(ch==='s') classes.push('snow');
-      if(ch==='d') classes.push('desert');
-      if(ch==='H') classes.push('home');
-      if((state.forts||[]).some(f=>f.x===x && f.y===y)) classes.push('fort');
+      if(wasExplored && ch==='w') classes.push('water');
+      if(wasExplored && ch==='m') classes.push('mountain');
+      if(wasExplored && ch==='s') classes.push('snow');
+      if(wasExplored && ch==='d') classes.push('desert');
+      if(wasExplored && ch==='H') classes.push('home');
+      if(wasExplored && (state.forts||[]).some(f=>f.x===x && f.y===y)) classes.push('fort');
       if(state.heroPos.x===x && state.heroPos.y===y) classes.push('hero');
       if(x>=worldCamera.x && x<worldCamera.x+viewport.w && y>=worldCamera.y && y<worldCamera.y+viewport.h) classes.push('viewport');
       html += `<div class="${classes.join(' ')}" onclick="centerWorldCameraFromMinimap(${x},${y})"></div>`;
@@ -6083,7 +6160,7 @@ function renderWorldIntel(visible, explored){
   });
   (state.forts||[]).filter(f=>seen(f.x+','+f.y)).forEach(f=>{
     const region = worldRegionAt(f.x,f.y);
-    threats.push({dist:tileDistance(state.heroPos,f), text:`${region.icon} ${f.captured?'🚩':'🏯'} ${f.name}`, right:f.captured ? `+${effectiveFortIncome(f)}${iconOf(f.resource)}` : 'форт'});
+    threats.push({dist:tileDistance(state.heroPos,f), text:`${region.icon} ${f.captured?'🚩':'🏯'} ${f.name}`, right:f.captured ? (isSoldierSupplyFort(f) ? `+${fortSoldierSupplyAmount(f)}⚔️` : `+${effectiveFortIncome(f)}${iconOf(f.resource)}`) : 'форт'});
   });
   if(state.rivalHero && isVisible(state.rivalHero.x+','+state.rivalHero.y)){
     threats.unshift({dist:tileDistance(state.heroPos,state.rivalHero), text:`⚔️ ${state.rivalHero.name}`, right:'рядом'});
@@ -6176,7 +6253,7 @@ function renderWorldMap(){
         badge = `<span class="camp-badge">${size}</span>`;
       } else if(fort){
         inner = fort.captured ? '🚩' : '🏳️';
-        badge = `<span class="camp-badge">${iconOf(fort.resource)}</span>`;
+        badge = `<span class="camp-badge">${isSoldierSupplyFort(fort)?'⚔️':iconOf(fort.resource)}</span>`;
         extraClass = fort.captured ? ' wtile-fort wtile-fort-captured' : ' wtile-fort wtile-fort-enemy';
       } else if(dragon){
         inner = dragon.def.icon;
@@ -6217,6 +6294,9 @@ function renderWorldMap(){
     }
   }
   grid.innerHTML = html;
+  lastWorldVisible = new Set(visible);
+  lastWorldExplored = new Set(explored);
+  lastWorldViewport = viewport;
   document.getElementById('hero-token').textContent = heroDefIcon(currentHeroDef());
   renderWorldHeroPanel();
   renderWorldTargetPanel();
@@ -6558,9 +6638,9 @@ function startVassalRaidBattle(fort){
   const defenders = watchtowerEffectiveRoster(fort);
   if(!defenders.length){
     markRivalRaided('fort:'+fort.id);
-    const taken = addRivalLoot(fort.resource, Math.max(effectiveFortIncome(fort)*4, 8));
+    const taken = fort.resource ? addRivalLoot(fort.resource, Math.max(effectiveFortIncome(fort)*4, 8)) : 0;
     const damage = damageVassalFortFromRaid(fort);
-    addLog(`⚔️ ${rival.name} без боя разграбил «${fort.name}»: −${taken}${iconOf(fort.resource)}. Сторожка пуста; ${damage.text}.`, 'combat');
+    addLog(`⚔️ ${rival.name} без боя разграбил «${fort.name}»: ${fort.resource?`−${taken}${iconOf(fort.resource)}. `:'ресурсов там не было, но военные склады пострадали. '}Сторожка пуста; ${damage.text}.`, 'combat');
     return false;
   }
   const raceObj = RACES.find(r=>r.id===rival.raceId) || RACES[0];
@@ -6737,7 +6817,7 @@ function triggerFortEncounter(fortId){
   showConfirmModal({
     icon: fort.icon,
     title: fort.name,
-    text: `Перед вами укреплённый форт. Внутри гарнизон: ${total} бойцов, стены и ворота. После захвата форт станет вассалом и будет приносить ${effectiveFortIncome(fort)}${iconOf(fort.resource)} каждый ход. Начать осаду?`,
+    text: `Перед вами укреплённый форт. Внутри гарнизон: ${total} бойцов, стены и ворота. После захвата форт станет вассалом: ${fortIncomeText(fort)}. Начать осаду?`,
     yesLabel:'Да, штурмовать!', noLabel:'Нет, отойти',
     onYes: ()=> startFortBattle(fort),
     onNo: ()=>{ addLog(`Отряд отступил от стен «${fort.name}», решив подготовиться лучше.`, 'event'); },
@@ -7265,7 +7345,7 @@ function startTacticalBattle(enemyDefs, meta){
         existing.originalCount += u.count;
         existing.hp += u.count * existing.unitHpVal;
       } else {
-        playerStacks.push(buildStack('w'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus, statBonus:playerStatBonus, temporary:true, name:`Сторожка ур.${u.tier}`}));
+        playerStacks.push(buildStack('w'+u.tier, 'player', u.tier, u.count, {raceObj: state.race, wallBonus, statBonus:playerStatBonus, temporary:true, name:`Сторожка: ${unitNameByTier(u.tier)}`}));
       }
     });
   }
@@ -8360,17 +8440,17 @@ function finishTacticalBattle(result){
       showBattleResult({emoji:'🛡️', title:'Вассал отбился!', subtitle:`${fortName} устоял. Налётчик разбит на подступах.`, lootHtml:'<span class="loot-chip">Владение сохранено</span>'});
     } else if(result==='lose'){
       if(fort) markRivalRaided('fort:'+fort.id);
-      const taken = fort ? addRivalLoot(fort.resource, Math.max(effectiveFortIncome(fort)*5, 10)) : 0;
+      const taken = fort && fort.resource ? addRivalLoot(fort.resource, Math.max(effectiveFortIncome(fort)*5, 10)) : 0;
       let damage = {lost:false, text:''};
       if(fort){
         fort.garrison = 0;
         damage = damageVassalFortFromRaid(fort);
       }
       logBattle(`<b>💥 ${fortName} разграблен.</b> Сторожка подавлена, ИИ-герой уходит с добычей. ${damage.text}`);
-      addLog(`ИИ-герой разграбил «${fortName}»: −${taken}${fort?iconOf(fort.resource):''}. ${damage.text}.`, 'combat');
+      addLog(`ИИ-герой разграбил «${fortName}»: ${fort && fort.resource ? `−${taken}${iconOf(fort.resource)}` : 'ресурсов не нашёл, но повредил военные склады'}. ${damage.text}.`, 'combat');
       showBattleResult({emoji:'💥', title:damage.lost?'Форт потерян':'Владение разграблено',
         subtitle:damage.lost ? `${fortName} пал окончательно. Его нужно будет возвращать заново.` : `Сторожка не удержала ${fortName}. Постройки повреждены, налётчик продолжает рейд.`,
-        lootHtml: fort ? `<span class="loot-chip loot-bad">−${taken}${iconOf(fort.resource)}</span>` : ''});
+        lootHtml: fort && fort.resource ? `<span class="loot-chip loot-bad">−${taken}${iconOf(fort.resource)}</span>` : '<span class="loot-chip loot-bad">Военные склады повреждены</span>'});
     } else {
       logBattle(`<b>🤝 ${fortName} устоял наполовину.</b> Налётчик отступил, но сторожка потрёпана.`);
       addLog(`Бой за «${fortName}» закончился ничьей.`, 'combat');
@@ -8417,8 +8497,10 @@ function finishTacticalBattle(result){
       if(fort){
         fort.captured = true;
         fort.loyalty = Math.max(fort.loyalty ?? 70, 70);
+        fort.suppliesSoldiers = isSoldierSupplyFort(fort);
+        if(isSoldierSupplyFort(fort)){ fort.resource = null; fort.income = 0; }
         state.selectedVassal = fort.id;
-        subtitle = `${fort.name} захвачен и принёс вассальную присягу. Теперь он даёт +${effectiveFortIncome(fort)}${iconOf(fort.resource)} каждый ход.`;
+        subtitle = `${fort.name} захвачен и принёс вассальную присягу. Теперь он даёт: ${fortIncomeText(fort)}.`;
         logBattle(subtitle);
       }
     } else if(battle.meta.source==='rival'){
