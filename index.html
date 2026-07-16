@@ -1546,15 +1546,17 @@ function newGame(raceId, modeId){
   const race = RACES.find(r=>r.id===raceId);
   const scenarioTemplate = selectedScenarioMap ? selectedScenarioMap.slice() : null;
   const worldTemplate = scenarioTemplate || WORLD_TEMPLATE;
-  const homePos = findCharPos(worldTemplate, 'H');
-  const camps = findAllCharPositions(worldTemplate).map(c=>({
-    id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y, worldTemplate)
+  const worldMap = worldTemplate.slice();
+  const homePos = findCharPos(worldMap, 'H');
+  const camps = findAllCharPositions(worldMap).map(c=>({
+    id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y, worldMap)
   }));
-  const resourcePickups = generateResourcePickups(worldTemplate, homePos);
-  const dragonLairs = rollDragonLairs(resourcePickups, worldTemplate);
-  const forts = rollForts(worldTemplate);
-  const mercCamps = generateMercCamps(worldTemplate, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts]);
-  const mapSites = generateMapSites(worldTemplate, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts, ...mercCamps]);
+  const resourcePickups = generateResourcePickups(worldMap, homePos);
+  const dragonLairs = rollDragonLairs(resourcePickups, worldMap);
+  const forts = rollForts(worldMap);
+  const mercCamps = generateMercCamps(worldMap, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts]);
+  const mapSites = generateMapSites(worldMap, homePos, [...resourcePickups, ...dragonLairs, ...camps, ...forts, ...mercCamps]);
+  sanitizeMapObjectPositions(worldMap, homePos, [resourcePickups, mapSites], {road:roadTilesForTemplate(worldMap, homePos, forts), avoidRoad:true});
   return {
     race, mode: modeId, day: 1,
     res: {gold:150, wood:100, stone:100, crystal:20},
@@ -1586,7 +1588,7 @@ function newGame(raceId, modeId){
     log: [],
     leaderboard: seedLeaderboard(raceId),
     worldMapVersion: WORLD_MAP_VERSION,
-    worldMap: worldTemplate.slice(),
+    worldMap,
     scenario: scenarioTemplate ? {name:selectedScenarioName || 'Пользовательская карта', edited:true} : null,
     heroPos: homePos,
     worldHeroSelected: false,
@@ -1649,6 +1651,48 @@ function shuffledResourceSpots(template, home, occupied){
   for(let i=spots.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [spots[i],spots[j]]=[spots[j],spots[i]]; }
   return spots;
 }
+function reachableMapKeysFrom(template, start){
+  const out = new Set();
+  if(!start) return out;
+  const startKey = pointKey(start);
+  const queue = [start];
+  out.add(startKey);
+  for(let i=0;i<queue.length;i++){
+    const cur = queue[i];
+    for(const next of orthogonalNeighbors(cur)){
+      const key = pointKey(next);
+      if(out.has(key)) continue;
+      if(!isPassableChar(templateCharAt(template,next.x,next.y))) continue;
+      out.add(key);
+      queue.push(next);
+    }
+  }
+  return out;
+}
+function sanitizeMapObjectPositions(template, home, groups, opts){
+  opts = opts || {};
+  const road = opts.road || new Set();
+  const reachable = reachableMapKeysFrom(template, home);
+  const objects = groups.flatMap(g=>Array.isArray(g) ? g : []);
+  const occupied = new Set(objects.filter(Boolean).map(pointKey));
+  occupied.add(pointKey(home));
+  const candidates = shuffledResourceSpots(template, home, objects)
+    .filter(p=>reachable.has(pointKey(p)) && (!opts.avoidRoad || !road.has(pointKey(p))));
+  const relocate = obj=>{
+    if(!obj || typeof obj.x!=='number' || typeof obj.y!=='number') return;
+    const key = pointKey(obj);
+    const passable = isPassableChar(templateCharAt(template,obj.x,obj.y));
+    const okRoad = !opts.avoidRoad || !road.has(key);
+    if(passable && reachable.has(key) && okRoad) return;
+    occupied.delete(key);
+    const spot = candidates.find(p=>!occupied.has(pointKey(p)));
+    if(!spot) return;
+    obj.x = spot.x;
+    obj.y = spot.y;
+    occupied.add(pointKey(spot));
+  };
+  groups.forEach(group=>(group||[]).forEach(relocate));
+}
 
 function generateResourcePickups(template, home){
   const spots = shuffledResourceSpots(template, home);
@@ -1704,7 +1748,71 @@ function pickSpacedSpots(candidates, count, opts){
   }
   return selected;
 }
-const MAP_SITE_VERSION = 7;
+function templateCharAt(template, x, y){
+  return template[y] ? template[y][x] : '';
+}
+function setTemplateChar(template, x, y, ch){
+  if(!template[y] || x<0 || x>=template[y].length) return false;
+  const row = template[y].split('');
+  row[x] = ch;
+  template[y] = row.join('');
+  return true;
+}
+function orthogonalNeighbors(p){
+  return [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>({x:p.x+dx,y:p.y+dy})).filter(q=>q.x>=0 && q.y>=0 && q.x<WORLD_COLS && q.y<WORLD_ROWS);
+}
+function nearbyPoints(p){
+  const out = [];
+  for(let dy=-1; dy<=1; dy++){
+    for(let dx=-1; dx<=1; dx++){
+      if(!dx && !dy) continue;
+      const x=p.x+dx, y=p.y+dy;
+      if(x>=0 && y>=0 && x<WORLD_COLS && y<WORLD_ROWS) out.push({x,y});
+    }
+  }
+  return out;
+}
+function mountainPocketSpots(template, home, occupied, road){
+  const used = new Set((occupied||[]).map(pointKey));
+  used.add(pointKey(home));
+  const roadPoints = [...road].map(k=>{ const [x,y]=k.split(',').map(Number); return {x,y}; });
+  const spots = [];
+  for(let y=1; y<template.length-1; y++){
+    for(let x=1; x<template[y].length-1; x++){
+      const p = {x,y};
+      const key = pointKey(p);
+      if(templateCharAt(template,x,y)!=='m' || used.has(key) || road.has(key) || tileDistance(home,p)<5) continue;
+      const mountainCount = nearbyPoints(p).filter(q=>templateCharAt(template,q.x,q.y)==='m').length;
+      const entrance = orthogonalNeighbors(p).some(q=>isPassableChar(templateCharAt(template,q.x,q.y)) || road.has(pointKey(q)));
+      const nearRoad = roadPoints.some(r=>tileDistance(p,r)<=4);
+      if(mountainCount>=3 && entrance && nearRoad) spots.push(Object.assign({mountainCount}, p));
+    }
+  }
+  shuffleArray(spots);
+  spots.sort((a,b)=>b.mountainCount-a.mountainCount);
+  return spots;
+}
+function carveMountainPocket(template, spot){
+  setTemplateChar(template, spot.x, spot.y, '.');
+  const entrance = orthogonalNeighbors(spot).find(q=>isPassableChar(templateCharAt(template,q.x,q.y)));
+  if(!entrance){
+    const open = orthogonalNeighbors(spot).find(q=>templateCharAt(template,q.x,q.y)==='m');
+    if(open) setTemplateChar(template, open.x, open.y, '.');
+  }
+}
+function growForestAroundSite(template, spot, occupied, road){
+  const blocked = new Set((occupied||[]).map(pointKey));
+  blocked.add(pointKey(spot));
+  const canGrow = p=>{
+    const key = pointKey(p);
+    const ch = templateCharAt(template,p.x,p.y);
+    return !blocked.has(key) && !road.has(key) && (ch==='.' || ch==='s' || ch==='d');
+  };
+  const entrance = orthogonalNeighbors(spot).find(canGrow);
+  const candidates = nearbyPoints(spot).filter(p=>canGrow(p) && (!entrance || pointKey(p)!==pointKey(entrance)));
+  shuffleArray(candidates).slice(0,4).forEach(p=>setTemplateChar(template, p.x, p.y, 'f'));
+}
+const MAP_SITE_VERSION = 8;
 const MAP_SITE_TYPES = {
   well:{name:'Колодец странника', icon:'⛲', cooldown:7, desc:'Раз в неделю восстанавливает очки хода героя.'},
   obelisk:{name:'Обелиск разведчика', icon:'🗿', cooldown:7, desc:'Раз в неделю открывает небольшую область вокруг себя.'},
@@ -1720,6 +1828,7 @@ function generateMapSites(template, home, occupied){
   const forts = (occupied||[]).filter(p=>p && p.id && typeof p.resource==='string');
   const road = roadTilesForTemplate(template, home, forts.length ? forts : rollForts());
   const settlements = [home, ...forts];
+  let mountainSpots = mountainPocketSpots(template, home, occupied, road);
   let spots = shuffledResourceSpots(template, home, occupied).filter(s=>{
     const k = s.x+','+s.y;
     if(road.has(k) || tileDistance(home,s)<3) return false;
@@ -1733,7 +1842,18 @@ function generateMapSites(template, home, occupied){
   }
   const selected = [];
   for(const type of plan){
-    const spot = spots.find(s=>{
+    let spot = null;
+    if(type==='stone' || type==='crystal'){
+      spot = mountainSpots.find(s=>{
+        if(selected.some(item=>tileDistance(s,item.spot)<3)) return false;
+        return true;
+      });
+      if(spot){
+        carveMountainPocket(template, spot);
+        mountainSpots = mountainSpots.filter(s=>s.x!==spot.x || s.y!==spot.y);
+      }
+    }
+    if(!spot) spot = spots.find(s=>{
       if(selected.some(item=>tileDistance(s,item.spot)<3)) return false;
       if(type==='obelisk' && selected.some(item=>item.type==='obelisk' && tileDistance(s,item.spot)<5)) return false;
       return true;
@@ -1741,6 +1861,7 @@ function generateMapSites(template, home, occupied){
     if(spot){
       selected.push({type, spot});
       spots = spots.filter(s=>s.x!==spot.x || s.y!==spot.y);
+      if(type==='wood') growForestAroundSite(template, spot, [...(occupied||[]), ...selected.map(item=>item.spot)], road);
     }
   }
   return selected.map((item,i)=>{
@@ -2831,12 +2952,13 @@ function loadGame(snapshotJson){
       const homePos = findCharPos(WORLD_TEMPLATE, 'H');
       state.worldMap = WORLD_TEMPLATE.slice();
       state.heroPos = homePos;
-      state.camps = findAllCharPositions(WORLD_TEMPLATE).map(c=>({id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y)}));
-      state.resourcePickups = generateResourcePickups(WORLD_TEMPLATE, homePos);
-      state.dragonLairs = rollDragonLairs(state.resourcePickups);
-      state.forts = rollForts();
-      state.mercCamps = generateMercCamps(WORLD_TEMPLATE, homePos, [...state.resourcePickups, ...state.dragonLairs, ...state.camps, ...state.forts]);
-      state.mapSites = generateMapSites(WORLD_TEMPLATE, homePos, [...state.resourcePickups, ...state.dragonLairs, ...state.camps, ...state.forts, ...state.mercCamps]);
+      state.camps = findAllCharPositions(state.worldMap).map(c=>({id:c.ch, x:c.x, y:c.y, defeated:false, def: rollCampContent(c.x, c.y, state.worldMap)}));
+      state.resourcePickups = generateResourcePickups(state.worldMap, homePos);
+      state.dragonLairs = rollDragonLairs(state.resourcePickups, state.worldMap);
+      state.forts = rollForts(state.worldMap);
+      state.mercCamps = generateMercCamps(state.worldMap, homePos, [...state.resourcePickups, ...state.dragonLairs, ...state.camps, ...state.forts]);
+      state.mapSites = generateMapSites(state.worldMap, homePos, [...state.resourcePickups, ...state.dragonLairs, ...state.camps, ...state.forts, ...state.mercCamps]);
+      sanitizeMapObjectPositions(state.worldMap, homePos, [state.resourcePickups, state.mapSites], {road:roadTilesForTemplate(state.worldMap, homePos, state.forts), avoidRoad:true});
       state.mapSitesVersion = MAP_SITE_VERSION;
       state.exploredTiles = [];
       state.worldMapVersion = WORLD_MAP_VERSION;
@@ -5332,6 +5454,7 @@ function ensureWorldState(){
     state.mapSites = generateMapSites(state.worldMap, homePos, [...state.resourcePickups, ...(state.dragonLairs||[]), ...(state.camps||[]), ...(state.forts||[]), ...(state.mercCamps||[])]);
     state.mapSitesVersion = MAP_SITE_VERSION;
   }
+  sanitizeMapObjectPositions(state.worldMap, homePos, [state.resourcePickups, state.mapSites], {road:computeRoadTiles(), avoidRoad:true});
   state.exploredTiles = Array.isArray(state.exploredTiles) ? state.exploredTiles : [];
   if(state.devUnlimitedMove){
     state.maxMovePoints = 999;
