@@ -144,6 +144,8 @@
   .hero-army-label{ font-family:'IM Fell English SC',serif; font-size:.95em; color:var(--ink-soft); margin-top:10px; padding-top:8px; border-top:2px dashed var(--parchment-dark); }
   .hero-army-mini{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
   .hero-army-mini-item{ display:flex; flex-direction:column; align-items:center; gap:1px; background:#f4ecd4; border:2px solid #c7ae7d; border-radius:8px; padding:4px 7px; min-width:36px; }
+  .hero-army-mini-item.companion{ background:#efe5ff; border-color:#7a52b3; box-shadow:0 0 0 2px rgba(122,82,179,.12) inset; }
+  .hero-army-mini-item.recovering{ filter:grayscale(1); opacity:.58; border-style:dashed; }
   .hero-army-mini-item .ico{ font-size:1.3em; }
   .hero-army-mini-item b{ font-size:.8em; }
   .hero-roster-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:10px; }
@@ -351,6 +353,7 @@
   .bf-cell.bf-reachable{ background:#8fd07a; cursor:pointer; }
   .bf-stack{ position:relative; width:80%; height:80%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.25em; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,.4); }
   .bf-stack.bf-player{ background:#2e5fae; border:2px solid #163a73; }
+  .bf-stack.bf-companion{ background:#6f45a8; border:2px solid #3d2366; box-shadow:0 2px 4px rgba(0,0,0,.4), 0 0 12px rgba(172,126,255,.65); }
   .bf-stack.bf-enemy{ background:#a13d2c; border:2px solid #6b2318; }
   .bf-stack.bf-blinded{ filter:grayscale(1) brightness(.78); box-shadow:0 0 0 2px #d8d8d8 inset; }
   .bf-stack.bf-selected{ outline:3px solid #f0c419; }
@@ -378,6 +381,9 @@
   .bf-selected-info .bf-si-stats{ color:var(--ink-soft); font-size:.92em; display:flex; flex-wrap:wrap; gap:8px; margin-top:2px; }
   .bf-selected-info .bf-si-hpbar{ background:#d8c69a; border-radius:5px; height:7px; overflow:hidden; margin-top:4px; }
   .bf-selected-info .bf-si-hpbar-fill{ height:100%; transition:width .3s ease; }
+  .companion-action-row{ display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
+  .companion-action-btn{ min-height:32px; padding:5px 8px; border-radius:7px; font-size:.78em; background:#6f45a8; color:#fff2d1; box-shadow:0 2px 0 #3d2366; }
+  .companion-action-btn:disabled{ background:#8b7f96; color:#e7dfd4; box-shadow:none; cursor:not-allowed; }
   .battle-helpers{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
   .bf-cell.bf-wall{ background:#8a7a63; cursor:not-allowed; }
   .bf-cell.bf-wall .bf-obstacle-ico{ font-size:1.3em; filter:drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
@@ -580,6 +586,8 @@
   .worldmap-widget-panel{ margin-top:8px; }
   .worldmap-underbar{ display:flex; gap:8px; margin:8px 0 0; }
   .worldmap-underbar .mini-btn{ flex:1; }
+  .world-control-toggle-row{ display:none; }
+  .mobile-label{ display:none; }
   .end-turn-near-map{ background:linear-gradient(180deg,#c9a227,#96761a); color:#2c1f0a; box-shadow:0 2px 0 #6b5310; }
   .world-field-actions{
     position:absolute; right:8px; top:50%; transform:translateY(-50%); z-index:12;
@@ -621,6 +629,8 @@
     flex:0 0 auto; min-width:42px; display:flex; flex-direction:column; align-items:center; justify-content:center;
     background:#efe2bd; border:1px solid #c7ae7d; border-radius:7px; padding:3px 6px;
   }
+  .world-army-cell.companion{ background:#efe5ff; border-color:#7a52b3; box-shadow:0 0 0 2px rgba(122,82,179,.12) inset; }
+  .world-army-cell.recovering{ filter:grayscale(1); opacity:.62; border-style:dashed; }
   .world-army-cell .ico{ font-size:1.25em; line-height:1; }
   .world-army-cell b{ font-size:.78em; line-height:1; }
   .world-army-cell small{ font-size:.62em; color:var(--ink-soft); line-height:1; margin-top:2px; }
@@ -935,20 +945,26 @@
     .world-army-cell b{ font-size:.68em; }
     .world-army-cell small{ font-size:.56em; }
     .worldmap-nav{
-      left:5px; right:auto; bottom:5px; transform:none; max-width:none; width:132px;
-      display:grid; grid-template-columns:repeat(3,40px); grid-template-rows:repeat(2,34px); gap:4px; justify-content:start;
+      left:5px; right:74px; bottom:5px; transform:none; max-width:none; width:auto;
+      display:none; gap:3px; flex-wrap:nowrap; justify-content:flex-start;
     }
-    .worldmap-nav .mini-btn{ min-width:0; min-height:34px; padding:4px 5px; font-size:.68em; }
+    .worldmap-wrap.alt-controls-open .worldmap-nav{ display:flex; }
+    .worldmap-nav .mini-btn{ min-width:31px; min-height:31px; padding:3px 5px; font-size:.68em; opacity:.88; }
     .worldmap-wrap{ border-radius:8px; --worldmap-safe-top:48px; }
     .worldmap-grid{ gap:1px; }
     .wtile{ font-size:1.14em; }
     .camp-badge{ font-size:.48em; padding:0 2px; border-radius:4px; }
     .hero-token{ font-size:1.52em; }
-    .worldmap-underbar{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; margin-top:6px; }
-    .worldmap-underbar .mini-btn{ padding-left:4px; padding-right:4px; }
+    .world-control-toggle-row{ display:flex; margin:5px 0 0; }
+    .world-control-toggle-btn{ width:100%; min-height:36px; padding:6px 8px; }
+    .worldmap-underbar{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-top:6px; }
+    .worldmap-underbar .mini-btn{ min-height:38px; padding:5px 4px; font-size:.72em; line-height:1.08; }
+    .worldmap-underbar .full-label{ display:none; }
+    .worldmap-underbar .mobile-label{ display:inline; }
     .world-field-actions{ right:5px; bottom:5px; top:auto; transform:none; }
     .world-field-btn{ min-width:40px; max-width:72px; min-height:40px; padding:5px 6px; }
     .world-field-btn .turn-cost{ font-size:1em; }
+    #screen-worldmap #world-legend{ display:none; }
     .legend{ font-size:.68em; line-height:1.25; margin-top:6px; }
 
     .village-dungeon-wrap,.crypt-wrap,.underground-wrap{ max-width:min(100%, 82vh); border-radius:8px; }
@@ -987,9 +1003,9 @@
   @media(max-width:380px){
     body{ font-size:14px; }
     .race-grid,.mode-grid,#screen-mode-select .mode-grid{ grid-template-columns:1fr; }
-    .worldmap-underbar{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .worldmap-underbar{ grid-template-columns:repeat(4,minmax(0,1fr)); }
     .world-hero-strip{ grid-template-columns:1fr; width:min(74%, 246px); }
-    .worldmap-nav{ left:5px; right:auto; transform:none; justify-content:flex-start; max-width:none; }
+    .worldmap-nav{ left:5px; right:74px; transform:none; justify-content:flex-start; max-width:none; }
     .battle-quickbar{ grid-template-columns:repeat(2,minmax(0,1fr)); }
     .topbar .actions{ justify-content:flex-start; }
   }
@@ -1325,7 +1341,7 @@
     <div class="pick-card selected" onclick="pickCampaignChapter(&#39;north_fort_silent&#39;)">
       <div class="emoji">🏰</div>
       <b>Северный форт молчит</b>
-      <small>Мага-аспиранта Пабло отправили через горную тропу к дальнему рубежу. Дорога узкая, форт молчит, а коллегия магов делает вид, что это полезная практика.</small>
+      <small>Мага-аспиранта Пабло отправили через горную тропу к дальнему рубежу. Дорога узкая, форт молчит, а коллегия магов делает вид, что это будет полезная практика.</small>
       <small><b>Цель:</b> Захватить Северный форт до конца 18 дня. Медали: 13/15/18.</small>
     </div></div>
 
@@ -1424,14 +1440,14 @@
     <div class="tile" style="grid-column:1/-1;text-align:left;align-items:flex-start;">
       <div class="ico">🤴</div>
       <b>Маг-аспирант Пабло</b>
-      <div class="lvl">Молодой наследник, которого отправили на дальний рубеж “для опыта”. Совет уверяет, что всё под контролем, что обычно означает обратное.</div>
+      <div class="lvl">Молодой маг, которого отправили на дальний рубеж “для опыта”. Совет уверяет, что всё под контролем, что обычно означает обратное.</div>
     </div>
     <div class="tile" style="grid-column:1/-1;text-align:left;align-items:flex-start;">
       <div class="ico">🎯</div>
       <b>Северный форт молчит</b>
     <div class="lvl">Захватить Северный форт до конца 18 дня. Медали: 13/15/18.</div>
       <div class="lvl">Состояние рубежа: не захвачен • Северный форт</div>
-      <button onclick="event.stopPropagation();openQuestLog()">📜 Открыть задания</button>
+      <div class="lvl">Сюжетные события главы отмечены на карте и в журнале приключений.</div>
     </div></div>
         </div>
         <div id="village-troops-pane" style="">
@@ -1849,11 +1865,14 @@
         <button class="mini-btn" onclick="panWorldCamera(0,1)">↓</button>
       </div>
     </div>
+    <div class="world-control-toggle-row">
+      <button class="mini-btn world-control-toggle-btn" id="world-alt-controls-btn" onclick="toggleWorldAltControls()">🎮 Управление</button>
+    </div>
     <div class="worldmap-underbar">
-      <button class="mini-btn" onclick="openWorldOverview()">🗺️ Обзор карты</button>
-      <button class="mini-btn" onclick="openQuestLog()">📜 Задания</button>
-      <button class="mini-btn" onclick="openAdventureLog()">📖 Журнал приключений</button>
-      <button class="mini-btn" onclick="openAchievements()">🏅 Достижения</button>
+      <button class="mini-btn" onclick="openWorldOverview()">🗺️ <span class="full-label">Обзор карты</span><span class="mobile-label">Обзор</span></button>
+      <button class="mini-btn" onclick="openQuestLog()">📜 <span class="full-label">Задания</span><span class="mobile-label">Задания</span></button>
+      <button class="mini-btn" onclick="openAdventureLog()">📖 <span class="full-label">Журнал приключений</span><span class="mobile-label">Журнал</span></button>
+      <button class="mini-btn" onclick="openAchievements()">🏅 <span class="full-label">Достижения</span><span class="mobile-label">Ачивки</span></button>
     </div>
     <div class="modal-bg" id="modal-world-overview">
       <div class="modal">
@@ -2225,7 +2244,7 @@
   <div class="modal event-modal">
     <span class="emoji-big" id="event-emoji">🏰</span>
     <h2 id="event-title" style="text-align:center;">Северный форт молчит</h2>
-    <p id="event-text" style="text-align:center;">Пабло пришпорил коня и остановился на холодной тропе. Впереди извилистая горная дорога, Северный форт и подозрительно много поводов проверить цепную молнию.
+    <p id="event-text" style="text-align:center;">Отряд Пабло начинает путь из походного лагеря у северной горной тропы. Северный форт перестал выходить на связь, дорога занесена снегом, а впереди ждут разведка, опасные стоянки и штурм дальнего рубежа.
 
 Цель: Захватить Северный форт до конца 18 дня. Медали: 13/15/18.</p>
     <div style="text-align:center;"><button class="close-btn" id="event-close-btn" onclick="handleEventModalClose()">Начать главу</button></div>
@@ -2285,17 +2304,17 @@
     <div style="text-align:center;">
       <div style="font-size:2.2em;">🛡️</div>
       <h2 style="margin:4px 0;">Найм войск</h2>
-      <p class="market-note">Выберите количество новобранцев. Все нанятые бойцы сначала отправляются в гарнизон, а перевод в поход делается отдельно через управление войсками.</p>
+      <p class="market-note" id="recruitment-center-note">Выберите количество новобранцев. Все нанятые бойцы сначала отправляются в гарнизон, а перевод в поход делается отдельно через управление войсками.</p>
     </div>
     <div class="tab-switch">
       <button class="tab-btn active" type="button">🛡️ Найм</button>
-      <button class="tab-btn" type="button" onclick="closeModal(&#39;modal-recruitment-center&#39;);openArmyTransferModal()">⚖️ Управление</button>
+      <button class="tab-btn recruitment-transfer-action" type="button" onclick="closeModal(&#39;modal-recruitment-center&#39;);openArmyTransferModal()">⚖️ Управление</button>
     </div>
     <div class="unit-modal-summary" id="recruitment-center-summary"></div>
     <div class="recruitment-center-list" id="recruitment-center-list"></div>
     <div style="text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
       <button class="close-btn" onclick="hireAllRecruitmentDraft()">Нанять выбранных</button>
-      <button class="close-btn" style="background:var(--royal);" onclick="closeModal(&#39;modal-recruitment-center&#39;);openArmyTransferModal()">К управлению войсками</button>
+      <button class="close-btn recruitment-transfer-action" style="background:var(--royal);" onclick="closeModal(&#39;modal-recruitment-center&#39;);openArmyTransferModal()">К управлению войсками</button>
       <button class="close-btn" style="background:var(--ink-soft);" onclick="closeModal(&#39;modal-recruitment-center&#39;)">Закрыть</button>
     </div>
   </div>
@@ -2462,7 +2481,36 @@
 
 
 <script>
-/* ===================== DATA ===================== */
+/* =============================================================================================
+   VALDOR CODE MAP
+
+   This build is still a single HTML file for easy Telegram/GitHub Pages delivery.
+   Keep new code near these section headers before extracting real modules.
+
+   01. DATA / REGISTRIES        races, modes, chapters, support heroes, units, balance constants
+   02. STORY / QUEST ENGINE     achievements, RPG dialogue modals, quest helpers
+   03. STATE                    global runtime state and common helpers
+   04. NAV / MENU HELPERS       screen switching and menu-adjacent helpers
+   05. MAP EDITOR               visual map/chapter/event builder
+   06. MENU / NEW GAME FLOW     main menu, race/mode/chapter/start setup
+   07. CAMPAIGN RUNTIME         chapter start, map injection, scenario state
+   08. NORTH FORT CHAPTER       bespoke events for "Северный форт молчит"
+   09. SAVE SYSTEM              Telegram CloudStorage, IndexedDB, remote saves
+   10. SETTLEMENT UI            camp/castle/fort/troops/heroes panels
+   11. TURN / EVENTS            end-turn economy, random events, political decisions
+   12. WORLD MAP                rendering, camera, movement, objects, AI roaming
+   13. BATTLE SYSTEM            tactical battle UI, spells, AI, results, routing
+   14. MODALS                   shared modal open/close helpers
+   15. DEV / BOOTSTRAP          cheat codes, init, autosave timers
+
+   Rule of thumb:
+   - reusable mechanics go to engine sections;
+   - chapter-specific text/coordinates go to the chapter section;
+   - save migrations stay near loadGame()/normalizers, not inside UI renderers.
+============================================================================================= */
+
+/* ===================== 01. DATA / REGISTRIES ===================== */
+/* ---- Factions, game modes and campaign chapter registry ---- */
 const RACES = [
   {id:'humans', name:'Люди', emoji:'👨‍🌾', bonus:'+20% к золоту, базовая дипломатия: +10% к шансу переговоров до прокачки навыка, -10% к цене отрядов 5-6 уровня.', mod:{gold:1.2,wood:1,stone:1,crystal:1}, heroEmoji:'🤴', diplomacyBase:0.10},
   {id:'forestfolk', name:'Лесные жители', emoji:'🌲', bonus:'Союз эльфов, гномов и лесных существ: +15% к дереву и камню, базовое колдовство +3%, базовый налёт +5%.', mod:{gold:1,wood:1.15,stone:1.15,crystal:1.05}, heroEmoji:'🧝', spBonus:2, defBonus:0.05, sorceryBase:0.03, raidBase:0.05},
@@ -2490,11 +2538,11 @@ const CAMPAIGN_CHAPTERS = [
     templateKey:'north_fort',
     goal:'Захватить Северный форт до конца 18 дня. Медали: 13/15/18.',
     desc:'Мага-аспиранта Пабло отправили через горную тропу к дальнему рубежу. Дорога узкая, форт молчит, а коллегия магов делает вид, что это полезная практика.',
-    intro:'Пабло пришпорил коня и остановился на холодной тропе. Он поправил шапку, которая уже третий час норовит закрыть ему весь обзор. «Глава третья: прикладное испепеление как форма решения академического спора», — мысленно продиктовал он себе и тут же вздохнул. Вместо кафедры, любимой совы и мягкого кресла он получил снег, камни и приказ выяснить, почему Северный форт внезапно перестал слать весточки в Столицу. «Конечно, Пабло, кто же ещё? У нас есть коллегия магов, но эти старпёры решили послать меня. Ладно, мне хоть защиту диплома перенесли и на том спасибо. Но всё же это уникальная возможность проверить реакцию живых существ на цепную молнию». Северный ветер подул сильнее и чуть не скинул шапку с аспиранта. Пабло поёжился, собрал ману в ладонях и решил, что если уж его оторвали от диссертации, то хотя бы материал для практической части будет богатый.',
+    intro:'Отряд Пабло начинает путь из походного лагеря у северной горной тропы. Северный форт перестал выходить на связь, дорога занесена снегом, а впереди ждут разведка, опасные стоянки и штурм дальнего рубежа.',
   },
 ];
 const START_ADVANTAGES = [
-  {id:'army', icon:'🛡️', name:'Выше армия', desc:'+8 бойцов 1 уровня и +3 бойца 2 уровня в гарнизон. Хорошо для ранней карты и защиты.'},
+  {id:'army', icon:'🛡️', name:'Выше армия', desc:'+8 бойцов 1 уровня и +3 бойца 2 уровня. В походном лагере они сразу идут с героем.'},
   {id:'gold', icon:'💰', name:'Больше денег', desc:'+150 золота в казну. Больше свободы для найма, стройки и первых ошибок.'},
   {id:'building', icon:'🏗️', name:'Улучшение здания', desc:'Случайное стартовое здание сразу получает 2 уровень бесплатно.'},
 ];
@@ -2502,9 +2550,34 @@ const BATTLE_MODES = [
   {id:'classic', icon:'⚔️', name:'Стандартный бой', desc:'Как сейчас: минимум подсказок, поле боя занимает больше внимания, решения принимаются по привычной логике.'},
   {id:'enhanced', icon:'🎯', name:'Улучшенный бой', desc:'Тестовый режим: очередь ходов, панель выбранной цели и предпросчёт атаки/заклинания перед действием.'},
 ];
-// Single source of truth per unit: name, icon and whether it fights at range.
-// Ranged = archers, throwers (axes/spears), crossbowmen, and spellcasting "mage" units.
-// Everyone else (militia, knights, guards, riders, blademasters, undead brutes...) is melee.
+/* ---- Support heroes: permanent companions with recovery and battle abilities ---- */
+const SUPPORT_HERO_DEFS = {
+  genie:{
+    id:'genie',
+    name:'Джинн',
+    icon:'🧞',
+    title:'герой подмоги',
+    tier:4,
+    recoveryDays:3,
+    base:{atk:13, def:8, unitHp:50, speed:4, ranged:true, magicMod:-0.25},
+    perLevel:{atk:2, def:1, unitHp:8},
+    introTitle:'Герой подмоги',
+    intro:[
+      {icon:'🧞', name:'Джинн', text:'«К вашим услугам. Умереть окончательно не обещаю, но исчезнуть на пару дней могу».'},
+      {kind:'text', text:'Герои подмоги — постоянные спутники отряда. В бою они выделены особым цветом, получают опыт, открывают свои приёмы и после поражения возвращаются через несколько дней.'},
+      {kind:'text', text:'У джинна есть две поддержки: исцелить отряд и восстановить ману основному герою.'},
+    ],
+    abilities:[
+      {id:'heal', icon:'💚', name:'Исцеление', target:'ally', cooldown:1, desc:'Лечит выбранный свой отряд.'},
+      {id:'mana', icon:'💠', name:'Исцеление маны', target:'self', cooldown:1, desc:'Восстанавливает ману походному герою.'},
+    ],
+  },
+};
+/* ---- Unit roster and combat role registry ----
+   Single source of truth per unit: name, icon and whether it fights at range.
+   Ranged = archers, throwers (axes/spears), crossbowmen, and spellcasting "mage" units.
+   Everyone else (militia, knights, guards, riders, blademasters, undead brutes...) is melee.
+*/
 const UNIT_DATA = {
   humans: [
     {name:'Ополченец', icon:'🧑‍🌾', ranged:false},
@@ -2972,7 +3045,9 @@ const MERC_CAMP_MIN = 3;
 const MERC_CAMP_MAX = 6;
 const CHEST_PROMPT = 'Во время странствия вы наткнулись на одинокий сундук. Рискнёте узнать, что внутри?';
 
-/* ---- Tunable knobs, grouped so future features don't need to hunt through the file ---- */
+/* ---- Global balance constants ----
+   Tunable knobs, grouped so future features don't need to hunt through the file.
+*/
 const CONFIG = {
   MANA_REGEN_PER_DAY: 4,      // gradual regen while out adventuring
   WEEKLY_TICK_DAYS: 7,        // army reinforcements, camp respawns, resource refresh cadence
@@ -3083,6 +3158,8 @@ const ACHIEVEMENTS = {
   firstRaid:{title:'А вот и гости!', desc:'Пережить первый набег.'},
   recruit100Tier1:{title:'Куда тебе столько?', desc:'Нанять 100 рекрутов 1-го уровня.'},
 };
+/* ===================== 02. STORY / QUEST ENGINE ===================== */
+/* Reusable achievements, RPG-style dialogue, quest offers and quest completion helpers. */
 const STORY_QUESTS = {
   firstBuilding:{
     icon:'🏗️',
@@ -3804,6 +3881,7 @@ function storyQuestProgressText(id){
   if(id==='uniteRealm') return `${fortCaptured}/${fortTotal || 1}`;
   return '';
 }
+/* ---- Story quest offer modal ---- */
 function openStoryQuestOffer(id){
   if(!state || !STORY_QUESTS[id]) return;
   const q = ensureQuestState();
@@ -3974,7 +4052,7 @@ function policyView(p){
   return pack && pack[p.id] ? Object.assign({}, p, pack[p.id]) : p;
 }
 
-/* ===================== STATE ===================== */
+/* ===================== 03. STATE ===================== */
 let state = null;
 
 function createHeroState(race, role){
@@ -4426,9 +4504,11 @@ function applyStartAdvantage(s, id){
   const def = startAdvantageDef(id);
   s.startAdvantage = def.id;
   if(def.id==='army'){
-    s.garrison[0].count += 8;
-    s.garrison[1].count += 3;
-    return `Стартовое преимущество: ${def.name}. В гарнизон прибыли +8 ${unitInfo(s.race.id,1).name.toLowerCase()} и +3 ${unitInfo(s.race.id,2).name.toLowerCase()}.`;
+    const target = (s.mode==='campaign' && s.baseType==='camp') ? s.army : s.garrison;
+    target[0].count += 8;
+    target[1].count += 3;
+    const place = (s.mode==='campaign' && s.baseType==='camp') ? 'в походный отряд' : 'в гарнизон';
+    return `Стартовое преимущество: ${def.name}. ${place[0].toUpperCase()+place.slice(1)} прибыли +8 ${unitInfo(s.race.id,1).name.toLowerCase()} и +3 ${unitInfo(s.race.id,2).name.toLowerCase()}.`;
   }
   if(def.id==='gold'){
     s.res.gold += 150;
@@ -4759,7 +4839,7 @@ function seedLeaderboard(myRaceId){
   return names.map((n,i)=>({name:n, race: races[i%4], score: 180 + Math.floor(Math.random()*220)}));
 }
 
-/* ===================== NAV / MENU ===================== */
+/* ===================== 04. NAV / MENU HELPERS ===================== */
 let pickedRace = 'humans', pickedMode = 'sandbox', pickedStartAdvantage = 'army', pickedBattleMode = 'classic', pickedCampaignChapter = 'north_fort_silent';
 let selectedScenarioMap = null;
 let selectedScenarioName = '';
@@ -4868,6 +4948,8 @@ function mapEditorBiomeClassAt(x,y){
   if(counts.f >= 2) return 't-forest';
   return null;
 }
+/* ===================== 05. MAP EDITOR ===================== */
+/* Visual scenario/chapter builder: terrain, objects, custom events and JSON export/import. */
 function mapEditorRoadBaseClassAt(x,y){
   const chapterId = document.getElementById('map-editor-chapter')?.value || '';
   const scenarioName = (document.getElementById('map-editor-name')?.value || selectedScenarioName || '').toLowerCase();
@@ -6086,6 +6168,8 @@ function useEditorMapScenario(){
   openRaceSelect();
 }
 
+/* ===================== 06. MENU / NEW GAME FLOW ===================== */
+/* Main menu, mode/race/chapter choice and start-advantage setup. */
 function renderMenu(){
   updateMapEditorDevButton();
   const rg = document.getElementById('race-grid');
@@ -6279,15 +6363,15 @@ function showNorthFortFinalStory(onDone){
     icon:'🕯️',
     title:'Тьма под Северным фортом',
     lines:[
-      {kind:'text', text:'Пабло шёл через двор Северного форта, где снег давно перестал быть белым. Под стенами лежали тела культистов, солдат и тех, кто успел стать чем-то между ними.'},
-      {kind:'text', text:'Мёртвые лежали неправильно. Слишком тихо, слишком одинаково, будто кто-то разложил их по древнему чертежу, а потом передумал объяснять, зачем.'},
-      {icon:'🧙‍♂️', name:'Пабло', text:'«Они не просто призвали нежить. Их самих убило... и подняло. Всех до одного». Он присел у почерневшего круга и провёл пальцами над обугленными рунами. «Это не культовая самодеятельность. Здесь проснулось что-то старое. И очень недовольное».', role:'тихо'},
+      {kind:'text', text:'Пабло шёл по двору Северного форта. Снег был окроплён кровью. Теперь здесь лежали тела культистов,восставших мертвецов и солдат.'},
+      {kind:'text', text:'Мёртвые лежали неправильно, слишком аккуратно, будто кто-то разложил их по древнему чертежу, а потом передумал объяснять, зачем.'},
+      {icon:'🧙‍♂️', name:'Пабло', text:'«Они не просто призвали нежить. Их самих что-то убило... и подняло. Всех до одного и прямо перед боем.». Он присел у почерневшего круга и провёл пальцами над обугленными рунами. «Не похоже на самодеятельность культистов. Здесь побывало что-то древнее» Пабло посмотрел на горы трупов «И недовольное».', role:'тихо'},
       {kind:'text', text:'Ветер протянулся между зубцами стены и погасил последние искры ритуального круга. На миг Пабло показалось, что где-то под камнем форта кто-то сделал вдох.'},
       {icon:'🛡️', name:'Ратник', text:'«Господин аспирант...» Он поднялся на пролом стены и побледнел. «На горизонте движение. Много. Это нежить. Идут строем».', role:'со стены'},
       {icon:'🧙‍♂️', name:'Пабло', text:'«Значит, доклад будет кратким». Он вытер рукавом сажу с лица и посмотрел на северную дорогу. «Отправь весточку Мире и Дионису. Мы остаёмся держать оборону».', role:'после паузы'},
-      {kind:'text', text:'Гонец сорвался с места. А над фортом, среди снега и пепла, впервые за много дней подняли королевский знак. Не как символ победы. Как предупреждение.'},
+      {kind:'text', text:'Гонец сорвался с места. А над фортом, среди снега, крови и пепла, впервые за много дней подняли королевский стяг. Не как символ победы. Как предупреждение наступающим врагам.'},
     ],
-    buttonLabel:'Держать рубеж',
+    buttonLabel:'Держать оборону',
     onClose:onDone,
   });
 }
@@ -6299,7 +6383,7 @@ function checkCampaignProgress(){
     state.campaign.status = 'failed';
     ensurePoliticsState();
     state.politics.stability = Math.max(0, (state.politics.stability || 70) - 5);
-    addAdventureLog(chapter.emoji, `Глава провалена: ${chapter.title}`, 'Северный форт успел укрепиться. Совет просит назвать это не поражением, а сложной погодой.', {type:'event'});
+    addAdventureLog(chapter.emoji, `Глава провалена: ${chapter.title}`, 'Северный форт успел укрепиться. Совет просит назвать это не поражением, а отрицательной победой.', {type:'event'});
     addLog(`📜 Глава провалена: «${chapter.title}». Стабильность -5.`, 'event');
     showEventModal2({
       icon:'⌛',
@@ -6339,6 +6423,8 @@ function checkCampaignProgress(){
   }
   return false;
 }
+/* ===================== 07. CAMPAIGN RUNTIME ===================== */
+/* Generic chapter boot, campaign state injection and win/fail checks. */
 function startCampaignChapter(id){
   const chapter = campaignChapterDef(id);
   const validation = validateEmbeddedChapterMap(chapter);
@@ -6401,13 +6487,13 @@ function applyCampaignScenarioState(s, chapter){
   s.hero.def += 1;
   s.hero.spellbook = ['bolt','heal','chain'];
   s.garrisonHeroId = GARRISON_HERO_DEF.id;
-  s.army = [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?12:(t===1?4:0)}));
+  s.army = [0,1,2,3,4,5].map(t=>({tier:t+1, count: t===0?15:(t===1?5:(t===2?1:0))}));
   s.garrison = [0,1,2,3,4,5].map(t=>({tier:t+1, count:0}));
   s.camps = findAllCharPositions(template).filter(c=>!isCampaignStoryMarker(c.ch)).map(c=>({
     id:c.ch, x:c.x, y:c.y, defeated:false,
     def: rollCampContent(c.x, c.y, template),
   }));
-  s.resourcePickups = [];
+  s.resourcePickups = northFortScenarioChests();
   s.dragonLairs = [];
   s.mercCamps = [
     {id:'north_merc_10_0', x:10, y:0, nextAvailableDay:1},
@@ -6447,6 +6533,8 @@ function applyCampaignScenarioState(s, chapter){
   s.movePoints = s.maxMovePoints;
 }
 
+/* ===================== 08. NORTH FORT CHAPTER ===================== */
+/* Bespoke map sites, event triggers and story text for "Северный форт молчит". */
 function isNorthFortCampaign(){
   return !!(state && state.mode==='campaign' && state.campaign && state.campaign.id==='north_fort_silent');
 }
@@ -6459,6 +6547,22 @@ function northFortStoryMapSites(){
     {id:'north_sanctuary', type:'sanctuary', x:10, y:5, nextAvailableDay:1, used:false},
     {id:'north_hero_grave', type:'heroGrave', x:12, y:1, nextAvailableDay:1, used:false},
   ];
+}
+function northFortScenarioChests(){
+  return [
+    {id:'north_chest_trail_1', x:3, y:5, type:'chest', amount:1, collected:false},
+    {id:'north_chest_woods_2', x:9, y:8, type:'chest', amount:1, collected:false},
+    {id:'north_chest_fort_3', x:14, y:6, type:'chest', amount:1, collected:false},
+  ];
+}
+function ensureNorthFortScenarioChests(){
+  if(!isNorthFortCampaign()) return;
+  state.resourcePickups = Array.isArray(state.resourcePickups) ? state.resourcePickups : [];
+  const byId = new Map(state.resourcePickups.map(p=>[p.id, p]));
+  northFortScenarioChests().forEach(required=>{
+    if(!byId.has(required.id)) byId.set(required.id, Object.assign({}, required));
+  });
+  state.resourcePickups = Array.from(byId.values());
 }
 function ensureNorthFortStoryMapSites(){
   state.mapSites = Array.isArray(state.mapSites) ? state.mapSites : [];
@@ -6518,6 +6622,121 @@ function scenarioScoutText(){
   if(aliveArchers <= 0) return 'Чувствую знакомый запах. Кажется, с вами были разведчики, которыми я полакомился недавно. Жаль, не дошли. Но вы тоже сгодитесь.';
   if((state.scenario?.savedScouts || 0) >= 2) return 'А, чувствую знакомый запах. Люблю, когда еда сама возвращается ко мне в руки. Но вы двое ещё и друзей привели.';
   return 'Кажется, вас было двое, а сейчас один и с друзьями.';
+}
+function supportHeroDef(id){ return SUPPORT_HERO_DEFS[id] || null; }
+function isSupportHeroUnit(u){ return !!(u && u.companionId && supportHeroDef(u.companionId)); }
+function supportHeroStats(unit){
+  const def = supportHeroDef(unit && unit.companionId);
+  if(!def) return {};
+  const lvl = Math.max(1, Math.floor(unit.level || 1));
+  const base = def.base || {};
+  const per = def.perLevel || {};
+  return {
+    atk: Math.round((base.atk || 1) + (lvl-1) * (per.atk || 0)),
+    def: Math.round((base.def || 0) + (lvl-1) * (per.def || 0)),
+    unitHp: Math.round((base.unitHp || 20) + (lvl-1) * (per.unitHp || 0)),
+    speed: base.speed || 3,
+    ranged: !!base.ranged,
+    magicMod: base.magicMod || 0,
+  };
+}
+function createSupportHeroUnit(id){
+  const def = supportHeroDef(id);
+  if(!def) return null;
+  const stats = supportHeroStats({companionId:id, level:1});
+  return Object.assign({
+    companionId:id, tier:def.tier || 4, count:1, raceId:'neutral',
+    name:def.name, icon:def.icon, ranged:!!stats.ranged,
+    level:1, xp:0, xpNeeded:40, abilityCooldowns:{}, unlocked:true,
+  }, stats);
+}
+function normalizeSupportHeroes(){
+  if(!state) return;
+  state.auxArmy = Array.isArray(state.auxArmy) ? state.auxArmy : [];
+  state.auxArmy.forEach(u=>{
+    if(!u.companionId && (u.name==='Джинн' || u.icon==='🧞')) u.companionId = 'genie';
+    if(!isSupportHeroUnit(u)) return;
+    const def = supportHeroDef(u.companionId);
+    const stats = supportHeroStats(u);
+    u.tier = def.tier || u.tier || 4;
+    u.raceId = 'neutral';
+    u.name = def.name;
+    u.icon = def.icon;
+    u.level = Math.max(1, Math.floor(u.level || 1));
+    u.xp = Math.max(0, Math.floor(u.xp || 0));
+    u.xpNeeded = Math.max(20, Math.floor(u.xpNeeded || (35 + u.level*5)));
+    u.abilityCooldowns = u.abilityCooldowns || {};
+    Object.assign(u, stats);
+    if(u.recoveringUntil && (state.day || 1) < u.recoveringUntil) u.count = 0;
+    else if(!u.recoveringUntil) u.count = Math.max(1, Math.floor(u.count || 1));
+  });
+}
+function supportHeroRecoveryText(u){
+  if(!u || !u.recoveringUntil) return '';
+  return `${Math.max(1, u.recoveringUntil - (state.day || 1))} дн.`;
+}
+function addSupportHero(id){
+  normalizeSupportHeroes();
+  const def = supportHeroDef(id);
+  if(!def) return null;
+  let unit = state.auxArmy.find(u=>u.companionId===id);
+  if(unit){
+    unit.count = 1;
+    delete unit.recoveringUntil;
+    Object.assign(unit, supportHeroStats(unit));
+  } else {
+    unit = createSupportHeroUnit(id);
+    state.auxArmy.push(unit);
+  }
+  addLog(`${def.icon} ${def.name} стал героем подмоги и присоединился к отряду.`, 'event');
+  return unit;
+}
+function showSupportHeroIntro(id){
+  const def = supportHeroDef(id);
+  if(!def) return;
+  showStoryEventModal({
+    icon:def.icon,
+    title:def.introTitle || def.name,
+    lines:def.intro || [{icon:def.icon, name:def.name, text:'Герой подмоги присоединился к отряду.'}],
+    buttonLabel:'Понятно',
+  });
+}
+function tickSupportHeroRecovery(){
+  normalizeSupportHeroes();
+  const restored = [];
+  (state.auxArmy||[]).forEach(u=>{
+    if(isSupportHeroUnit(u) && u.recoveringUntil && (state.day || 1) >= u.recoveringUntil){
+      delete u.recoveringUntil;
+      u.count = 1;
+      restored.push(u);
+    }
+  });
+  restored.forEach(u=>{
+    addLog(`${u.icon} ${u.name} вернулся в отряд после восстановления.`, 'event');
+    queueModalAction(()=>showEventModal2({
+      icon:u.icon,
+      title:`${u.name} вернулся`,
+      text:`Герой подмоги восстановился и снова готов идти в бой. Бессмертие не отменяет ворчания, но экономит похороны.`,
+      buttonLabel:'С возвращением',
+    }));
+  });
+}
+function grantSupportHeroXp(amount){
+  if(!state || !battle || amount<=0) return;
+  normalizeSupportHeroes();
+  const aliveIds = new Set(battle.stacks.filter(s=>s.side==='player' && s.isSupportHero && s.alive).map(s=>s.companionId));
+  (state.auxArmy||[]).filter(u=>isSupportHeroUnit(u) && aliveIds.has(u.companionId)).forEach(u=>{
+    u.xp += Math.max(1, Math.round(amount * 0.65));
+    let leveled = false;
+    while(u.xp >= u.xpNeeded && u.level < 20){
+      u.xp -= u.xpNeeded;
+      u.level++;
+      u.xpNeeded = Math.round(u.xpNeeded * 1.28 + 10);
+      Object.assign(u, supportHeroStats(u));
+      leveled = true;
+    }
+    if(leveled) addLog(`${u.icon} ${u.name} вырос до ${u.level} уровня.`, 'event');
+  });
 }
 function addScenarioAuxUnit(unit){
   state.auxArmy = state.auxArmy || [];
@@ -6915,9 +7134,36 @@ function maybeTriggerNorthFortCryptVision(pos){
       {kind:'text', text:'После боя с разъярёнными деревьями Пабло увидел склеп в горах.'},
       {icon:'🧙‍♂️', name:'Пабло', text:'«Надо бы исследовать!»'},
       {icon:'🛡️', name:'Ратник', text:'«Это прозвучало как начало плохой баллады».'},
-      {icon:'🧙‍♂️', name:'Пабло', text:'«Зато с практической частью. Пометьте место».'},
+      {icon:'🧙‍♂️', name:'Пабло', text:'«Зато будет что рассказать коллегам по цеху. Пометьте место».'},
     ],
     buttonLabel:'Запомнить место',
+  });
+  saveGame();
+  return true;
+}
+function maybeTriggerNorthFortRunawayBanner(pos){
+  if(!isNorthFortCampaign() || !pos || scenarioFlag('fortRunawayBanner')) return false;
+  const fort = (state.forts || []).find(f=>f.id==='northwood');
+  if(!fort || fort.captured) return false;
+  if(tileDistance(pos, fort) > 2) return false;
+  setScenarioFlag('fortRunawayBanner');
+  const militia = baseArmyStack(1);
+  const archers = baseArmyStack(3);
+  militia.count += 3;
+  archers.count += 1;
+  addLog('🏳️ К отряду присоединились беглецы из плена культистов: +3 ополченца, +1 лучник.', 'event');
+  addAdventureLog('🏳️', 'Беглецы у Северного форта', 'Из-за гор вышел небольшой отряд в королевских стягах. Они сбежали из плена культистов и присоединились к походу.', {type:'event', x:pos.x, y:pos.y});
+  showStoryEventModal({
+    icon:'🏳️',
+    title:'Беглецы у Северного форта',
+    lines:[
+      {kind:'text', text:'Из-за гор к вам выскочил небольшой отряд бродяг в королевских стягах. Люди выглядели измученными, но держали оружие так, будто стыдились просто бежать дальше.'},
+      {icon:'🛡️', name:'Беглый ратник', text:'«Мы сбежали из плена культистов и хотим помочь вам вернуть наш пост!»'},
+      {icon:'🧙‍♂️', name:'Пабло', text:'«Прекрасно. Значит, у нас есть проводники, свидетели и ещё несколько человек, которые добровольно идут туда, откуда только что сбежали. Научная ценность растёт».'},
+      {kind:'text', text:'К вам присоединяются 3 ополченца и 1 лучник.'},
+    ],
+    buttonLabel:'В строй',
+    onClose:()=>{ renderWorldMap(); },
   });
   saveGame();
   return true;
@@ -6927,7 +7173,7 @@ function triggerNorthFortVampireCrypt(site, def){
     icon:def.icon,
     title:'Склеп в горах',
     lines:[
-      {kind:'text', text:'Перед вами древний склеп. От входа тянет холодом, пылью и чужой самоуверенностью.'},
+      {kind:'text', text:'Перед вами древний склеп. От входа тянет холодом, пылью и древней самоуверенностью.'},
       {icon:'🧙‍♂️', name:'Пабло', text:'«Если дверь выглядит проклятой, значит за ней либо важная улика, либо очень обидчивый покойник».'},
       {icon:'🛡️', name:'Ратник', text:'«А если и то, и другое?»'},
       {icon:'🧙‍♂️', name:'Пабло', text:'«Тогда это уже полноценный учебный материал».'},
@@ -6943,12 +7189,12 @@ function triggerNorthFortVampireCrypt(site, def){
         lines:[
           {icon:'🧛', name:'Лорд-вампир', role:'из глубины склепа', text:'«Кто вторгся в мои владения?»'},
           {icon:'🧛', name:'Лорд-вампир', text:scenarioScoutText()},
-          {icon:'🧙‍♂️', name:'Пабло', text:'«Коллегия магов будет в восторге. Или запретит мне писать отчёт. Оба варианта реалистичны».'},
+          {icon:'🧙‍♂️', name:'Пабло', text:'«Коллегия магов будет в восторге. Или запретит мне писать отчёт. Оба варианта вполне реалистичны».'},
           {kind:'text', text:'Приготовьтесь к бою с лордом-вампиром!'},
         ],
         buttonLabel:'К бою!',
         onClose:()=>startTacticalBattle([
-          {tier:6, count:1, raceObj:RACES.find(r=>r.id==='undead')},
+          {tier:6, count:3, raceObj:RACES.find(r=>r.id==='undead')},
         ], {source:'campaignStory', storyId:'vampireCrypt', noDiplomacy:true, loot:{gold:35,wood:0,stone:0,crystal:3}, introText:'В глубине склепа из тьмы выходит лорд-вампир.'})
       });
     },
@@ -6986,8 +7232,7 @@ function returnToMainMenu(){
   showScreen('screen-mainmenu');
 }
 
-/* ---------------------------------------------------------------------------------------------
-   SAVE SYSTEM
+/* ===================== 09. SAVE SYSTEM =====================
    - Inside Telegram (opened via the bot as a Mini App): progress is persisted through Telegram's
      own CloudStorage, keyed to the player's Telegram account. Survives closing the app entirely
      and follows the player across devices — this is the "real" save for the Telegram build.
@@ -8189,7 +8434,7 @@ document.addEventListener('click', (e)=>{
   if(!e.target.closest('.topbar-overflow')) closeAllTopbarOverflows();
 });
 
-/* ===================== VILLAGE RENDER ===================== */
+/* ===================== 10A. VILLAGE RENDER ===================== */
 const HOME_CULTURE_WORDS = {
   humans:{
     icon:'🏰',
@@ -8293,6 +8538,8 @@ function baseSettlementDef(){
   const words = homeCultureWord();
   return {id:'home', type:'city', name:words.capitalName || words.name, icon:words.icon, x:home.x, y:home.y, primary:true};
 }
+/* ===================== 10B. SETTLEMENT UI ===================== */
+/* Camp/castle/fort screens, troop recruitment, hero panels and settlement switching. */
 function ensureSettlementState(){
   if(!state) return [];
   const base = baseSettlementDef();
@@ -8370,7 +8617,7 @@ function campaignCampHtml(){
       <b>${chapter ? escHtml(chapter.title) : 'Сценарная цель'}</b>
       <div class="lvl">${state.campaign ? escHtml(state.campaign.goal) : 'Цель не задана.'}</div>
       <div class="lvl">Состояние рубежа: ${escHtml(fortLine)}</div>
-      <button onclick="event.stopPropagation();openQuestLog()">📜 Открыть задания</button>
+      <div class="lvl">Сюжетные события главы отмечены на карте и в журнале приключений.</div>
     </div>`;
 }
 function renderVillage(){
@@ -8481,6 +8728,9 @@ function renderVillage(){
   renderVillageMainTabs();
   renderVillageTopTabs();
   renderHeroMainTabs();
+
+  const transferBtn = document.querySelector('#village-troops-pane .troop-command-row .secondary');
+  if(transferBtn) transferBtn.style.display = campaignRecruitsToField() ? 'none' : '';
 
   const lb = document.getElementById('log-box');
   lb.innerHTML = state.log.slice(-25).reverse().map(l=>`<p class="${l.type}">${l.text}</p>`).join('');
@@ -9321,6 +9571,11 @@ function townHallLevel(){ const b = state.buildings.find(x=>x.key==='townhall');
 function mageTowerLevel(){ const b = state.buildings.find(x=>x.key==='tower'); return b ? b.level : 1; }
 function unitCostMultiplier(){ return Math.max(0.7, 1 - 0.04*(townHallLevel()-1)); }
 function unitCapPerTier(tier){
+  if(state && state.mode==='campaign'){
+    if(tier===1) return 3;
+    if(tier===2) return 1;
+    return 0;
+  }
   const base = (tier===1 ? 14 : 8) + 4*(townHallLevel()-1);
   const barracksBonus = (tier>=4) ? CONFIG.BARRACKS.capPerLevel*(barracksLevel()-1) : 0;
   return Math.round((base + barracksBonus + diplomacyWeeklyRecruitBonus(tier)) * recruitCapPolicyMult());
@@ -9678,6 +9933,7 @@ function ensureBaseArmyStacks(){
   }
   state.garrison.sort((a,b)=>(a.tier||0)-(b.tier||0));
   state.army.sort((a,b)=>((a.neutralId||a.raceId||a.name)?1:0)-((b.neutralId||b.raceId||b.name)?1:0) || (a.tier||0)-(b.tier||0));
+  enforceCampaignCampNoGarrison();
 }
 function baseGarrisonStack(tier){
   ensureBaseArmyStacks();
@@ -9687,8 +9943,23 @@ function baseArmyStack(tier){
   ensureBaseArmyStacks();
   return state.army.find(x=>x.tier===tier && !x.neutralId && !x.raceId && !x.name);
 }
+function campaignRecruitsToField(){
+  return !!(state && state.mode==='campaign' && state.baseType==='camp');
+}
+function enforceCampaignCampNoGarrison(){
+  if(!campaignRecruitsToField() || !Array.isArray(state.garrison) || !Array.isArray(state.army)) return;
+  for(let tier=1;tier<=6;tier++){
+    const g = state.garrison.find(x=>x.tier===tier && !x.neutralId && !x.raceId && !x.name);
+    const a = state.army.find(x=>x.tier===tier && !x.neutralId && !x.raceId && !x.name);
+    if(g && a && g.count>0){
+      a.count += g.count;
+      g.count = 0;
+    }
+  }
+}
 
 function totalOwned(tier){
+  enforceCampaignCampNoGarrison();
   const g = baseGarrisonStack(tier).count;
   const a = baseArmyStack(tier).count;
   return g+a;
@@ -9707,7 +9978,8 @@ function maxAffordableQty(unitC){
 // Returns how many were actually hired (may be less than requested if capped by barracks limit or gold).
 function recruit(tier, qty){
   qty = Math.max(1, Math.floor(qty||1));
-  const u = baseGarrisonStack(tier);
+  const toField = campaignRecruitsToField();
+  const u = toField ? baseArmyStack(tier) : baseGarrisonStack(tier);
   if(!isTierUnlocked(tier)) return 0;
   const roomLeft = weeklyRecruitRemaining(tier);
   const unitC = unitCost(tier);
@@ -9720,7 +9992,9 @@ function recruit(tier, qty){
   recordWeeklyRecruit(tier, actualQty);
   trackRecruitAchievement(tier, actualQty);
   const name = unitInfo(state.race.id,tier).name.toLowerCase();
-  addLog(actualQty===1 ? `В гарнизон встал ещё один ${name}. Кузница не спит.` : `В гарнизон встало ${actualQty} новых бойцов (${name}). Кузница не спит.`, 'event');
+  addLog(toField
+    ? (actualQty===1 ? `В походный отряд вступил ещё один ${name}. Лагерь собирает всех под знамя.` : `В походный отряд вступило ${actualQty} новых бойцов (${name}). Лагерь собирает всех под знамя.`)
+    : (actualQty===1 ? `В гарнизон встал ещё один ${name}. Кузница не спит.` : `В гарнизон встало ${actualQty} новых бойцов (${name}). Кузница не спит.`), 'event');
   renderVillage();
   return actualQty;
 }
@@ -9781,9 +10055,11 @@ function refreshRecruitModal(resetToMax){
   const costText = Object.entries(cost).filter(([k,v])=>v>0).map(([k,v])=>v+iconOf(k)).join(' ');
   const summary = document.getElementById('recruit-summary');
   if(summary){
+    const placeStats = campaignRecruitsToField()
+      ? `<div class="unit-modal-stat"><span>В походе</span><b>⚔️ ${a}</b></div>`
+      : `<div class="unit-modal-stat"><span>Гарнизон</span><b>🏰 ${g}</b></div><div class="unit-modal-stat"><span>В походе</span><b>⚔️ ${a}</b></div>`;
     summary.innerHTML = `
-      <div class="unit-modal-stat"><span>Гарнизон</span><b>🏰 ${g}</b></div>
-      <div class="unit-modal-stat"><span>В походе</span><b>⚔️ ${a}</b></div>
+      ${placeStats}
       <div class="unit-modal-stat"><span>Атака / защита</span><b>${unitAtk(tier)} / ${unitDef(tier)}</b></div>
       <div class="unit-modal-stat"><span>Ход / тип</span><b>${info.speed || 3}${info.ranged?' 🏹':' ⚔️'}</b></div>`;
   }
@@ -9916,6 +10192,11 @@ function renderRecruitmentCenterModal(){
   clampRecruitmentDraftToBudget();
   const list = document.getElementById('recruitment-center-list');
   if(!list) return;
+  const note = document.getElementById('recruitment-center-note');
+  if(note) note.textContent = campaignRecruitsToField()
+    ? 'Выберите количество новобранцев. В походном лагере нет гарнизона: все нанятые бойцы сразу идут в армию героя.'
+    : 'Выберите количество новобранцев. Все нанятые бойцы сначала отправляются в гарнизон, а перевод в поход делается отдельно через управление войсками.';
+  document.querySelectorAll('.recruitment-transfer-action').forEach(btn=>{ btn.style.display = campaignRecruitsToField() ? 'none' : ''; });
   renderRecruitmentCenterSummary();
   list.innerHTML = [1,2,3,4,5,6].map(tier=>recruitmentCenterRowHtml(tier)).join('');
 }
@@ -9942,7 +10223,7 @@ function showInlineRecruitmentCenter(focusTier){
     <div class="recruitment-center-list" id="inline-recruitment-list">${[1,2,3,4,5,6].map(tier=>recruitmentCenterRowHtml(tier)).join('')}</div>
     <div class="inline-recruitment-actions">
       <button type="button" onclick="hireAllRecruitmentDraft()">Нанять выбранных</button>
-      <button class="secondary" type="button" onclick="openArmyTransferModal()">К управлению войсками</button>
+      ${campaignRecruitsToField() ? '' : '<button class="secondary" type="button" onclick="openArmyTransferModal()">К управлению войсками</button>'}
     </div>`;
   renderInlineRecruitmentSummary();
   if(focusTier){
@@ -9958,11 +10239,12 @@ function compactRecruitmentCenterRowHtml(tier, info, locked, maxQty, used, cap, 
   const rowClass = locked || maxQty<=0 ? ' locked' : '';
   const buyDisabled = qty>0 ? '' : 'disabled';
   const maxDisabled = maxQty>0 ? '' : 'disabled';
+  const countLine = campaignRecruitsToField() ? `⚔️ ${a} • неделя ${used}/${cap}` : `🏰 ${g} • ⚔️ ${a} • неделя ${used}/${cap}`;
   return `<div class="recruitment-center-row compact-recruit-row${rowClass}">
     <div class="recruitment-center-top">
       <div class="recruitment-center-unit">
         <span class="ico">${locked?'🔒':info.icon}</span>
-        <div><b>Ур.${tier} ${info.name}${info.ranged?' 🏹':''}</b><small>🏰 ${g} • ⚔️ ${a} • неделя ${used}/${cap}</small></div>
+        <div><b>Ур.${tier} ${info.name}${info.ranged?' 🏹':''}</b><small>${countLine}</small></div>
       </div>
       <span class="recruitment-center-meta">${costText(unitCost(tier))}</span>
     </div>
@@ -10084,6 +10366,10 @@ function openArmyTransferModalFromRecruit(){
   openArmyTransferModal();
 }
 function openArmyTransferModal(){
+  if(campaignRecruitsToField()){
+    showEventModal2({icon:'⛺', title:'Походный лагерь', text:'В походном лагере нет гарнизона. Все бойцы уже идут с героем, поэтому передавать войска некуда.', buttonLabel:'Понятно'});
+    return;
+  }
   ensureBaseArmyStacks();
   armyTransferDraft = {};
   for(let tier=1;tier<=6;tier++){
@@ -10205,37 +10491,45 @@ function renderGarrison(){
 function renderMarchingArmy(){
   const al = document.getElementById('army-list');
   if(!al) return;
+  const fieldOnly = campaignRecruitsToField();
   state.army.forEach(clearNeutralSlotIfNeeded);
   al.innerHTML = state.army.map(u=>{
     const info = troopInfoFor(u, state.race.id);
+    const recallButton = fieldOnly
+      ? '<button class="recruit-btn" disabled style="background:var(--ink-soft);">В походе</button>'
+      : `<button class="recruit-btn" ${u.count>0 && !u.neutralId?'':'disabled'} onclick="recallToGarrison(${u.tier})" style="background:var(--ink-soft);">${u.neutralId?'Наёмник':'⬅ В гарнизон'}</button>`;
     return `<div class="unit-row">
       <div class="unit-ico">${info.icon}</div>
       <div class="unit-info">
         <b>Ур.${u.tier} ${info.name}${info.ranged?' 🏹':''}</b>
         <span>в походе: x${u.count} • атк ${troopAtkFor(u)} / защ ${troopDefFor(u)}</span>
       </div>
-      <button class="recruit-btn" ${u.count>0 && !u.neutralId?'':'disabled'} onclick="recallToGarrison(${u.tier})" style="background:var(--ink-soft);">${u.neutralId?'Наёмник':'⬅ В гарнизон'}</button>
+      ${recallButton}
     </div>`;
   }).join('');
 }
 
 // Compact "who's marching with the hero right now" grid shown right under the hero card.
 function marchingArmyEntries(){
+  normalizeSupportHeroes();
   state.army.forEach(clearNeutralSlotIfNeeded);
   const units = state.army.filter(u=>u.count>0);
-  const aux = (state.auxArmy||[]).filter(u=>u.count>0);
+  const aux = (state.auxArmy||[]).filter(u=>u.count>0 || isSupportHeroUnit(u));
   const main = units.map(u=>{
     const info = troopInfoFor(u, state.race.id);
     return {tier:u.tier, count:u.count, name:info.name, icon:info.icon, ranged:!!info.ranged, aux:false};
   });
-  const extra = aux.map(u=>({tier:u.tier, count:u.count, name:u.name, icon:u.icon, ranged:!!u.ranged, aux:true}));
+  const extra = aux.map(u=>({
+    tier:u.tier, count:u.count, name:u.name, icon:u.icon, ranged:!!u.ranged, aux:true,
+    companion:isSupportHeroUnit(u), level:u.level || 1, recovering:!!u.recoveringUntil, recoveryText:supportHeroRecoveryText(u),
+  }));
   return main.concat(extra);
 }
 function heroArmyMiniHtml(entries){
   if(!entries.length) return '<p class="market-note" style="margin:0;">Отряд пуст — герой странствует один.</p>';
-  return entries.map(u=>`<div class="hero-army-mini-item" title="${u.aux?'Наёмники: ':''}Ур.${u.tier} ${u.name}${u.ranged?' 🏹':''}">
+  return entries.map(u=>`<div class="hero-army-mini-item ${u.companion?'companion':''} ${u.recovering?'recovering':''}" title="${u.companion?'Герой подмоги: ':u.aux?'Наёмники: ':''}Ур.${u.tier} ${u.name}${u.ranged?' 🏹':''}${u.recovering?' — восстановление '+u.recoveryText:''}">
     <span class="ico">${u.icon}</span>
-    <b>${u.count}</b>
+    <b>${u.companion ? (u.recovering ? u.recoveryText : `ур.${u.level}`) : u.count}</b>
   </div>`).join('');
 }
 function renderHeroArmyMini(){
@@ -10260,10 +10554,10 @@ function renderWorldHeroPanel(){
     armyEl.innerHTML = '<div class="world-army-empty">Отряд пуст — клетки карты больше не забиваются армией.</div>';
     return;
   }
-  armyEl.innerHTML = entries.map(u=>`<div class="world-army-cell" title="${u.aux?'Наёмники: ':''}Ур.${u.tier} ${u.name}${u.ranged?' 🏹':''}">
+  armyEl.innerHTML = entries.map(u=>`<div class="world-army-cell ${u.companion?'companion':''} ${u.recovering?'recovering':''}" title="${u.companion?'Герой подмоги: ':u.aux?'Наёмники: ':''}Ур.${u.tier} ${u.name}${u.ranged?' 🏹':''}${u.recovering?' — восстановление '+u.recoveryText:''}">
     <span class="ico">${u.icon}</span>
-    <b>${u.count}</b>
-    <small>${u.aux?'II':'ур.'+u.tier}</small>
+    <b>${u.companion ? (u.recovering ? u.recoveryText : `ур.${u.level}`) : u.count}</b>
+    <small>${u.companion?'герой':(u.aux?'II':'ур.'+u.tier)}</small>
   </div>`).join('');
 }
 
@@ -10448,15 +10742,19 @@ function renderHeroSheet(mode){
 function renderTroopOverview(){
   const tg = document.getElementById('troop-grid');
   if(!tg) return;
+  const fieldOnly = campaignRecruitsToField();
   tg.innerHTML = [1,2,3,4,5,6].map(tier=>{
     const info = unitInfo(state.race.id, tier);
     const g = baseGarrisonStack(tier).count;
     const a = baseArmyStack(tier).count;
     const locked = !isTierUnlocked(tier);
+    const countsHtml = fieldOnly
+      ? `<span class="tc-army">⚔️${a}</span>`
+      : `<span class="tc-garrison">🏰${g}</span><span class="tc-army">⚔️${a}</span>`;
     return `<div class="troop-cell ${locked?'locked':''}" onclick="showRecruitInfo(${tier})" title="Ур.${tier} ${info.name}${locked?' (закрыто, нужны казармы)':' — тап, чтобы нанять'}">
       <div class="troop-cell-ico">${locked?'🔒':info.icon}</div>
       <div class="troop-cell-name">Ур.${tier}</div>
-      <div class="troop-cell-counts"><span class="tc-garrison">🏰${g}</span><span class="tc-army">⚔️${a}</span></div>
+      <div class="troop-cell-counts">${countsHtml}</div>
     </div>`;
   }).join('');
 }
@@ -10540,6 +10838,19 @@ function renderGarrisonTabs(){
   const aList = document.getElementById('army-list');
   const hint = document.getElementById('garrison-tab-hint');
   if(!gBtn) return;
+  if(campaignRecruitsToField()){
+    const switcher = gBtn.closest('.tab-switch');
+    if(switcher) switcher.style.display = 'none';
+    if(gList) gList.style.display = 'none';
+    if(aList) aList.style.display = 'none';
+    if(hint){
+      hint.style.display = '';
+      hint.textContent = 'Походный лагерь не держит гарнизон: все нанятые бойцы сразу идут с героем.';
+    }
+    return;
+  }
+  const switcher = gBtn.closest('.tab-switch');
+  if(switcher) switcher.style.display = 'none';
   if(document.getElementById('inline-recruitment-center')){
     if(gList) gList.style.display = 'none';
     if(aList) aList.style.display = 'none';
@@ -10706,7 +11017,7 @@ function openAdventureLog(){
   openModal('modal-adventure-log');
 }
 
-/* ===================== TURN / EVENTS ===================== */
+/* ===================== 11. TURN / EVENTS ===================== */
 const TURN_EVENT_BASE_CHANCE = 0.42;
 const TURN_EVENT_MAX_CHANCE = 0.62;
 const POLITICAL_DECISION_BASE_CHANCE = 0.28;
@@ -10769,7 +11080,7 @@ const POLITICAL_DECISIONS = [
     id:'bad_harvest_petition',
     icon:'🌾',
     title:'Крестьяне жалуются на плохой урожай',
-    text:'Старосты пришли ко двору и деликатно сообщили, что амбары выглядят так, будто их уже ограбили бухгалтеры. Люди просят помощи, а стража предлагает “организовать энтузиазм”.',
+    text:'Старосты пришли ко двору и деликатно сообщили, что амбары выглядят так, будто их уже ограбили чьи-то прапорщики. Люди просят помощи, а стража предлагает “проявить гражданскую инициативу”.',
     weight:10,
     minDay:2,
     choices:[
@@ -10785,7 +11096,7 @@ const POLITICAL_DECISIONS = [
     weight:8,
     minDay:3,
     choices:[
-      {id:'save_people', label:'Спасать население', desc:'Потерять до 50 каждого ресурса на тушение, эвакуацию и восстановление. Зато люди запомнят, что их не обменяли на сундук.', effect:()=>{ const lost = loseAllResourcesUpTo(50); changeStability(3); return `${lost}, +3 стабильности`; }},
+      {id:'save_people', label:'Спасать население', desc:'Потерять до 50 каждого ресурса на тушение, эвакуацию и восстановление. Зато люди запомнят, что их не обменяли на звонкую монету.', effect:()=>{ const lost = loseAllResourcesUpTo(50); changeStability(3); return `${lost}, +3 стабильности`; }},
       {id:'save_treasury', label:'Спасать казну', desc:'Казна цела, но доверие к призывным спискам подгорело: недельный лимит найма временно снизится.', effect:()=>{ applyRecruitCapPenalty(7, 0.65, 'после пожара на главной улице'); changeStability(-2); return 'недельный лимит найма −35% на 7 дней, −2 стабильности'; }},
     ],
   },
@@ -10930,7 +11241,7 @@ function turnEventView(ev){
     bad_warehouse:{title:'Пропажа в амбаре', emoji:'📦', text:'В амбаре цитадели пропали припасы. Следопыты подозревают крыс, гномы подозревают следопытов.'},
     bad_deserters:{title:'Уставшие тропники', emoji:'🥾', text:'Несколько бойцов решили, что служба лесу прекрасна, но желательно где-нибудь ближе к дому.'},
     mixed_engineers:{title:'Мастера живой изгороди', emoji:'🏗️', text:'Бродячие мастера предложили укрепить цитадель. Они спорили о красоте, прочности и цене, причём цена победила.'},
-    mixed_recruits:{title:'Ватага у цитадели', emoji:'⚔️', text:'К воротам пришли наёмники. Дорого, зато держат строй и не путают энта с деревом вслух.'},
+    mixed_recruits:{title:'Ватага у цитадели', emoji:'⚔️', text:'К воротам пришли наёмники. Дорого, зато держат строй и не путают энта с обычным деревом.'},
     mixed_market:{title:'Торги на меновой площади', emoji:'📈', text:'Меновая площадь оживилась: купцы переписали цены, гномы перепроверили купцов, эльфы сделали вид, что это всё дипломатия.'},
     quiet:{title:'Тихая ночь', emoji:'🌙', text:'Ночь прошла спокойно. Лес молчал, стража дремала одним глазом, а казначей впервые не вздрогнул от шагов.'},
   };
@@ -11047,7 +11358,7 @@ function politicalDecisionView(decision){
       bad_harvest_petition:{
         icon:'🌾',
         title:'Гоблины жалуются на пустые котлы',
-        text:'К костру пришли старшие гоблины и деликатно сообщили, что котлы выглядят так, будто их уже ограбили бухгалтеры. Одни просят помощи, другие предлагают “организовать энтузиазм” дубинками.',
+        text:'К костру пришли старшие гоблины и деликатно сообщили, что котлы выглядят так, будто их уже ограбили бухгалтеры. Одни просят помощи, другие предлагают “проявить гражданскую инициативу” дубинками.',
         choices:{
           share_surplus:{label:'Раздать излишки', desc:'Потратить 40 золота, зато логово перестанет смотреть на вождя голодными глазами.'},
           mobilize_dissenters:{label:'Мобилизовать спорщиков', desc:'Четыре самых громких спорщика отправятся в походный отряд. Котлы не наполнились, но стало тише.'},
@@ -11276,6 +11587,7 @@ function runEndTurn(){
   }
   tickFactionMeterForNewDay();
   s.day++;
+  tickSupportHeroRecovery();
   activateScenarioCaptains();
 
   // one-time heads-up, exactly one turn before raids become possible
@@ -11645,7 +11957,8 @@ function openLeaderboard(){
   openModal('modal-leaderboard');
 }
 
-/* ===================== WORLD MAP ===================== */
+/* ===================== 12. WORLD MAP ===================== */
+/* World map rendering, camera, movement, fog, map objects and roaming enemy logic. */
 function openWorldMap(){
   ensureWorldState();
   showScreen('screen-worldmap');
@@ -11683,6 +11996,7 @@ function ensureWorldState(){
     restoreNorthFortStoryMarkers();
     ensureNorthFortUndeadEnemies();
     ensureNorthFortStoryMapSites();
+    ensureNorthFortScenarioChests();
   }
   const mapSitesNeedReroll = state.mode!=='campaign' && (!Array.isArray(state.mapSites) || state.mapSitesVersion !== MAP_SITE_VERSION || (state.mapSites||[]).some(s=>roadForSites.has(s.x+','+s.y)));
   if(mapSitesNeedReroll){
@@ -11693,6 +12007,7 @@ function ensureWorldState(){
   if(state.mode!=='campaign') sanitizeMapObjectPositions(state.worldMap, homePos, [state.resourcePickups, state.mapSites], {road:computeRoadTiles(), avoidRoad:true});
   state.exploredTiles = Array.isArray(state.exploredTiles) ? state.exploredTiles : [];
   state.adventureLog = Array.isArray(state.adventureLog) ? state.adventureLog : [];
+  normalizeSupportHeroes();
   ensureQuestState();
   ensurePoliticalDecisionState();
   ensureSettlementState();
@@ -12152,6 +12467,7 @@ function isTypingInEditable(target){
   const tag = String(target.tagName || '').toLowerCase();
   return tag==='input' || tag==='textarea' || target.isContentEditable;
 }
+/* ---- Developer helpers used by menu/world map. Bootstrap remains at the end of the file. ---- */
 function bindGlobalDevCodes(){
   if(document.body.dataset.globalDevCodesBound) return;
   document.body.dataset.globalDevCodesBound = '1';
@@ -12314,6 +12630,7 @@ let worldDrag = null;
 let worldDragSuppressClickUntil = 0;
 let worldCameraSnapTimer = null;
 let worldCameraSmoothTimer = null;
+let worldAltControlsOpen = false;
 // World-map side widgets (minimap/scout/loot/log/overview) are collapsed by default so they don't
 // clutter the view; each renders lazily, only while its panel is actually open.
 let worldWidgetOpen = {minimap:false, scout:false, loot:false, log:false, overview:false};
@@ -12329,6 +12646,24 @@ function refreshWorldOverviewSnapshot(){
   lastWorldVisible = new Set(snapshot.visible || []);
   lastWorldExplored = new Set(snapshot.explored || []);
   lastWorldViewport = clampWorldCamera();
+}
+function worldAltControlsActive(){
+  return !!(worldAltControlsOpen || (state && state.worldHeroSelected) || devTeleportArmed);
+}
+function updateWorldAltControlsUi(){
+  const wrap = document.querySelector('.worldmap-wrap');
+  const needed = !!((state && state.worldHeroSelected) || devTeleportArmed);
+  const active = worldAltControlsActive();
+  if(wrap) wrap.classList.toggle('alt-controls-open', active);
+  const btn = document.getElementById('world-alt-controls-btn');
+  if(btn){
+    btn.textContent = needed ? '🎮 Управление активно' : (worldAltControlsOpen ? '🎮 Скрыть управление' : '🎮 Управление');
+    btn.title = needed ? 'Стрелки показаны, пока выбран герой или включён режим разработчика' : (worldAltControlsOpen ? 'Скрыть стрелки камеры' : 'Показать стрелки камеры');
+  }
+}
+function toggleWorldAltControls(){
+  worldAltControlsOpen = !worldAltControlsOpen;
+  updateWorldAltControlsUi();
 }
 function toggleWorldWidget(name){
   Object.keys(worldWidgetOpen).forEach(k=>{
@@ -12743,6 +13078,7 @@ function renderWorldMap(){
     const safeRows = compact ? 1.05 : (viewport.h <= 8 ? 1.55 : 1.25);
     wrap.style.aspectRatio = viewport.w+'/'+(viewport.h + safeRows);
   }
+  updateWorldAltControlsUi();
   const grid = document.getElementById('worldmap-grid');
   grid.style.gridTemplateColumns = `repeat(${viewport.w},1fr)`;
   grid.style.gridTemplateRows = `repeat(${viewport.h},1fr)`;
@@ -12875,6 +13211,7 @@ function updateWorldTopbar(){
     endBtn.innerHTML = `<b class="turn-cost">${turn}</b><span>ход</span>`;
   }
   document.getElementById('day-pill-world').textContent = `📅 День ${state.day} • 🥾 ${state.movePoints}/${state.maxMovePoints}${compact ? campaignStatusShortText() : campaignStatusText()}`;
+  updateWorldAltControlsUi();
 }
 
 function updateHeroTokenPosition(){
@@ -13443,6 +13780,7 @@ function triggerWorldArrivalAt(p, finishMove){
   const rival = state.rivalHero && state.rivalHero.x===p.x && state.rivalHero.y===p.y ? state.rivalHero : null;
   if(rival){ finish(()=>triggerRivalEncounter()); return true; }
   if(maybeTriggerCampaignStoryAt(p)){ finish(); return true; }
+  if(maybeTriggerNorthFortRunawayBanner(p)){ finish(); return true; }
   const camp = state.camps.find(c=>c.x===p.x && c.y===p.y && !c.defeated && isScenarioCampActive(c));
   if(camp){ finish(()=>triggerCampBattle(camp.id)); return true; }
   const fort = (state.forts||[]).find(f=>f.x===p.x && f.y===p.y && !f.captured);
@@ -13616,6 +13954,8 @@ function startFortBattle(fort){
   startTacticalBattle(defs, {source:'fort', fortId:fort.id, wallLevel:fort.def.wallLevel || 3, introText:`Осада: ${fort.name}. Гарнизон закрывает ворота и готовится держать стены.`});
 }
 
+/* ===================== 13. BATTLE SYSTEM ===================== */
+/* Tactical battle routing, battle UI, spells, AI turns, results and post-battle sync. */
 function continueAfterBattle(){
   if(battle && (battle.meta.source==='quick_menu' || battle.meta.source==='quick_siege')){
     forceSaveNow();
@@ -14880,9 +15220,9 @@ function triggerMapSite(siteId){
     if(state.race && state.race.id==='undead'){
       const ghostInfo = unitInfo('undead', 4);
       addFactionArmyUnits(4, 1);
-      undeadNote = `\n\n${ghostInfo.icon} Нежить шепчет над камнем: «Твой путь не окончен». В армию поднят 1 ${ghostInfo.name.toLowerCase()}.`;
+      undeadNote = `\n\n${ghostInfo.icon} Некромант шепчет над камнем: «Твой путь не окончен». В армию поднят 1 ${ghostInfo.name.toLowerCase()}.`;
       addLog(`🪦 Могила предыдущего героя: +${gold}💰, поднят 1 ${ghostInfo.name}.`, 'event');
-      addAdventureLog(def.icon, def.name, `Найдено ${gold} золота. Нежить подняла одного ${ghostInfo.name.toLowerCase()}: «Твой путь не окончен».`, {type:'loot', x:site.x, y:site.y});
+      addAdventureLog(def.icon, def.name, `Найдено ${gold} золота. Некромант поднял одного ${ghostInfo.name.toLowerCase()}: «Твой путь не окончен».`, {type:'loot', x:site.x, y:site.y});
     } else {
       addLog(`🪦 Могила предыдущего героя: +${gold}💰, найден след будущего артефакта.`, 'event');
       addAdventureLog(def.icon, def.name, `Найдено ${gold} золота и след будущего артефакта.`, {type:'loot', x:site.x, y:site.y});
@@ -15072,7 +15412,7 @@ function maybeOfferDiplomacy(enemyDefs, meta){
   return true;
 }
 
-/* ===================== TACTICAL BATTLE ===================== */
+/* ===================== 13A. TACTICAL BATTLE ===================== */
 let battle = null;
 
 function buildStack(id, side, tier, count, opts){
@@ -15098,6 +15438,11 @@ function buildStack(id, side, tier, count, opts){
     id, side, tier, name, icon, count, originalCount: count,
     raceId: raceObj ? raceObj.id : null,
     temporary: !!opts.temporary,
+    isSupportHero: !!opts.isSupportHero,
+    companionId: opts.companionId || null,
+    companionLevel: opts.companionLevel || 0,
+    auxIndex: typeof opts.auxIndex === 'number' ? opts.auxIndex : null,
+    companionAbilityUsed: false,
     unitHpVal: hpEach, hp: count*hpEach,
     atk: stackAtk, def: stackDef,
     speed: Math.max(1, stackSpeed),
@@ -15190,6 +15535,7 @@ function makeTowerStack(id, x, y, side, wallLevel){
 
 function startTacticalBattle(enemyDefs, meta){
   if(maybeOfferDiplomacy(enemyDefs, meta)) return;
+  normalizeSupportHeroes();
   lastInspectedStackId = null;
   const cols = 8, rows = 6;
   const battleScene = meta.battleScene || '';
@@ -15209,9 +15555,19 @@ function startTacticalBattle(enemyDefs, meta){
   const playerStacks = sourceTroops.filter(u=>u.count>0).map(u=> buildStack('p'+u.tier, 'player', u.tier, u.count, u.neutralId
     ? {wallBonus, statBonus:playerStatBonus, name:u.name, icon:u.icon, atk:u.atk, def:u.def, unitHp:u.unitHp, ranged:u.ranged}
     : {raceObj: state.race, wallBonus, statBonus:playerStatBonus, warbandShamanActive}));
-  const auxStacks = (!isSiege && !isVassalRaid ? (state.auxArmy||[]) : []).filter(u=>u.count>0).map((u,i)=>{
+  const auxStacks = (!isSiege && !isVassalRaid ? (state.auxArmy||[]) : []).filter(u=>u.count>0 && !u.recoveringUntil).map((u,i)=>{
     const raceObj = RACES.find(r=>r.id===u.raceId) || state.race;
-    return buildStack('a'+i, 'player', u.tier, u.count, {raceObj, name:u.name, icon:u.icon, ranged:u.ranged});
+    const companion = isSupportHeroUnit(u);
+    const stats = companion ? supportHeroStats(u) : {};
+    return buildStack('a'+i, 'player', u.tier, u.count, {
+      raceObj, name:u.name, icon:u.icon, ranged:u.ranged,
+      atk:companion ? stats.atk : u.atk,
+      def:companion ? stats.def : u.def,
+      unitHp:companion ? stats.unitHp : u.unitHp,
+      speed:companion ? stats.speed : u.speed,
+      magicMod:companion ? stats.magicMod : u.magicMod,
+      isSupportHero:companion, companionId:u.companionId, companionLevel:u.level || 1, auxIndex:i,
+    });
   });
   if(isSiege){
     watchtowerSupportTroops().filter(u=>u.count>0).forEach(u=>{
@@ -15334,6 +15690,9 @@ function renderBattleField(){
           const sp = battle.selectedSpell;
           const isValidTarget = sp && sp.type==='heal' ? stack.side==='player' : stack.side==='enemy';
           if(isValidTarget) extra += ' bf-magic-target';
+        } else if(battle.companionAbilityMode){
+          const isValidTarget = battle.companionAbilityMode.abilityId==='heal' && stack.side==='player';
+          if(isValidTarget) extra += ' bf-magic-target';
         } else if(battle.attackableIds && battle.attackableIds.has(stack.id)) extra += ' bf-attackable';
         if(stack.acted) extra += ' bf-acted-mark';
         if(stack.waited) extra += ' bf-waited';
@@ -15346,7 +15705,8 @@ function renderBattleField(){
         const hpCls = hpPct>60 ? 'hp-high' : (hpPct>30 ? 'hp-mid' : 'hp-low');
         // HP bar renders as a sibling of .bf-stack (not nested inside it) so it stays anchored to
         // the actual grid cell instead of overflowing past the smaller stack box into the row below.
-        inner = `<div class="bf-stack bf-${stack.side}${extra}" onclick="event.stopPropagation();handleStackClick('${stack.id}')" title="${stack.name}: ${stack.hp}/${maxHp} HP">${stack.icon}<span class="bf-count">${stack.count}</span>${stack.acted?'<span class="bf-acted">✓</span>':''}${rangedMark}</div>`;
+        const stackKindClass = stack.isSupportHero ? ' bf-companion' : '';
+        inner = `<div class="bf-stack bf-${stack.side}${stackKindClass}${extra}" onclick="event.stopPropagation();handleStackClick('${stack.id}')" title="${stack.name}: ${stack.hp}/${maxHp} HP">${stack.icon}<span class="bf-count">${stack.isSupportHero ? '★' : stack.count}</span>${stack.acted?'<span class="bf-acted">✓</span>':''}${rangedMark}</div>`;
         hpBarHtml = `<div class="bf-hpbar"><div class="bf-hpbar-fill ${hpCls}" style="width:${hpPct}%"></div></div>`;
       }
       html += `<div class="${cellCls}" onclick="handleCellClick(${x},${y})">${inner}${hpBarHtml}</div>`;
@@ -15403,6 +15763,78 @@ function flashBattleMsg(text){
   el.textContent = text;
   setTimeout(()=>{ if(el.textContent===text) el.textContent=''; }, 2200);
 }
+function companionActionHtml(stack){
+  if(!stack || !stack.isSupportHero || stack.side!=='player') return '';
+  const magicDisabled = stack.acted || stack.companionAbilityUsed;
+  const magicOpen = battle && battle.companionMagicOpenId===stack.id;
+  const spellButtons = magicOpen ? `<div class="companion-action-row">
+    <button class="companion-action-btn" ${magicDisabled?'disabled':''} onclick="chooseCompanionAbility('${stack.id}','heal')">💚 Исцеление</button>
+    <button class="companion-action-btn" ${magicDisabled?'disabled':''} onclick="chooseCompanionAbility('${stack.id}','mana')">💠 Мана</button>
+  </div>` : '';
+  return `<div class="companion-action-row">
+    <button class="companion-action-btn" onclick="selectStack('${stack.id}')">⚔️ Атака</button>
+    <button class="companion-action-btn" ${magicDisabled?'disabled':''} onclick="openCompanionMagic('${stack.id}')">✨ Магия</button>
+  </div>${spellButtons}`;
+}
+function openCompanionMagic(stackId){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  const stack = battle.stacks.find(s=>s.id===stackId && s.alive && s.isSupportHero);
+  if(!stack) return;
+  if(stack.acted || stack.companionAbilityUsed){ flashBattleMsg('Герой подмоги уже действовал в этом раунде.'); return; }
+  battle.selectedId = stackId;
+  battle.companionMagicOpenId = battle.companionMagicOpenId===stackId ? null : stackId;
+  battle.companionAbilityMode = null;
+  renderBattleField();
+  flashBattleMsg(`${stack.icon} ${stack.name}: выберите приём.`);
+}
+function chooseCompanionAbility(stackId, abilityId){
+  if(!battle || battle.over || battle.phase!=='player') return;
+  const stack = battle.stacks.find(s=>s.id===stackId && s.alive && s.isSupportHero);
+  if(!stack) return;
+  if(stack.acted || stack.companionAbilityUsed){ flashBattleMsg('Герой подмоги уже действовал в этом раунде.'); return; }
+  if(abilityId==='mana'){
+    castCompanionAbility(stackId, abilityId, stack);
+    return;
+  }
+  battle.selectedId = stackId;
+  battle.companionMagicOpenId = stackId;
+  battle.companionAbilityMode = {casterId:stackId, abilityId};
+  battle.magicMode = false;
+  battle.selectedSpell = null;
+  renderBattleField();
+  flashBattleMsg('💚 Исцеление: выберите свой отряд.');
+}
+function finishCompanionAbility(caster){
+  caster.companionAbilityUsed = true;
+  caster.acted = true;
+  battle.companionAbilityMode = null;
+  battle.companionMagicOpenId = null;
+  deselectStack();
+  afterPlayerAction();
+}
+function castCompanionAbility(stackId, abilityId, target){
+  if(!battle || battle.over) return;
+  const caster = battle.stacks.find(s=>s.id===stackId && s.alive && s.isSupportHero);
+  if(!caster || caster.acted || caster.companionAbilityUsed) return;
+  const lvl = Math.max(1, caster.companionLevel || 1);
+  if(abilityId==='mana'){
+    const gain = 3 + Math.floor(lvl/2);
+    state.hero.mana = Math.min(getMaxMana(), (state.hero.mana || 0) + gain);
+    logBattle(`💠 ${caster.name} наполняет героя маной: +${gain}💠.`);
+    flashBattleMsg(`+${gain} маны герою.`);
+    finishCompanionAbility(caster);
+    return;
+  }
+  if(abilityId==='heal' && target && target.side==='player'){
+    const heal = 24 + lvl*8 + Math.floor(Math.random()*10);
+    const maxHp = target.originalCount * target.unitHpVal;
+    target.hp = Math.min(maxHp, target.hp + heal);
+    target.count = Math.max(target.count, Math.ceil(target.hp/target.unitHpVal));
+    logBattle(`💚 ${caster.name} исцеляет ${target.icon} ${target.name}: +${heal} HP.`);
+    playFx(target, 'heal');
+    finishCompanionAbility(caster);
+  }
+}
 
 // Persistent panel showing the tapped/selected unit's name, HP and stats — replaces relying on a
 // hover "title" tooltip, which mobile touch simply can't trigger. Prefers the selected stack, but
@@ -15411,13 +15843,13 @@ let lastInspectedStackId = null;
 function renderSelectedUnitInfo(){
   const box = document.getElementById('bf-selected-info');
   if(!box || !battle) return;
-  if(!isEnhancedBattleMode()){
-    box.style.display = 'none';
-    return;
-  }
   const id = battle.selectedId || lastInspectedStackId;
   const stack = id ? battle.stacks.find(s=>s.id===id && s.alive) : null;
   if(!stack){ box.style.display = 'none'; return; }
+  if(!isEnhancedBattleMode() && !stack.isSupportHero){
+    box.style.display = 'none';
+    return;
+  }
   const maxHp = stack.originalCount * stack.unitHpVal;
   const hpPct = maxHp>0 ? Math.max(0, Math.min(100, Math.round((stack.hp/maxHp)*100))) : 0;
   const hpCls = hpPct>60 ? 'hp-high' : (hpPct>30 ? 'hp-mid' : 'hp-low');
@@ -15437,7 +15869,7 @@ function renderSelectedUnitInfo(){
   box.innerHTML = `
     <div class="bf-si-icon">${stack.icon}</div>
     <div class="bf-si-body">
-      <span class="bf-si-name">${stack.name} ×${stack.count} <span style="font-weight:400;opacity:.7;">(${sideLabel}${stack.ranged?' • 🏹 дальний бой':''})</span></span>
+      <span class="bf-si-name">${stack.name} ×${stack.count} <span style="font-weight:400;opacity:.7;">(${stack.isSupportHero ? 'Герой подмоги' : sideLabel}${stack.ranged?' • 🏹 дальний бой':''}${stack.isSupportHero ? ` • ур.${stack.companionLevel || 1}` : ''})</span></span>
       <div class="bf-si-stats">
         <span>❤️ ${stack.hp}/${maxHp}</span>
         <span>⚔️ ${stack.atk}</span>
@@ -15448,6 +15880,7 @@ function renderSelectedUnitInfo(){
       </div>
       <div class="bf-si-hpbar"><div class="bf-si-hpbar-fill ${hpCls}" style="width:${hpPct}%"></div></div>
       ${preview}
+      ${companionActionHtml(stack)}
     </div>`;
 }
 
@@ -15509,6 +15942,7 @@ function handleCellClick(x,y){
   if(!battle || battle.over || battle.phase!=='player') return;
   const stack = battle.stacks.find(s=>s.alive && s.x===x && s.y===y);
   if(stack){ handleStackClick(stack.id); return; }
+  if(battle.companionAbilityMode){ flashBattleMsg('Выбери подсвеченный свой отряд для способности героя подмоги.'); renderBattleField(); return; }
   if(battle.magicMode){ flashBattleMsg('Выбери подсвеченный отряд-цель для заклинания.'); renderBattleField(); return; }
   if(!battle.selectedId) return;
   const key = terrainKey(x,y);
@@ -15528,6 +15962,15 @@ function handleStackClick(id){
   if(!stack || !stack.alive) return;
   lastInspectedStackId = id; // tapping any stack — even one you can't act on — shows its info for scouting
   if(stack.fleeing){ flashBattleMsg('Эти гоблины уже решили, что героизм переоценён.'); renderSelectedUnitInfo(); return; }
+  if(battle.companionAbilityMode){
+    const mode = battle.companionAbilityMode;
+    if(mode.abilityId==='heal' && stack.side==='player') castCompanionAbility(mode.casterId, mode.abilityId, stack);
+    else {
+      renderBattleField();
+      flashBattleMsg('Эта способность направляется только на свой отряд.');
+    }
+    return;
+  }
   if(battle.magicMode){
     const sp = battle.selectedSpell;
     const wantsOwn = sp.type==='heal';
@@ -15753,23 +16196,23 @@ const UNIT_JOKES = {
     6: ['Гвардеец бьёт строго по уставу — импровизация не поощряется.', 'Королевский гвардеец скучает по параду, но и бой сойдёт.'],
   },
   forestfolk: {
-    1: ['Гном-пехотинец врезается щитом так, будто спорит с дверью.', 'Гном держит строй, и строй явно боится его подвести.'],
-    2: ['Эльф-разведчик бьёт из тени и делает вид, что его тут не было.', 'Разведчик двигается тихо, зато результат звучит громко.'],
-    3: ['Топорщик отправляет топор в полёт с пугающим спокойствием.', 'Гномский топор летит по короткому, но убедительному маршруту.'],
+    1: ['Гном-пехотинец врезается щитом в врага так, будто спорит с дверью.', 'Гном держит строй, и строй явно боится его подвести.'],
+    2: ['Эльф-разведчик бьёт из тени тихо, неспеша.', 'Разведчик двигается тихо, зато результат звучит громко.'],
+    3: ['Топорщик отправляет топор в полёт с пугающим хладнокровием.', 'Гномский топор летит чётко "От подарка не убежишь!"'],
     4: ['Эльф-маг вплетает в удар лесной разряд.', 'Магия рощи звучит красиво, если слушать не со стороны цели.'],
-    5: ['Энт бьёт ветвью, и аргументы врага становятся значительно короче.', 'Древний ствол двигается медленно, но спорить с ним поздно.'],
-    6: ['Подземный змей вырывается снизу и портит врагу планы вместе с построением.', 'Змей уходит под землю, а противник внезапно теряет уверенность в полу.'],
+    5: ['Энт бьёт ветвью, и аргументы врага становятся значительно короче и глубже.', 'Древний ствол двигается медленно, но поспорить всё равно не успеешь.'],
+    6: ['Подземный змей вырывается снизу и портит врагу планы вместе с построением.', 'Змей уходит под землю, а противник внезапно теряет уверенность в земле под ногами.'],
   },
   orcs: {
-    1: ['Гоблин-резак бросается вперёд с энтузиазмом и сомнительной техникой.', 'Гоблин орёт так громко, что удар кажется сильнее.'],
-    2: ['Орк-дуболом решает проблему прямым ударом.', 'Дубина орка объясняет тактику без лишних слов.'],
+    1: ['Гоблин-резак бросается вперёд с сомнительной техникой ведения боя.', 'Гоблин орёт так громко, что удар кажется сильнее.'],
+    2: ['Орк-дуболом решает проблему прямым ударом.', 'Дубина орка без лишних слов.'],
     3: ['Пращник запускает камень и сам удивляется, что попал.', 'Гоблинский камень летит туда, где противнику уже неприятно.'],
-    4: ['Берсерк несётся вперёд, потому что тормоза в комплект не входили.', 'Орк-берсерк бьёт так, будто спор уже проигран, но враг ещё не понял.'],
+    4: ['Берсерк несётся вперёд, потому что тормоза в сделку не входили.', 'Орк-берсерк бьёт так, будто спор уже проигран, но врагу это нужно ещё донести.'],
     5: ['Шаман орды шепчет проклятие, похожее на плохой совет.', 'Шаман бьёт магией, пахнущей дымом и дурными решениями.'],
     6: ['Вождь на варге врывается в строй, оставляя дисциплину где-то позади.', 'Варг рычит, вождь орёт, враг пытается выбрать, кого бояться первым.'],
   },
   undead: {
-    1: ['Скелет спотыкается о собственные ноги, но упорно наступает.', 'Кости скелета дребезжат при каждом взмахе — а как иначе.'],
+    1: ['Скелет спотыкается о собственные ноги, но упорно наступает.', 'Кости скелета дребезжат при каждом взмахе — а как иначе?'],
     2: ['Зомби бьёт медленно, но верно, и совершенно не торопится.', 'Зомби что-то невнятно стонет — видимо, боевой клич.'],
     3: ['Стрела скелета-лучника летит с сухим скрипом, но метко.', 'Скелет-лучник целится пустыми глазницами — и почему-то не мажет.'],
     4: ['Призрак проходит сквозь строй и бьёт с неожиданной стороны.', 'Призрачный вой заставляет вздрогнуть даже видавших виды бойцов.'],
@@ -16338,12 +16781,30 @@ function syncRivalArmyFromBattle(){
 }
 function syncAuxArmyFromBattle(){
   if(!state || !battle || !Array.isArray(state.auxArmy)) return;
+  normalizeSupportHeroes();
+  const supportStacks = battle.stacks.filter(s=>s.side==='player' && !s.isStructure && s.isSupportHero);
+  const supportAlive = new Set(supportStacks.filter(s=>s.alive && s.count>0).map(s=>s.companionId));
+  const supportParticipated = new Set(supportStacks.map(s=>s.companionId));
   const byKey = new Map();
-  battle.stacks.filter(s=>s.side==='player' && !s.isStructure && s.id && s.id.startsWith('a') && s.alive).forEach(s=>{
+  battle.stacks.filter(s=>s.side==='player' && !s.isStructure && s.id && s.id.startsWith('a') && s.alive && !s.isSupportHero).forEach(s=>{
     const key = `${s.raceId||'aux'}|${s.tier}|${s.name}`;
     byKey.set(key, {tier:s.tier, count:(byKey.get(key)?.count||0)+s.count, raceId:s.raceId || 'humans', name:s.name, icon:s.icon, ranged:!!s.ranged});
   });
-  state.auxArmy = [...byKey.values()].filter(u=>u.count>0);
+  const support = (state.auxArmy||[]).filter(isSupportHeroUnit).map(u=>{
+    if(supportParticipated.has(u.companionId)){
+      if(supportAlive.has(u.companionId)){
+        u.count = 1;
+        delete u.recoveringUntil;
+      } else {
+        const def = supportHeroDef(u.companionId);
+        u.count = 0;
+        u.recoveringUntil = (state.day || 1) + Math.max(1, def?.recoveryDays || 3);
+        addLog(`${u.icon} ${u.name} развеян в бою и вернётся через ${Math.max(1, def?.recoveryDays || 3)} дн.`, 'combat');
+      }
+    }
+    return u;
+  });
+  state.auxArmy = [...byKey.values()].filter(u=>u.count>0).concat(support);
 }
 function applyRaidLootBonus(loot){
   const mult = raidLootMult();
@@ -16513,6 +16974,7 @@ function finishTacticalBattle(result){
     Object.entries(loot).forEach(([k,v])=>{ if(addRes(k,v) < v) lootOverflowed = true; });
     const xp = battle.meta.source==='dragon' ? 120 : (battle.meta.source==='fort' ? 60 : (battle.meta.source==='rival' ? 70 : (battle.meta.source==='campaignStory' ? 30 : 35)));
     grantXp(xp, 'field');
+    grantSupportHeroXp(xp);
     const raised = raiseNecromancyAfterWin();
     const necroHtml = raised>0 ? `<span class="loot-chip">+${raised}💀</span>` : '';
     const warbandJoin = maybeGrantWarbandVictoryGoblins(loot);
@@ -16558,12 +17020,14 @@ function finishTacticalBattle(result){
       if(battle.meta.storyId==='deadScouts'){
         subtitle = 'Павшие разведчики упокоены повторно. Пабло предпочёл не уточнять, засчитывается ли это как переработка.';
         battle.meta.afterStory = showDeadScoutsClue;
+		
       } else if(battle.meta.storyId==='entAmbush'){
         state.scenario = state.scenario || {};
         state.scenario.entAmbushDefeated = true;
         subtitle = 'Разъярённые деревья повержены. Пабло сделал вид, что это был научный эксперимент, а не паника с ветками.';
       } else if(battle.meta.storyId==='vampireCrypt'){
-        addScenarioAuxUnit({tier:4, count:1, raceId:'neutral', name:'Джинн', icon:'🧞', atk:12, def:7, unitHp:42, speed:4, ranged:true});
+        const hadGenie = (state.auxArmy||[]).some(u=>u.companionId==='genie' || u.name==='Джинн' || u.icon==='🧞');
+        addSupportHero('genie');
         subtitle = 'Лорд-вампир повержен, а в прахе нашлась старая лампа.';
         battle.meta.afterStory = ()=>showStoryEventModal({
           icon:'🧞',
@@ -16576,6 +17040,7 @@ function finishTacticalBattle(result){
             {kind:'text', text:'🧞 Джинн присоединился к отряду.'},
           ],
           buttonLabel:'В путь',
+          onClose:()=>{ if(!hadGenie) showSupportHeroIntro('genie'); },
         });
         addAdventureLog('🧞', 'Джинн из старой лампы', 'Лорд-вампир повержен, а из найденной лампы вышел джинн и присоединился к отряду.', {type:'event'});
       }
@@ -16683,11 +17148,12 @@ function closeBattleResultAndContinue(){
   flushModalActionQueue();
 }
 
-/* ===================== MODALS ===================== */
+/* ===================== 14. MODALS ===================== */
 function openModal(id){ document.getElementById(id).classList.add('active'); }
 function closeModal(id){ document.getElementById(id).classList.remove('active'); }
 
-/* ===================== INIT ===================== */
+/* ===================== 15. DEV / BOOTSTRAP ===================== */
+/* Page startup only: bind globals, render menu, initialize save system and safety autosaves. */
 bindGlobalDevCodes();
 renderMenu();
 showMainMenuOnBoot();
