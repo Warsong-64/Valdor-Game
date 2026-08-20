@@ -917,23 +917,36 @@
     .worldmap-hint{ font-size:.72em; line-height:1.25; margin-bottom:6px; }
     #screen-worldmap > .panel > .worldmap-hint{ display:none; }
     #screen-worldmap .worldmap-msg{ min-height:0; margin:0; }
-    .world-hero-strip{ left:5px; right:5px; top:5px; gap:5px; grid-template-columns:minmax(120px,.82fr) minmax(0,1.35fr); }
-    .world-hero-summary{ padding:6px; min-height:0; }
-    .world-army-strip{ min-height:38px; gap:4px; }
+    #screen-worldmap .topbar{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:5px; padding:5px; margin-bottom:6px; }
+    #screen-worldmap .res-pill{ grid-column:1 / 3; gap:4px; flex-wrap:nowrap; overflow:hidden; }
+    #screen-worldmap .res{ flex:1 1 0; justify-content:center; min-width:0; padding:2px 5px; font-size:.72em; }
+    #screen-worldmap .day-pill{ font-size:.7em; padding:4px 7px; white-space:normal; line-height:1.14; }
+    #screen-worldmap .topbar .actions{ justify-content:flex-end; flex-wrap:nowrap; }
+    #screen-worldmap #world-return-home-btn{ min-width:0; padding:6px 8px; }
+    #screen-worldmap .panel{ padding:5px; }
+    .world-hero-strip{ left:4px; right:auto; top:4px; width:min(72%, 260px); gap:0; grid-template-columns:1fr; }
+    .world-hero-summary{ padding:5px 7px; min-height:0; border-width:1px; }
+    .world-hero-summary .emoji{ font-size:1.55em; }
+    .world-hero-summary b{ font-size:.78em; }
+    .world-hero-summary span{ font-size:.66em; }
+    .world-army-strip{ display:none; }
     .world-army-cell{ min-width:34px; padding:3px 5px; }
     .world-army-cell .ico{ font-size:1.05em; }
     .world-army-cell b{ font-size:.68em; }
     .world-army-cell small{ font-size:.56em; }
-    .worldmap-nav{ gap:4px; margin:0; bottom:5px; max-width:calc(100% - 86px); }
-    .worldmap-nav .mini-btn{ min-width:34px; padding:6px 7px; }
-    .worldmap-wrap{ border-radius:8px; }
+    .worldmap-nav{
+      left:5px; right:auto; bottom:5px; transform:none; max-width:none; width:132px;
+      display:grid; grid-template-columns:repeat(3,40px); grid-template-rows:repeat(2,34px); gap:4px; justify-content:start;
+    }
+    .worldmap-nav .mini-btn{ min-width:0; min-height:34px; padding:4px 5px; font-size:.68em; }
+    .worldmap-wrap{ border-radius:8px; --worldmap-safe-top:48px; }
     .worldmap-grid{ gap:1px; }
     .wtile{ font-size:1.14em; }
     .camp-badge{ font-size:.48em; padding:0 2px; border-radius:4px; }
     .hero-token{ font-size:1.52em; }
-    .worldmap-underbar{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-top:6px; }
+    .worldmap-underbar{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; margin-top:6px; }
     .worldmap-underbar .mini-btn{ padding-left:4px; padding-right:4px; }
-    .world-field-actions{ right:5px; bottom:5px; }
+    .world-field-actions{ right:5px; bottom:5px; top:auto; transform:none; }
     .world-field-btn{ min-width:40px; max-width:72px; min-height:40px; padding:5px 6px; }
     .world-field-btn .turn-cost{ font-size:1em; }
     .legend{ font-size:.68em; line-height:1.25; margin-top:6px; }
@@ -974,9 +987,9 @@
   @media(max-width:380px){
     body{ font-size:14px; }
     .race-grid,.mode-grid,#screen-mode-select .mode-grid{ grid-template-columns:1fr; }
-    .worldmap-underbar{ grid-template-columns:1fr; }
-    .world-hero-strip{ grid-template-columns:1fr; }
-    .worldmap-nav{ left:5px; right:82px; transform:none; justify-content:flex-start; max-width:none; }
+    .worldmap-underbar{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .world-hero-strip{ grid-template-columns:1fr; width:min(74%, 246px); }
+    .worldmap-nav{ left:5px; right:auto; transform:none; justify-content:flex-start; max-width:none; }
     .battle-quickbar{ grid-template-columns:repeat(2,minmax(0,1fr)); }
     .topbar .actions{ justify-content:flex-start; }
   }
@@ -1830,7 +1843,7 @@
       <div class="worldmap-nav">
         <button class="mini-btn" onclick="panWorldCamera(0,-1)">↑</button>
         <button class="mini-btn" onclick="panWorldCamera(-1,0)">←</button>
-        <button class="mini-btn" onclick="centerWorldCameraOnHero()">К герою</button>
+        <button class="mini-btn" id="world-center-hero-btn" onclick="centerWorldCameraOnHero()">К герою</button>
         <button class="mini-btn" id="world-center-home-btn" onclick="centerWorldCameraOnCastle()">К замку</button>
         <button class="mini-btn" onclick="panWorldCamera(1,0)">→</button>
         <button class="mini-btn" onclick="panWorldCamera(0,1)">↓</button>
@@ -6250,6 +6263,11 @@ function campaignStatusText(){
   if(!state || !state.campaign || state.campaign.status!=='active') return '';
   const daysLeft = Math.max(0, (state.campaign.deadlineDay || state.day || 1) - (state.day || 1));
   return ` • 📜 ${state.campaign.title}: ${daysLeft} дн.`;
+}
+function campaignStatusShortText(){
+  if(!state || !state.campaign || state.campaign.status!=='active') return '';
+  const daysLeft = Math.max(0, (state.campaign.deadlineDay || state.day || 1) - (state.day || 1));
+  return ` • 📜 ${daysLeft} дн.`;
 }
 function returnToCampaignMenu(){
   forceSaveNow();
@@ -12360,8 +12378,8 @@ function toggleMinimapViewport(){
 }
 function worldViewportSize(){
   const width = window.innerWidth || 1024;
-  if(width <= 380) return {w: Math.min(WORLD_COLS, 7), h: Math.min(WORLD_ROWS, 7)};
-  if(width <= 640) return {w: Math.min(WORLD_COLS, 8), h: Math.min(WORLD_ROWS, 8)};
+  if(width <= 380) return {w: Math.min(WORLD_COLS, 8), h: Math.min(WORLD_ROWS, 8)};
+  if(width <= 640) return {w: Math.min(WORLD_COLS, 9), h: Math.min(WORLD_ROWS, 9)};
   if(width <= 900) return {w: Math.min(WORLD_COLS, 12), h: Math.min(WORLD_ROWS, 9)};
   return {w: Math.min(WORLD_COLS, 14), h: Math.min(WORLD_ROWS, 10)};
 }
@@ -12721,7 +12739,8 @@ function renderWorldMap(){
   bindWorldMapControls();
   const viewport = clampWorldCamera();
   if(wrap){
-    const safeRows = viewport.h <= 8 ? 1.55 : 1.25;
+    const compact = (window.innerWidth || 1024) <= 520;
+    const safeRows = compact ? 1.05 : (viewport.h <= 8 ? 1.55 : 1.25);
     wrap.style.aspectRatio = viewport.w+'/'+(viewport.h + safeRows);
   }
   const grid = document.getElementById('worldmap-grid');
@@ -12827,6 +12846,7 @@ function renderWorldMap(){
 
 function updateWorldTopbar(){
   const words = homeCultureWord();
+  const compact = (window.innerWidth || 1024) <= 520;
   const rp = document.getElementById('res-pill-world');
   rp.innerHTML = `
     <div class="res">💰 ${Math.floor(state.res.gold)}</div>
@@ -12835,11 +12855,18 @@ function updateWorldTopbar(){
     <div class="res">💎 ${Math.floor(state.res.crystal)}</div>
     ${factionMeterChipHtml()}
   `;
-  document.getElementById('day-pill-world').textContent = `📅 День ${state.day} • 🥾 Ходов: ${state.movePoints}/${state.maxMovePoints}${campaignStatusText()}`;
   const returnBtn = document.getElementById('world-return-home-btn');
   if(returnBtn) returnBtn.textContent = state.baseType === 'camp' ? '⛺ В лагерь' : `${words.icon} ${words.toCap}`;
+  const centerHeroBtn = document.getElementById('world-center-hero-btn');
+  if(centerHeroBtn){
+    centerHeroBtn.textContent = compact ? '⌖' : 'К герою';
+    centerHeroBtn.title = 'К герою';
+  }
   const centerBtn = document.getElementById('world-center-home-btn');
-  if(centerBtn) centerBtn.textContent = state.baseType === 'camp' ? 'К лагерю' : words.towardCap;
+  if(centerBtn){
+    centerBtn.textContent = compact ? (state.baseType === 'camp' ? '⛺' : words.icon) : (state.baseType === 'camp' ? 'К лагерю' : words.towardCap);
+    centerBtn.title = state.baseType === 'camp' ? 'К лагерю' : words.towardCap;
+  }
   const legend = document.getElementById('world-legend');
   if(legend) legend.innerHTML = `${words.icon} ${state.baseType === 'camp' ? 'Лагерь' : words.name}&nbsp; • &nbsp;⛰️🌊 Непроходимо&nbsp; • &nbsp;🌲 Лес&nbsp; • &nbsp;❄️ Зима&nbsp; • &nbsp;🏜️ Пески&nbsp; • &nbsp;💀🧔🧝 Лагеря&nbsp; • &nbsp;⬜ Серый фон — форт для захвата&nbsp; • &nbsp;🚩 ${politicsCultureWord().subjects}&nbsp; • &nbsp;Клик по клетке — описание объекта`;
   const endBtn = document.getElementById('world-end-turn-btn');
@@ -12847,6 +12874,7 @@ function updateWorldTopbar(){
     const turn = Math.max(1, state.day || 1);
     endBtn.innerHTML = `<b class="turn-cost">${turn}</b><span>ход</span>`;
   }
+  document.getElementById('day-pill-world').textContent = `📅 День ${state.day} • 🥾 ${state.movePoints}/${state.maxMovePoints}${compact ? campaignStatusShortText() : campaignStatusText()}`;
 }
 
 function updateHeroTokenPosition(){
